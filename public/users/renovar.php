@@ -36,7 +36,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
 if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id_user = $iduser;") <= 0){
     header("Location: ./");
 }
-insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `id_pedido` = '$id_del_pedido', `id_pago` = '$id_de_pago', `pagado_con` = '$tipo_de_pago', `updated_at` = '$fecha' WHERE `tokens_pays`.`token` = '$token'");
+insertar_datos_custom_mysqli("UPDATE tokens_pays SET id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = $id_token;");
 
 $consulta_fecha = consulta_mysqli_custom_all("SELECT DATE_ADD(expiracion, interval $meses month) FROM tokens_pays WHERE id = $id_token;");
 $nueva_fecha = $consulta_fecha["DATE_ADD(expiracion, interval $meses month)"];

@@ -144,6 +144,25 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $first_name = mysqli_real_escape_string($conexion, $_POST['nombre']);
                         $last_name = mysqli_real_escape_string($conexion, $_POST['apellidos']);
                         mysqli_close($conexion);
+                        
+                        $token = $_GET['token'];
+                        $id_de_pago = $_GET['payment_id'];
+                        $estado_de_pago = $_GET['status'];
+                        $tipo_de_pago = $_GET['payment_type'];
+                        $id_del_pedido = $_GET['merchant_order_id'];
+                        
+                        $id_user_pay= $_GET['usr'];
+                        $id_product= $_GET['prdct'];
+                        $meses= (int)$_GET['mut'];
+                        $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
+                        $id_token = $consula['id'];
+                        $fecha_creacion = new DateTime();
+                        $fecha_creacion->modify('+'.$meses.' months');
+                        $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
+                        
+                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Completado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', expiracion = '$fecha_final', usuario = '$username', correo = '$email', updated_at = '$fecha' WHERE id = $id_token");
+                        
+                        eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 
                         // Prepare POST query
                         $postvars = array(
@@ -172,23 +191,12 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
 
                         // Check result
                         if($answer == 0) {
-                            $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
-                            $id_token = $consula['id'];
-                            $fecha_creacion = new DateTime();
-                            $fecha_creacion->modify('+'.$meses.' months');
-                            $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
-
-                            insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `estado` = 'Completado', `id_pedido` = '$id_del_pedido', `id_pago` = '$id_de_pago', `pagado_con` = '$tipo_de_pago', `updated_at` = '$fecha' WHERE `tokens_pays`.`token` = '$token'");
-
-                            eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
-
-                            insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `expiracion` = '$fecha_final', `usuario` = '$username', `correo` = '$email' WHERE `tokens_pays`.`id` = $id_token");
                             ?>
                             <script type="text/javascript">
                                 window.location.href = "./";
                             </script>
                             <?php
-                        }elseif($answer == 4){
+                        }if($answer == 4){
                             echo "
                             <script>
                             Swal.fire(

@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.1.1
+-- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1
--- Tiempo de generación: 21-10-2022 a las 01:16:04
--- Versión del servidor: 10.4.22-MariaDB
--- Versión de PHP: 8.1.2
+-- Servidor: localhost:3306
+-- Tiempo de generación: 22-10-2022 a las 20:57:45
+-- Versión del servidor: 10.6.7-MariaDB-2ubuntu1.1
+-- Versión de PHP: 8.1.11
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `hestia`
+-- Base de datos: `admin_josstinger`
 --
 
 -- --------------------------------------------------------
@@ -96,7 +96,7 @@ CREATE TABLE `tokens_pays` (
   `estado` varchar(16) DEFAULT NULL,
   `id_user` bigint(21) NOT NULL,
   `id_servicio` bigint(21) NOT NULL,
-  `id_pedido` int(21) DEFAULT NULL,
+  `id_pedido` bigint(21) DEFAULT NULL,
   `id_pago` int(21) DEFAULT NULL,
   `pagado_con` text DEFAULT NULL,
   `usuario` varchar(255) DEFAULT NULL,
@@ -128,7 +128,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `id_rol`, `last_ip`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, '127.0.0.1', '2022-10-04 00:39:35', '2022-10-20 22:58:08');
+(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, '189.217.100.182', '2022-10-04 00:39:35', '2022-10-22 19:43:20');
 
 --
 -- Índices para tablas volcadas
