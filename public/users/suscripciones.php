@@ -16,6 +16,8 @@ if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser 
     header("Location: ./");
 }
 
+eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser && estado = 'Cancelado'");
+
 ?>
 
 <!DOCTYPE html>
@@ -67,7 +69,7 @@ if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser 
                                 
                             <?php
                             if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>=1){
-                            foreach (arreglo_consulta("SELECT tokens_pays.id, servicios.nombre, tokens_pays.created_at,tokens_pays.expiracion FROM servicios INNER JOIN tokens_pays ON servicios.id = tokens_pays.id_servicio WHERE id_user = $iduser;") as $row){?>
+                            foreach (arreglo_consulta("SELECT tokens_pays.id, servicios.nombre, tokens_pays.created_at,tokens_pays.expiracion FROM servicios INNER JOIN tokens_pays ON servicios.id = tokens_pays.id_servicio WHERE id_user = $iduser ORDER BY id DESC;") as $row){?>
                             <tr class="table-primary" >
                                 <td scope="row"><?php echo $row['id']; ?></td>
                                 <td><?php echo $row['nombre']; ?></td>

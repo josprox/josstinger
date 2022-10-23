@@ -12,7 +12,13 @@
                         <a class="nav-link <?php if($pagina == "index.php"){ echo "active"; } ?>" href="./" aria-current="page">Inicio</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="suscripciones">Suscripciones</a>
+                        <a class="nav-link <?php if($pagina == "suscripciones.php"){ echo "active"; } ?>" href="suscripciones">Suscripciones</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "contratar.php"){ echo "active"; } ?>" href="contratar">Contratar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "cuenta.php"){ echo "active"; } ?>" href="cuenta">Mi cuenta</a>
                     </li>
                 </ul>
                 <div class="flex_center">

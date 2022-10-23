@@ -12,10 +12,6 @@ $iduser = $_SESSION['id_usuario'];
 
 $row = consulta_mysqli_where("name","users","id",$iduser);
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Completado';") >= 1){
-    header("Location: ./");
-}
-
 ?>
 
 <!DOCTYPE html>
@@ -29,30 +25,9 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser &
 </head>
 <body>
 
-<?php
-if (isset($_POST['eliminar'])){
-    $conexion = conect_mysqli();
-    $id = mysqli_real_escape_string($conexion, $_POST['txtID']);
-    mysqli_close($conexion);
-    eliminar_datos_con_where("tokens_pays","id_user",$id);
-    echo eliminar_cuenta($id,"users","../");
-    
-  }
-?>
+    <?php navbar_users(); ?>
 
-    <section class="bienvenida">
-        <div class="contenedor">
-            <h2 class="text-center text-shadow-black">Hola <?php echo $row['name']; ?></h2>
-            <hr>
-            <h3 class="text-center">Bienvenido al panel de control de <?php echo $_ENV['NAME_APP']; ?></h3>
-            <center>
-                <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
-                    <input type="hidden" name="txtID" id="txtID" value="<?php echo $iduser; ?>">
-                    <button type="submit" name="eliminar" class="btn btn-danger">Eliminar datos de mi cuenta</button>
-                </form>
-            </center>
-        </div>
-    </section>
+    <?php include (__DIR__ . "../../../routes/hestia/bienvenida.php") ?>
 
     <section class="contenedor">
 

@@ -19,7 +19,7 @@
                             <a class="btn btn-dark" target="_blank" rel="noopener noreferrer" href="https://www.ionos.mx/dominios/registro-de-dominios">Comprar dominio (ionos)</a>
                         </div>
                         <div>
-                            <a class="btn btn-link" href="#">Más sugerencias</a>
+                            <a class="btn btn-link" target="_blank" rel="noopener noreferrer" href="https://www.cloudflare.com/es-es/products/registrar/">Más sugerencias (Cloudflare)</a>
                         </div>
                     </div>
                 </div>
