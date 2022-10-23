@@ -1,0 +1,303 @@
+* {
+  transition: 0.2s all !important;
+}
+*::-webkit-scrollbar {
+  width: 12px;
+  background: rgb(245, 93, 165);
+  background: linear-gradient(180deg, rgb(245, 93, 165) 0%, rgb(221, 124, 210) 50%, rgb(0, 255, 179) 100%);
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(240, 137, 103);
+  background: linear-gradient(0deg, rgb(240, 137, 103) 0%, rgb(247, 205, 107) 50%, rgb(221, 228, 110) 100%);
+  border-radius: 8px;
+}
+
+body {
+  background-color: #8EC5FC;
+  background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+img {
+  -o-object-fit: cover;
+     object-fit: cover;
+  display: block;
+  margin: auto;
+}
+
+button {
+  border: none;
+}
+
+.contenedor {
+  display: block;
+  margin: 8px auto;
+  padding: 10px;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+@media screen and (min-width: 210px) {
+  .contenedor {
+    width: 98%;
+  }
+}
+@media screen and (min-width: 620px) {
+  .contenedor {
+    width: 96%;
+  }
+}
+@media screen and (min-width: 800px) {
+  .contenedor {
+    width: 92%;
+  }
+}
+@media screen and (min-width: 1020px) {
+  .contenedor {
+    width: 90%;
+  }
+}
+
+.text-justify {
+  text-align: justify;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.flex_center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+}
+
+.flex_start {
+  display: flex;
+  flex-direction: column;
+  border-radius: 12px;
+}
+
+.navbar-transparent {
+  background-color: rgba(0, 0, 0, 0.5);
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+}
+.navbar-transparent .navbar-toggler {
+  border: none;
+  color: #212529;
+}
+.navbar-transparent .navbar-toggler:focus {
+  color: #fff;
+  border: none;
+}
+.navbar-transparent .navbar-toggler:active {
+  color: #fff;
+  border: none;
+}
+.navbar-transparent .navbar-nav .dropdown-menu {
+  background-color: rgba(0, 0, 0, 0.5);
+}
+.navbar-transparent .navbar-nav .dropdown-menu .dropdown-item {
+  color: #fff;
+}
+.navbar-transparent .navbar-nav .dropdown-menu .dropdown-item:hover {
+  background-color: #198754;
+  color: #fff;
+}
+.navbar-transparent .navbar-brand {
+  color: #fff;
+  padding-top: var(--bs-navbar-brand-padding-y);
+  padding-bottom: var(--bs-navbar-brand-padding-y);
+  margin-right: var(--bs-navbar-brand-margin-end);
+  font-size: var(--bs-navbar-brand-font-size);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.navbar-transparent .nav-link {
+  color: #fff;
+  border-radius: 8px;
+  padding: 6px;
+}
+.navbar-transparent .nav-link:hover {
+  background-color: #282b3a;
+}
+
+.form-check-input {
+  border: none;
+}
+.form-check-input:focus {
+  border: none;
+}
+.form-check-input:active {
+  border: none;
+}
+.form-check-input:hover {
+  border: none;
+}
+
+.check {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  grid-template-areas: "login" "register" "reset";
+}
+@media screen and (min-width: 600px) {
+  .check {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "login register" "reset reset";
+  }
+}
+.check .boton_login {
+  grid-area: login;
+  margin: 12px 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: #8EC5FC;
+}
+.check .boton_register {
+  grid-area: register;
+  margin: 12px 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: var(--bs-pink);
+  color: var(--bs-white);
+}
+.check .boton_reset {
+  grid-area: reset;
+  margin: 12px 8px;
+  padding: 8px;
+  border-radius: 12px;
+  background-color: #282b3a;
+  color: var(--bs-white);
+}
+
+.grid_1_auto {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  margin: 12px 8px;
+  padding: 8px;
+}
+
+.grid_2_auto {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  margin: 12px 8px;
+  padding: 8px;
+}
+@media screen and (min-width: 600px) {
+  .grid_2_auto {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.grid_3_auto {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  margin: 12px 8px;
+  padding: 8px;
+}
+@media screen and (min-width: 600px) {
+  .grid_3_auto {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media screen and (min-width: 800px) {
+  .grid_3_auto {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.text-shadow-white {
+  text-shadow: white 0.1em 0.1em 0.2em;
+}
+
+.text-shadow-black {
+  text-shadow: black 0.1em 0.1em 0.2em;
+}
+
+.forms {
+  display: flex;
+  flex-direction: column;
+  align-items: space-between;
+  justify-content: center;
+}
+.forms div > input {
+  border: none;
+  border-radius: 12px;
+  border-bottom: 1.5px #000 solid;
+  padding: 6px;
+  background-color: rgba(0, 0, 0, 0.2);
+  color: var(--bs-white);
+  transition: 0.2s all;
+}
+.forms div > input:focus {
+  outline: none;
+  background-color: #dfe;
+  border: 0;
+  border-bottom: 2px #000 solid;
+  color: var(--bs-black);
+}
+
+.btn {
+  min-width: 60px;
+  width: auto;
+  border-radius: 12px;
+  color: #fff;
+  transition: 0.2s all;
+}
+
+.login_register {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  background-color: rgba(0, 0, 0, 0.2);
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(25px, auto);
+  grid-template-areas: "prest" "form";
+}
+.login_register .form {
+  grid-area: form;
+  margin: 12px 8px;
+  padding: 8px;
+  background-color: #fff;
+  border-radius: 12px;
+  width: auto;
+}
+.login_register .presentacion {
+  grid-area: prest;
+  margin: 12px 8px;
+  padding: 8px;
+  background-color: #85FFBD;
+  background-image: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
+  border-radius: 12px;
+  width: auto;
+}
+.login_register .presentacion img {
+  width: 150px;
+  height: 150px;
+}
+@media screen and (min-width: 800px) {
+  .login_register {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "form form prest";
+  }
+}
+
+#login {
+  display: block;
+}
+
+#register, #reset {
+  display: none;
+}/*# sourceMappingURL=hestia.css.map */

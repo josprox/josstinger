@@ -1,0 +1,14 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: SpaceMono-Bold
+font link: https://fonts.google.com/specimen/Space+Mono
+font author: Colophon
+font author site: https://www.colophon-foundry.org/
+
+
+icon designer: Tommy Lau
+icon designer link: /lch121
+        
+{"bg-gradient-0":"#122663","bg-gradient-1":"#5DD7AD","font":"#ffffff","icon":"#ffffff","slogan":"#ffffff"}
+      

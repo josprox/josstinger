@@ -1,0 +1,115 @@
+*{
+    transition: .2s all !important;
+}
+body{
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+img{
+    object-fit: cover;
+    display:block;
+    margin:auto;
+}
+button{
+    border: none;
+}
+.contenedor{
+    display: block;
+    margin: 8px auto;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+
+    @media screen and (min-width: 210px) {
+        &{
+            width: 98%;
+        }
+    }
+    @media screen and (min-width: 620px) {
+        &{
+            width: 96%;
+        }
+    }
+    @media screen and (min-width: 800px) {
+        &{
+            width: 92%;
+        }
+    }
+    @media screen and (min-width: 1020px) {
+        &{
+            width: 90%;
+        }
+    }
+}
+.text-justify{
+    text-align: justify;
+}
+.text-center{
+    text-align: center;
+}
+.flex_center{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+.capsula{
+    min-width: 150px;
+    width: 100%;
+    padding: 5px;
+    margin: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.flex_start{
+    display: flex;
+    flex-direction: column;
+    border-radius: 12px;
+}
+
+.text-shadow-white{
+    text-shadow: white 0.1em 0.1em 0.2em;
+}
+.text-shadow-black{
+    text-shadow: black 0.1em 0.1em 0.2em;
+}
+
+.grid_1_auto{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+}
+
+.grid_2_auto{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+    @media screen and (min-width: 600px) {
+        &{
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+}
+
+.grid_3_auto{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+    @media screen and (min-width: 600px) {
+        &{
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media screen and (min-width: 800px) {
+        &{
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+}
