@@ -60,6 +60,7 @@
             <a class="dropdown-item" href="navbar"><i class="fa-solid fa-file-arrow-up"></i> Navbar global</a>
             <a class="dropdown-item" href="navbar_admin"><i class="fa-solid fa-file-arrow-up"></i> Navbar del administrador</a>
             <a class="dropdown-item" href="correo_recibir"><i class="fa-solid fa-envelope"></i> Probar recibir correos</a>
+            <a class="dropdown-item" href="sitemap"><i class="fa-solid fa-signs-post"></i> Generar un sitemap</a>
           </div>
         </li>
         <?php

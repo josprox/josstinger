@@ -357,6 +357,16 @@ function login_admin($login_email,$login_password,$table_DB,$location){
             
 }
 
+function cookie_session($sesion,$localizacion_admin,$localizacion_users){
+    $consulta = consulta_mysqli_where("id_rol","users","id",$sesion);
+    $resultado = $consulta["id_rol"];
+    if ($resultado == 1 OR $resultado == 2 OR $resultado == 4){
+        header("Location: $localizacion_admin");
+    }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
+        header("Location: $localizacion_users");
+    }
+}
+
 function login_cookie($table_DB){
     $conexion = conect_mysqli();
     if (isset($_COOKIE['COOKIE_INDEFINED_SESSION'])) {
@@ -811,6 +821,7 @@ if ($_ENV['PLUGINS'] == 1){
     if($_ENV['MERCADO_PAGO'] == 1){
         include (__DIR__ . "/plugins/mercado_pago/sdk.php");
     }
+
 }
 
 // Podrás crear tus propios Jossitos en el achivo mis_jossitos.php en la carpeta config.

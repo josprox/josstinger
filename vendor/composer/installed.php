@@ -5,7 +5,7 @@
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
-        'reference' => '7ce7ffe8d8f1ff276da647575ada1b18b36bbc52',
+        'reference' => 'ff123429bafc6d32abed7c8174efe0cebbac30b9',
         'name' => '__root__',
         'dev' => true,
     ),
@@ -16,7 +16,7 @@
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
-            'reference' => '7ce7ffe8d8f1ff276da647575ada1b18b36bbc52',
+            'reference' => 'ff123429bafc6d32abed7c8174efe0cebbac30b9',
             'dev_requirement' => false,
         ),
         'doctrine/annotations' => array(
@@ -62,6 +62,15 @@
             'install_path' => __DIR__ . '/../doctrine/persistence',
             'aliases' => array(),
             'reference' => '05612da375f8a3931161f435f91d6704926e6ec5',
+            'dev_requirement' => false,
+        ),
+        'evert/sitemap-php' => array(
+            'pretty_version' => '1.2.0',
+            'version' => '1.2.0.0',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../evert/sitemap-php',
+            'aliases' => array(),
+            'reference' => 'be07a062943401067bf0ba62710ca733c838bc24',
             'dev_requirement' => false,
         ),
         'graham-campbell/result-type' => array(

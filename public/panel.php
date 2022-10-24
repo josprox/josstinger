@@ -3,10 +3,11 @@
 include (__DIR__ . "/../jossecurity.php");
 
 if (isset($_SESSION['id_usuario'])) {
-    header("Location: ./admin/");
+    $id_user_session = $_SESSION['id_usuario'];
+    cookie_session($id_user_session,"./admin/","./users/");
 }
 
-login_cookie("users");
+login_cookie("users"); 
 
 if (file_exists("./../installer.php")){
     unlink('./../installer.php');

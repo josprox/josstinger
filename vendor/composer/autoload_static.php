@@ -103,6 +103,16 @@ class ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c
         ),
     );
 
+    public static $prefixesPsr0 = array (
+        'S' => 
+        array (
+            'SitemapPHP' => 
+            array (
+                0 => __DIR__ . '/..' . '/evert/sitemap-php/src',
+            ),
+        ),
+    );
+
     public static $classMap = array (
         'Attribute' => __DIR__ . '/..' . '/symfony/polyfill-php80/Resources/stubs/Attribute.php',
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
@@ -117,6 +127,7 @@ class ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c::$prefixDirsPsr4;
+            $loader->prefixesPsr0 = ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c::$prefixesPsr0;
             $loader->classMap = ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c::$classMap;
 
         }, null, ClassLoader::class);
