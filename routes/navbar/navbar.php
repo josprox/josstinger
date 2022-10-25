@@ -1,19 +1,30 @@
 <?php $pagina = nombre_de_pagina(); ?>
-<nav class="navbar navbar-expand-lg navbar-dark ftco_navbar bg-dark ftco-navbar-light" id="ftco-navbar">
-	    <div class="container">
-	      <a class="navbar-brand" href="./"><?php echo $_ENV['NAME_APP']; ?></a>
-	      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#ftco-nav" aria-controls="ftco-nav" aria-expanded="false" aria-label="Toggle navigation">
-	        <span class="oi oi-menu"></span> Menú
-	      </button>
 
-	      <div class="collapse navbar-collapse" id="ftco-nav">
-	        <ul class="navbar-nav ml-auto">
-	          <li class="nav-item <?php if($pagina == "index.php"){ echo "active"; } ?>"><a href="./" class="nav-link">Inicio</a></li>
-	          <li class="nav-item <?php if($pagina == "hosting.php"){ echo "active"; } ?>"><a class="nav-link" href="hosting">Hosting</a></li>
-	          <li class="nav-item <?php if($pagina == "about.php"){ echo "active"; } ?>"><a href="about" class="nav-link">Acerca de</a></li>
-	          <li class="nav-item <?php if($pagina == "contact.php"){ echo "active"; } ?>"><a href="contact" class="nav-link">Contacto</a></li>
-	          <li class="nav-item cta"><a href="panel" class="nav-link"><span>Acceder</span></a></li>
-	        </ul>
-	      </div>
-	    </div>
-	  </nav>
+	  <nav class="navbar navbar-expand-sm fixed-top navbar_dashboard">
+          <div class="container">
+            <a class="navbar-brand" href="#">Josstinger</a>
+            <button class="navbar-toggler-custom  d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+            <div class="collapse navbar-collapse" id="collapsibleNavId">
+                <ul class="navbar-nav me-auto mt-2 mt-lg-0 ">
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "index.php"){ echo "active"; } ?>" href="./" aria-current="page">Inicio</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "hosting.php"){ echo "active"; } ?>" href="hosting">Hosting</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "about.php"){ echo "active"; } ?>" href="about">Acerca de</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link <?php if($pagina == "contact.php"){ echo "active"; } ?>" href="contact">Contacto</a>
+                    </li>
+                </ul>
+                <form class="d-flex my-2 my-lg-0" action="" method="post">
+                    <button class="btn btn-outline-light my-2 my-sm-0" style="width: 100%;" name ="salir" type="submit">Iniciar sesión</button>
+                </form>
+            </div>
+      </div>
+    </nav>

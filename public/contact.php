@@ -1,55 +1,35 @@
 <?php
-
 include (__DIR__ . "/../jossecurity.php");
-
 ?>
 <!DOCTYPE html>
 <html lang="es-MX">
-  <head>
-    <title><?php echo $nombre_app; ?> - Contacto</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Josstinger - El hosting que tú necesitas</title>
     <meta name="description" content="Contacta a <?php echo $nombre_app; ?> de una manera fácil y segura, te atenderemos lo más rápido posible.">
     <?php head(); ?>
-  </head>
-  <body>
-    
-	  <?php navbar(); ?>
+</head>
+<body>
 
-    <section class="home-slider owl-carousel">
-      <div class="slider-item bread-item" style="background-image: url(../resourses/images/bg_1.jpg);" data-stellar-background-ratio="0.5">
-        <div class="overlay"></div>
-        <div class="container-fluid">
-          <div class="row slider-text align-items-center justify-content-center" data-scrollax-parent="true">
+    <?php navbar(); ?>
 
-            <div class="col-md-8 mt-5 text-center col-sm-12 ftco-animate" data-scrollax=" properties: { translateY: '70%' }">
-              <p class="breadcrumbs" data-scrollax="properties: { translateY: '30%', opacity: 1.6 }"><span class="mr-2"><a href="./">Inicio</a></span> <span>Contacto</span></p>
-	            <h1 class="mb-3 bread" data-scrollax="properties: { translateY: '30%', opacity: 1.6 }">Contacto</h1>
+    <section class="secction">
+        <img src="../resourses/img/backgroud/pexels-manuel-geissinger-325229.jpg" class="filtro" alt="">
+        <div class="encima">
+            <div class="contenedor">
+                <div class="grid_1_auto">
+                    <div class="contenido">
+                        <p>Inicio <i class="fa-solid fa-arrow-right-long"></i> <a href="contact">Contacto</a></p>
+                        <h1 class="text-shadow-black text-center">Contacto</h1>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </section>
-  
-    <section class="ftco-section contact-section ftco-degree-bg">
-      <div class="container">
-        <div class="row d-flex mb-5 contact-info">
-          <div class="col-md-12 mb-4">
-            <h2 class="h4">Formas de contacto</h2>
-          </div>
-          <div class="w-100"></div>
-          <div class="col-md-3">
-            <p><span>Celular:</span> <a href="tel://5540373610">+52 5540373610</a></p>
-          </div>
-          <div class="col-md-3">
-            <p><span>Email:</span> <a href="mailto:<?php echo $_ENV['SMTP_USERNAME']; ?>"><?php echo $_ENV['SMTP_USERNAME']; ?></a></p>
-          </div>
-          <div class="col-md-3">
-            <p><span>Sitio web</span> <a href="https://<?php echo $_ENV['DOMINIO']; ?>/contact">https://<?php echo $_ENV['DOMINIO']; ?>/contact</a></p>
-          </div>
-        </div>
 
-        <?php
+    <?php
         if(isset($_POST['contacto'])){
           $conexion = conect_mysqli();
           $nombre = (string)mysqli_real_escape_string($conexion, $_POST['nombre']);
@@ -68,32 +48,58 @@ include (__DIR__ . "/../jossecurity.php");
       </script>
           ";
         }
-        ?>
+    ?>
 
-            <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
-              <div class="col-auto">
-                  <input name="nombre" type="text" class="form-control" placeholder="Pon tu nombre">
-              </div>
-              <div class="col-auto">
-                <input name="correo" type="text" class="form-control" placeholder="Pon tu correo">
-              </div>
-              <div class="col-auto">
-                <input name="asunto" type="text" class="form-control" placeholder="¿cuál es tu asunto?">
-              </div>
-              <div class="col-auto">
-                <label>Pon tu mensaje</label>
-                <textarea name="mensaje" class="textarea"></textarea>
-                <br>
-                <center>
-                  <input name="contacto" type="submit" value="Enviar correo" class="btn btn-primary py-3 px-5">
-                </center>
-              </div>
-            </form>
+    <section class="contenedor">
+      <div class="contacto_form">
+        <div class="contacto_form_text">
+          <h2>Formas de contacto</h2>
+          <ul>
+            <li><a href="tel:+52 5540373610"><i class="fa-solid fa-phone"></i> +52 5540373610</a></li>
+            <li><a href="mailto:joss@int.josprox.com"><i class="fa-regular fa-envelope"></i> joss@int.josprox.com</a></li>
+            <li><a href="http://josprox.ovh/contact"> Sitio web: josprox.ovh/contact</a></li>
+          </ul>
+        </div>
+        <div class="contacto_form_form">
+          <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre</label>
+              <input type="text"
+                  class="form-control form-control-sm" name="nombre" id="nombre" aria-describedby="nombre" placeholder="Pon tu nombre">
+              <small id="nombre" class="form-text text-muted">Pon tu nombre para identificarte</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="correo" class="form-label">Correo</label>
+              <input type="email"
+                  class="form-control form-control-sm" name="correo" id="correo" aria-describedby="correo" placeholder="Pon tu correo">
+              <small id="correo" class="form-text text-muted">Necesitamos tu correo para poder contactarte</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="asunto" class="form-label">Asunto</label>
+              <input type="text"
+                  class="form-control form-control-sm" name="asunto" id="asunto" aria-describedby="asunto" placeholder="Pon el asunto">
+              <small id="asunto" class="form-text text-muted">Ayudanos a saber qué necesitas</small>
+            </div>
+
+            <div class="mb-3">
+              <label for="mensaje" class="form-label">Pon tu mensaje</label>
+              <textarea class="textarea" name="mensaje" id="mensaje" rows="3"></textarea>
+            </div>
+
+            <br>
+            <center>
+              <input name="contacto" type="submit" value="Enviar correo" class="btn btn-primary py-3 px-5">
+            </center>
+            
+          </form>
+        </div>
       </div>
     </section>
 
     <?php footer(); ?>
     
-  </body>
+</body>
 </html>

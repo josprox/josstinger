@@ -1,7 +1,10 @@
+@charset "UTF-8";
+@import "color";
 *{
     transition: .2s all !important;
 }
 body{
+    background-color: $color-esqueleto;
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -15,6 +18,17 @@ img{
 button{
     border: none;
 }
+$i:1;
+@while $i <=10 {
+
+    .z-index-#{$i} {
+		z-index: 1 * $i;
+	}
+
+	$i: $i + 1;
+    
+}
+
 .contenedor{
     display: block;
     margin: 8px auto;
@@ -85,6 +99,13 @@ button{
     padding: 8px;
 }
 
+.grid_1{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+}
+
 .grid_2_auto{
     display: grid;
     grid-template-columns: repeat(1, 1fr);
@@ -95,6 +116,12 @@ button{
             grid-template-columns: repeat(2, 1fr);
         }
     }
+}
+.grid_2{
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
 }
 
 .grid_3_auto{
@@ -113,3 +140,214 @@ button{
         }
     }
 }
+
+.grid_3{
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+}
+
+.grid_4_auto{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+    @media screen and (min-width: 600px) {
+        &{
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media screen and (min-width: 800px) {
+        &{
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+    @media screen and (min-width: 1020px) {
+        &{
+            grid-template-columns: repeat(4, 1fr);
+        }
+    }
+}
+
+.grid_4{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+}
+
+.navbar_dashboard{
+    background-color: rgba(232, 9, 240, 0.671);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    .navbar-brand{
+        color: $blanco;
+    }
+    .navbar-toggler-custom{
+        background-color: rgba(0, 0, 0, .2);
+        padding: 6px 8px;
+        font-size: 1em;
+        border-radius: 12px;
+        &:hover{
+            background-color: $blanco;
+        }
+    }
+    .navbar-collapse{
+        background-color: rgba(0,0,0,.5);
+        padding: 8px;
+        margin-top: 12px;
+        border-radius: 12px;
+    }
+    @media screen and (min-width: 576px) {
+        
+        .navbar-collapse{
+            padding: 0;
+            margin-top: -8px;
+            border-radius: 0;
+            background-color: rgba(0,0,0,0);
+        }
+        .mt-2{
+            margin-top: 0rem!important;
+        }
+        .navbar-toggler-custom{
+            display:none
+        }
+    }
+    @media screen and (min-width: 992px) {
+        .navbar-collapse{
+            margin-top: 0;
+        }
+    }
+    .nav-link.active{
+        color: $blanco;
+        background-color: $verde;
+    }
+    .nav-link{
+        color: $blanco;
+        padding: 5px;
+        border-radius: 12px;
+        
+    }
+    .nav-item{
+        margin-top: 2px;
+        margin-right: 2px;
+        border-radius: 12px;
+        &:hover{
+            color: $blanco;
+            background-color: $verde;
+        }
+    }
+    .dropdown-menu{
+        background-color: rgba(0,0,0,.2);
+    }
+}
+.dropdown-item{
+    color: $blanco;
+}
+
+.bienvenida{
+    background-color: #003d8f;
+    color: $blanco;
+    margin-bottom: 21px;
+}
+.anuncio_azul{
+    padding: 5px;
+    margin:  0 auto;
+    border-radius: 12px;
+    color: $blanco;
+    background-color: #3c9ddb;
+    background-color: linear-gradient(0deg,#3c9ddb 0,#11c7e6);
+}
+.contenedor_top{
+    display: block;
+    margin: 0px auto;
+    padding: 10px;
+    width: 100%;
+    height: 100%;
+    border-radius: 12px;
+    @media screen and (min-width: 620px) {
+        &{
+            width: 94%;
+        }
+    }
+    @media screen and (min-width: 800px) {
+        &{
+            margin-top: -42px;
+            width: 90%;
+        }
+    }
+    @media screen and (min-width: 1020px) {
+        &{
+            width: 88%;
+        }
+    }
+}
+
+.block-7 {
+    padding: 30px;
+    -webkit-box-shadow: 0px 2px 5px 0px rgb(0 0 0 / 3%);
+    -moz-box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.03);
+    box-shadow: 0px 2px 5px 0px rgb(0 0 0 / 3%);
+    background: $color-esqueleto;
+    border-radius: 12px;
+    .heading {
+        font-size: 18px;
+    }
+    .price {
+        margin: 0;
+        padding: 0;
+        display: block;
+        sup {
+            font-size: 20px;
+            top: -1em;
+            color: #000;
+        }
+        .number {
+            font-size: 50px;
+            font-weight: 500;
+            background: #12e6ca;
+            background: -moz-linear-gradient(45deg, #12e6ca 0%, #8be55d 100%);
+            background: -webkit-gradient(left bottom, right top, color-stop(0%, #12e6ca), color-stop(100%, #8be55d));
+            background: -webkit-linear-gradient(45deg, #12e6ca 0%, #8be55d 100%);
+            background: -o-linear-gradient(45deg, #12e6ca 0%, #8be55d 100%);
+            background: -ms-linear-gradient(45deg, #12e6ca 0%, #8be55d 100%);
+            background: linear-gradient(45deg, #12e6ca 0%, #8be55d 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#12e6ca', endColorstr='#8be55d', GradientType=1 );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    }
+    .excerpt {
+        margin-bottom: 20px;
+        color: #b3b3b3;
+    }
+    .pricing-text,.pricing-text li {
+        padding: 0;
+        margin: 0;
+        list-style: none;
+    }
+    .pricing-text,.pricing-text p{
+        color: #666666;
+    }
+    @media (max-width: 991.98px){
+        &{
+            margin-bottom: 30px;
+        }
+    }
+}
+.heading-section{
+    .subheading {
+        font-size: 14px;
+        font-size: 500;
+        display: block;
+        margin-bottom: 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    h2 {
+        font-size: 30px;
+        font-weight: 400;
+        color: #627bed;
+    }
+} 

@@ -3,6 +3,7 @@
 }
 
 body {
+  background-color: #eff3f5;
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -18,6 +19,46 @@ img {
 
 button {
   border: none;
+}
+
+.z-index-1 {
+  z-index: 1;
+}
+
+.z-index-2 {
+  z-index: 2;
+}
+
+.z-index-3 {
+  z-index: 3;
+}
+
+.z-index-4 {
+  z-index: 4;
+}
+
+.z-index-5 {
+  z-index: 5;
+}
+
+.z-index-6 {
+  z-index: 6;
+}
+
+.z-index-7 {
+  z-index: 7;
+}
+
+.z-index-8 {
+  z-index: 8;
+}
+
+.z-index-9 {
+  z-index: 9;
+}
+
+.z-index-10 {
+  z-index: 10;
 }
 
 .contenedor {
@@ -95,6 +136,13 @@ button {
   padding: 8px;
 }
 
+.grid_1 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+}
+
 .grid_2_auto {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
@@ -105,6 +153,13 @@ button {
   .grid_2_auto {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+.grid_2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
 }
 
 .grid_3_auto {
@@ -124,8 +179,40 @@ button {
   }
 }
 
-body {
-  background-color: #eff3f5;
+.grid_3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+}
+
+.grid_4_auto {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+}
+@media screen and (min-width: 600px) {
+  .grid_4_auto {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media screen and (min-width: 800px) {
+  .grid_4_auto {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media screen and (min-width: 1020px) {
+  .grid_4_auto {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.grid_4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
 }
 
 .navbar_dashboard {
@@ -136,13 +223,13 @@ body {
 .navbar_dashboard .navbar-brand {
   color: #fff;
 }
-.navbar_dashboard .navbar-toggler {
+.navbar_dashboard .navbar-toggler-custom {
   background-color: rgba(0, 0, 0, 0.2);
   padding: 6px 8px;
   font-size: 1em;
   border-radius: 12px;
 }
-.navbar_dashboard .navbar-toggler:hover {
+.navbar_dashboard .navbar-toggler-custom:hover {
   background-color: #fff;
 }
 .navbar_dashboard .navbar-collapse {
@@ -233,57 +320,6 @@ body {
   }
 }
 
-.btn-link {
-  color: #fff;
-}
-.btn-link:hover {
-  color: #fff;
-  text-decoration: none;
-}
-
-.tarjeta_contenido {
-  min-width: 150px;
-  width: 100%;
-  margin-top: 12px;
-  background-color: #fff;
-  border-radius: 12px;
-  padding: 8px;
-  border: 1px solid #000;
-}
-
-.checkout {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  grid-template-rows: minmax(50px, auto);
-  grid-template-areas: "col_select" "col_datos";
-  padding: 8px;
-}
-@media screen and (min-width: 600px) {
-  .checkout {
-    grid-template-columns: repeat(2, 1fr);
-    grid-template-areas: "col_select col_datos";
-  }
-}
-@media screen and (min-width: 820px) {
-  .checkout {
-    grid-template-columns: repeat(3, 1fr);
-    grid-template-areas: "col_select col_datos col_datos";
-  }
-}
-.checkout .col-select {
-  grid-area: col_select;
-  padding: 8px;
-  width: 100%;
-  border-radius: 12px;
-}
-.checkout .col-datos {
-  grid-area: col_datos;
-  background-color: #eff3f5;
-  width: 100%;
-  border-radius: 12px;
-  padding: 8px;
-}
-
 .block-7 {
   padding: 30px;
   box-shadow: 0px 2px 5px 0px rgba(0, 0, 0, 0.03);
@@ -343,6 +379,57 @@ body {
   font-size: 30px;
   font-weight: 400;
   color: #627bed;
+}
+
+.btn-link {
+  color: #fff;
+}
+.btn-link:hover {
+  color: #fff;
+  text-decoration: none;
+}
+
+.tarjeta_contenido {
+  min-width: 150px;
+  width: 100%;
+  margin-top: 12px;
+  background-color: #fff;
+  border-radius: 12px;
+  padding: 8px;
+  border: 1px solid #000;
+}
+
+.checkout {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  grid-template-areas: "col_select" "col_datos";
+  padding: 8px;
+}
+@media screen and (min-width: 600px) {
+  .checkout {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "col_select col_datos";
+  }
+}
+@media screen and (min-width: 820px) {
+  .checkout {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "col_select col_datos col_datos";
+  }
+}
+.checkout .col-select {
+  grid-area: col_select;
+  padding: 8px;
+  width: 100%;
+  border-radius: 12px;
+}
+.checkout .col-datos {
+  grid-area: col_datos;
+  background-color: #eff3f5;
+  width: 100%;
+  border-radius: 12px;
+  padding: 8px;
 }
 
 .forms {
