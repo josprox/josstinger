@@ -2,7 +2,7 @@
 
 	  <nav class="navbar navbar-expand-sm fixed-top navbar_dashboard">
           <div class="container">
-            <a class="navbar-brand" href="#">Josstinger</a>
+            <a class="navbar-brand" href="#"><?php echo $_ENV['NAME_APP']; ?></a>
             <button class="navbar-toggler-custom  d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars"></i>
@@ -23,7 +23,7 @@
                     </li>
                 </ul>
                 <form class="d-flex my-2 my-lg-0" action="" method="post">
-                    <button class="btn btn-outline-light my-2 my-sm-0" style="width: 100%;" name ="salir" type="submit">Iniciar sesión</button>
+                    <a class="btn btn-outline-light my-2 my-sm-0" style="width: 100%;" href="panel">Iniciar sesión</a>
                 </form>
             </div>
       </div>

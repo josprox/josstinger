@@ -7,8 +7,9 @@ include (__DIR__ . "/../jossecurity.php");
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Josstinger - El hosting que tú necesitas</title>
+    <title><?php echo $nombre_app; ?> - El hosting que tú necesitas</title>
     <?php head(); ?>
+    <meta name="description" content="Aloja tu sitio web o aplicación web de manera segura,<?php echo $nombre_app; ?> es el mejor proveedor de hosting de México, consulta nuestros precios.">
 </head>
 <body>
 
@@ -24,7 +25,7 @@ include (__DIR__ . "/../jossecurity.php");
                         <h1 class="text-shadow-black text-center titulo_encima">El hosting ideal para ti</h1>
                         <p class="text-shadow-black text-justify">Puedes elegir el plan de acuerdo a tus necesidades, Nuestro servidor protegrá tus sitios web en una plataforma 100% confiable.</p>
                         <div class="flex_center">
-                            <a name="" id="" class="btn btn-primary" href="#" role="button">Conocer más</a>
+                            <a name="" id="" class="btn btn-primary" href="hosting" role="button">Conocer más</a>
                         </div>
                     </div>
                     <div class="contenido">
@@ -38,8 +39,8 @@ include (__DIR__ . "/../jossecurity.php");
     <section class="flex_center">
         <div class="contenedor">
             <div class="tarjeta-blanca">
-                <h2 class="text-center titulo_card">La Garantía Josstinger</h2>
-                <p class="text-center">Obten el mejor servicio de hosting, Josstinger asegura tus sitios web, no te preocupes de nada.</p>
+                <h2 class="text-center titulo_card">La Garantía <?php echo $nombre_app; ?></h2>
+                <p class="text-center">Obten el mejor servicio de hosting, <?php echo $nombre_app; ?> asegura tus sitios web, no te preocupes de nada.</p>
             </div>
             <div class="grid_3_auto">
                 <div class="card_icono">

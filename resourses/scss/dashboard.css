@@ -248,6 +248,9 @@ button {
   .navbar_dashboard .mt-2 {
     margin-top: 0rem !important;
   }
+  .navbar_dashboard .navbar-toggler-custom {
+    display: none;
+  }
 }
 @media screen and (min-width: 992px) {
   .navbar_dashboard .navbar-collapse {

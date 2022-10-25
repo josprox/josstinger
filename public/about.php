@@ -7,7 +7,7 @@ include (__DIR__ . "/../jossecurity.php");
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Josstinger - El hosting que tú necesitas</title>
+    <title><?php echo $nombre_app; ?> - Contáctanos</title>
     <meta name="description" content="Conoce a <?php echo $nombre_app; ?> y sus soluciones de hosting, el mejor en calidad - precio.">
     <?php head(); ?>
 </head>
