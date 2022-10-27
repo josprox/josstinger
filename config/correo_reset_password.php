@@ -173,7 +173,7 @@ a, a:hover {
 			padding-top: 25px; 
 			color: #000000;
 			font-family: sans-serif;" class="paragraph">
-      Recientemente has solicitado restablecer tu contraseña es por eso que, le hemos mandado su nueva contraseña, podrá modificarla dentro del sistema.<br><br>Su nueva contraseña es: '.$password.'
+      Recientemente has solicitado restablecer tu contraseña es por eso que, le hemos mandado su nueva contraseña, podrá modificarla dentro del sistema.<br><br>Su nueva contraseña es: '.$key.'
 		</td>
 	</tr>
 

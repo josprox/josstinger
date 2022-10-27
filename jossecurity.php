@@ -445,7 +445,7 @@ function resetear_contra($correo){
     $key = generar_llave_alteratorio(16);
     $password_encriptada = password_hash($key,PASSWORD_BCRYPT,["cost"=>10]);
     $insert = "UPDATE `users` SET `password` = '$password_encriptada', `updated_at` = '$fecha' WHERE `users`.`email` = '$correo'";
-    mysqli_query($conexion, $insert);
+    $conexion -> query($insert);
 
     $row = consulta_mysqli_where("name","users","email","'$correo'");
 

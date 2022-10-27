@@ -38,8 +38,8 @@
             <div class="footer_section">
                 <h3>Legalidad</h3>
                 <ul>
-                    <li><a href="https://josprox.com/privacidad/">Privacidad</a></li>
-                    <li><a href="https://josprox.com/terminos-y-condiciones/">Términos y condiciones</a></li>
+                    <li><a href="politica">Privacidad</a></li>
+                    <li><a href="terminos">Términos y condiciones</a></li>
                 </ul>
             </div>
 
