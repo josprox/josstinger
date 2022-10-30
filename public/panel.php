@@ -9,10 +9,6 @@ if (isset($_SESSION['id_usuario'])) {
 
 login_cookie("users"); 
 
-if (file_exists("./../installer.php")){
-    unlink('./../installer.php');
-}
-
 ?>
 <!DOCTYPE html>
 <html lang="es-MX">
@@ -112,7 +108,7 @@ if (file_exists("./../installer.php")){
 
                     <div id="login">
                         <h1 class="text-center">Iniciar sesión</h1>
-                        <form action="" method="post">
+                        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
                             <div class="forms">
 
@@ -149,7 +145,7 @@ if (file_exists("./../installer.php")){
 
                     <div id="register">
                         <h1 class="text-center">Regístrate</h1>
-                            <form action="" method="post">
+                            <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
                                 <div class="forms">
 
@@ -184,7 +180,7 @@ if (file_exists("./../installer.php")){
 
                     <div id="reset">
                         <h1 class="text-center">Olvidé mi contraseña</h1>
-                        <form action="" method="post">
+                        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
                             <div class="forms">
                                 

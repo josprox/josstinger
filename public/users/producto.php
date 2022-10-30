@@ -218,7 +218,11 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                     </ul>
 
                     <div class="flex_center">
-                        <div class="grid_3_auto">
+                        <div class="grid_4_auto">
+
+                            <div class="capsula">
+                                <a class="btn btn-success" href="https://gran.josprox.ovh:2053/" role="button">Ingresar al panel</a>
+                            </div>
     
                             <div class="capsula">
                                 <button onclick="renovar();" class="btn btn-primary">Renovar</button>

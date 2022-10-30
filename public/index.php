@@ -67,7 +67,7 @@ include (__DIR__ . "/../jossecurity.php");
                     </div>
                 </div>
                 <div class="card_icono">
-                    <div class="icono"<i class="fa-solid fa-download"></i>></div>
+                    <div class="icono"><i class="fa-solid fa-download"></i></div>
                     <div class="contenido_card">
                         <h3>Instala en pocos clics</h3>
                         <p>Si a penas vas a iniciar tu mundo en la web, podrás instalar WordPress, laravel, Magneto, PrestaShop y otros de manera rápida.</p>

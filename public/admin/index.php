@@ -33,7 +33,26 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
 
   <br>
 
+
   <div class="container">
+  <?php
+  if(isset($_POST['eliminar'])){
+    unlink('./../../installer.php');
+  }
+  if (file_exists("./../../installer.php")){?>
+  <div class="alert alert-warning" role="alert">
+    <strong>Advertencia</strong> Se recomienda que elimines el fichero installer.
+  </div>
+
+  <center>
+    <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+      <button name="eliminar" class="btn btn-success" type="submit">Eliminar ahora</button>
+    </form>
+  </center>
+  
+  <?php
+  }
+  ?>
 
   <h1 align="center">Bienvenido a <?php echo $nombre_app; ?></h1>
   <p align="center">Un gusto volver a verte <?php echo $row['name']; ?></p>
