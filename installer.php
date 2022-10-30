@@ -4,10 +4,6 @@ $name_app_default = "Josstinger";
 
 $version_app_default = "1.5";
 
-if(file_exists("./README.md")){
-  $delete_readme = unlink('./README.md');
-}
-
 if(isset($_POST['instalar'])){
 
   //Sistema básico
@@ -56,12 +52,6 @@ if(isset($_POST['instalar'])){
   }
   if(isset($_POST['homedir'])){
     $homedir = "";
-    if(file_exists("./.htaccess")){
-      $delete_htaccess = unlink('./.htaccess');
-    }
-    $htaccess_create = fopen('./.htaccess', 'w');
-    fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
-    fclose($htaccess_create);
   }else{
     $homedir = "public/";
   }
@@ -212,10 +202,23 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "COOKIE_SESSION=31622400\n\n");
   fclose($env_create);
   
-  echo "<script>
-  alert('Se ha insertado los datos de manera correcta, ahora será redireccionado al panel de control, gracias por instalar JosSecurity.😁');
-  window.location= './public/panel';
-  </script>";
+  if(isset($_POST['homedir'])){
+    if(file_exists("./.htaccess")){
+      $delete_htaccess = unlink('./.htaccess');
+      $htaccess_create = fopen('./.htaccess', 'w');
+      fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
+      fclose($htaccess_create);
+    }
+    echo "<script>
+    alert('Se ha insertado los datos de manera correcta, ahora será redireccionado al panel de control, gracias por instalar JosSecurity.😁');
+    window.location= './panel';
+    </script>";
+  }else{
+    echo "<script>
+    alert('Se ha insertado los datos de manera correcta, ahora será redireccionado al panel de control, gracias por instalar JosSecurity.😁');
+    window.location= './public/panel';
+    </script>";
+  }
 
 }
 

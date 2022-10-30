@@ -1,6 +1,7 @@
 @charset "UTF-8";
 @import "color";
 @import "mapa";
+@import "basic";
 *{
     transition: .2s all !important;
     &::-webkit-scrollbar {
@@ -182,45 +183,6 @@ button{
         border-radius: 12px;
         background-color: $dark-color-alt;
         color: var(--bs-white);
-    }
-}
-
-.grid_1_auto{
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    grid-template-rows: minmax(50px, auto);
-    margin: 12px 8px;
-    padding: 8px;
-}
-
-.grid_2_auto{
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    grid-template-rows: minmax(50px, auto);
-    margin: 12px 8px;
-    padding: 8px;
-    @media screen and (min-width: 600px) {
-        &{
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-}
-
-.grid_3_auto{
-    display: grid;
-    grid-template-columns: repeat(1, 1fr);
-    grid-template-rows: minmax(50px, auto);
-    margin: 12px 8px;
-    padding: 8px;
-    @media screen and (min-width: 600px) {
-        &{
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-    @media screen and (min-width: 800px) {
-        &{
-            grid-template-columns: repeat(3, 1fr);
-        }
     }
 }
 
