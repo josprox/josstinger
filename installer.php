@@ -58,24 +58,6 @@ if(isset($_POST['instalar'])){
   //Installer
   $conexion = new mysqli("$servidor_db","$usuariodb", "$password_db","$db");
   $query = "";
-
-  $zip = new ZipArchive;
-  $comprimido= $zip->open('hestia.zip');
-
-    if ($comprimido=== TRUE) {
-        // Declaramos la carpeta que almacenara ficheros descomprimidos
-        $zip->extractTo('./');
-        $zip->close();
-        // Imprimimos si todo salio bien
-        //echo 'El fichero se descomprimio correctamente!';
-    } else {
-        // Si algo salio mal, se imprime esta seccion
-        echo '
-        <script>
-            alert("Error descomprimiendo el archivo zip.");
-            window.location= "./installer.php";
-        </script>';
-    }
   
   $sqlScript = file('hestia.sql');
   foreach ($sqlScript as $line)   {
