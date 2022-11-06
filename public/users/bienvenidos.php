@@ -35,7 +35,7 @@ if (isset($_POST['eliminar'])){
     $id = mysqli_real_escape_string($conexion, $_POST['txtID']);
     mysqli_close($conexion);
     eliminar_datos_con_where("tokens_pays","id_user",$id);
-    echo eliminar_cuenta($id,"users","../");
+    echo eliminar_cuenta_con_cookies($id,"users","../");
     
   }
 ?>

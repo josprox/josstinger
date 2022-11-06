@@ -195,7 +195,7 @@ if(isset($_POST['instalar'])){
     if(file_exists("./.htaccess")){
       $delete_htaccess = unlink('./.htaccess');
       $htaccess_create = fopen('./.htaccess', 'w');
-      fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\nErrorDocument 404 /document_errors/404.html\nErrorDocument 403 /document_errors/404.html\nErrorDocument 410 /document_errors/410.html\nErrorDocument 500 /document_errors/500.html\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
+      fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\nErrorDocument 404 /public/document_errors/404.html\nErrorDocument 403 /public/document_errors/404.html\nErrorDocument 410 /public/document_errors/410.html\nErrorDocument 500 /public/document_errors/500.html\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
 
       fclose($htaccess_create);
     }

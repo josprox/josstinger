@@ -17,7 +17,7 @@ login_cookie("users");
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $nombre_app; ?> - Iniciar sesión</title>
-    <?php echo head(); ?>
+    <?php head(); ?>
 </head>
 <body>
     <?php
@@ -221,7 +221,7 @@ login_cookie("users");
         </div>
     </div>
 
-    <?php echo footer(); ?>
+    <?php footer(); ?>
 
     <script>
         var alertList = document.querySelectorAll('.alert');
