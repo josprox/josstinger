@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "1.5";
+$version_app_default = "1.6";
 
 if(isset($_POST['instalar'])){
 
@@ -26,6 +26,12 @@ if(isset($_POST['instalar'])){
   $db_psg = $_POST['db_psg'];
   $servidor_db_psg = $_POST['servidor_db_psg'];
   $puerto_psg = $_POST['puerto_psg'];
+  // Modo depuración
+  if(isset($_POST['service'])){
+    $service = "1";
+  }else{
+    $service = "0";
+  }
   //Recaptcha
   $RCP = $_POST['RCP'];
   $RCS = $_POST['RCS'];
@@ -132,7 +138,8 @@ if(isset($_POST['instalar'])){
   
   fwrite($env_create, "# modo de depuración.\n");
   fwrite($env_create, "DEBUG=0\n");
-  fwrite($env_create, "PLUGINS=1\n\n");
+  fwrite($env_create, "PLUGINS=1\n");
+  fwrite($env_create, "PWA=".$service."\n\n");
   
   fwrite($env_create, "# Conexión a la base de datos MySQL.\n");
   fwrite($env_create, "USUARIO=".$usuariodb."\n");
@@ -188,7 +195,8 @@ if(isset($_POST['instalar'])){
     if(file_exists("./.htaccess")){
       $delete_htaccess = unlink('./.htaccess');
       $htaccess_create = fopen('./.htaccess', 'w');
-      fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
+      fwrite($htaccess_create, "<IfModule mod_rewrite.c>\nRewriteEngine On\nRewriteRule ^(.*)$ public/$1 [L]\nErrorDocument 404 /document_errors/404.html\nErrorDocument 403 /document_errors/404.html\nErrorDocument 410 /document_errors/410.html\nErrorDocument 500 /document_errors/500.html\n</IfModule>\n<Files .htaccess>\norder allow,deny\ndeny from all\n</Files>\n\n<Files .env>\norder allow,deny\ndeny from all\n</Files>");
+
       fclose($htaccess_create);
     }
     echo "<script>
@@ -235,6 +243,13 @@ if(isset($_POST['instalar'])){
           <p align="justify">Por defecto el sistema maneja el nombre de JosSecurity y la versión preliminar del mismo pero, si tu quieres modificarlo podrás hacerlo, de esta manera también evitarás que las personas conozcan el sistema de seguridad que usas.</p>
 
             <div class="row justify-content-center">
+
+              <div class="col-10">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="service" name="service">
+                  <label class="form-check-label" for="service">¿Desea activar el service worker que viene por defecto?</label>
+                </div>
+              </div>
 
               <div class="col-5">
                 <div class="mb-3">
@@ -489,7 +504,7 @@ if(isset($_POST['instalar'])){
                 <div class="col-5">
                   <div class="mb-3">
                     <label for="MPAT" class="form-label">Access Token</label>
-                    <input type="password"
+                    <input type="text"
                       class="form-control" name="MPAT" id="MPAT" aria-describedby="MPAT" placeholder="pon el access token">
                     <small id="MPAT" class="form-text text-muted">Para poder conectarnos necesitamos el Access Token.</small>
                   </div>

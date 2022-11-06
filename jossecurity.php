@@ -2,8 +2,8 @@
 
 // JosSecurity, la mejor seguridad al alcance de tus manos.
 
-// NO ELIMINES las lineas 6 a 9 por seguridad, si tu borras esta linea dejará de funcionar JosSecurity.
-require_once (__DIR__ .'/vendor/autoload.php');
+// NO ELIMINES las lineas 6 a 9 por seguridad, si tu borras estas linea dejará de funcionar JosSecurity.
+require_once (__DIR__ . '/vendor/autoload.php');
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 session_start();
@@ -25,38 +25,10 @@ if ($_ENV['DEBUG'] == 1) {
 }
 
 function head(){
-    global $nombre_app;
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head está activo.');</script>";
     }
-    $pagina = nombre_de_pagina();
-    $head = "<!-- JosSecurity está funcionando -->";
-    if($pagina == "panel.php"){
-        $head = '
-        <!-- Meta descripcion -->
-        <meta name="description" content="Inicia sesión de una manera rápida y segura con '.$nombre_app.', un sistema fácil de usar.">
-        <!-- Hestia -->
-        <link rel="stylesheet" href="../resourses/scss/hestia.css">
-        <!-- Bootstrap min -->
-        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
-        <!-- fontawesome -->
-        <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
-        <!-- logo -->
-        <link rel="shortcut icon" href="../resourses/img/logo transparente/vector/default.svg" type="image/x-icon">
-        <!-- SweetAlert2 -->
-        <script src="../node_modules/sweetalert2/dist/sweetalert2.all.min.js"></script>';
-        if($_ENV['RECAPTCHA'] == 1){
-            $head .= '
-        <!-- Recaptcha -->
-        <script src="https://www.google.com/recaptcha/api.js"></script>
-        ';
-            return $head;
-        }elseif($_ENV['RECAPTCHA'] != 1){
-            return $head;
-        }
-    }elseif($pagina != "panel.php" OR $pagina != "reset.php"){
-        return include (__DIR__ . "/routes/head/head.php");
-    }
+    return include (__DIR__ . "/routes/head/head.php");
 }
 
 function head_users(){
@@ -97,20 +69,6 @@ function navbar_admin(){
 function footer(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer está activo.');</script>";
-    }
-    $pagina = nombre_de_pagina();
-    if($pagina == "panel.php" OR $pagina == "reset.php"){
-        return '<!-- JosSecurity está funcionando -->
-        <!-- Bootstrap JavaScript Libraries -->
-        <script src="./../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
-        <!-- Video.js base JS -->
-        <script src="./../resourses/js/video.min.js"></script>
-        <!--Funciones del video, desactivar si no se usa-->
-        <script>
-            var reproductor = videojs("form-video", {
-              fluid: true
-            });
-          </script>';
     }
     return include (__DIR__ . "/routes/footer/footer.php");
 }
@@ -198,10 +156,10 @@ if ($_ENV['CONECT_DATABASE'] == 1){
 
         function conect_mysql(){
 
-            global $host,$user,$pass,$DB;
+            global $host,$user,$pass,$DB,$puerto;
         
             try {
-                $pdo = new PDO('mysql:host='.$host.';dbname='.$DB.'', $user, $pass);
+                $pdo = new PDO('mysql:host='.$host.';port='.$puerto.';dbname='.$DB.'', $user, $pass);
                 //echo "conectado";
             } catch (PDOException $e) {
                 print "¡Error!: " . $e->getMessage() . "<br/>";
@@ -229,7 +187,7 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     }
 
     if ($_ENV['CONECT_POSTGRESQL'] == 1 OR $_ENV['CONECT_POSTGRESQL_PDO'] == 1){
-        include (__DIR__ . "/config/postgresql.php");
+        include (__DIR__ . "/config/extension/postgresql.php");
     }
 
 }else{
@@ -453,7 +411,7 @@ function resetear_contra($correo){
     $name = $row['name'];
 
     if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo_reset_password.php");
+        include (__DIR__ . "/config/correo/correo_reset_password.php");
         mysqli_close($conexion);
         return TRUE;
     }
@@ -502,9 +460,36 @@ function eliminar_cuenta($id,$table_DB,$redireccion){
        }
 }
 
+function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
+    $consulta = consulta_mysqli_where("email, password","users","id",$id);
+    $usuario = $consulta['email'];
+    $password = $consulta['password'];
+    //eliminar cookies creadas por el sistema
+    if (isset($_COOKIE['COOKIE_INDEFINED_SESSION'])) {
+        setcookie("COOKIE_INDEFINED_SESSION", FALSE, time()-$_ENV['COOKIE_SESSION'], "/");
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, time()-$_ENV['COOKIE_SESSION'], "/");
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, time()-$_ENV['COOKIE_SESSION'], "/");
+    }
+    session_destroy();
+    if (eliminar_datos_con_where($table_DB,"id",$id)) {
+
+        return header("Location: $redireccion");
+       }else {
+        $error = "
+        <script>
+            Swal.fire(
+            'Falló',
+            'No se ha podido eliminar de manera correcta.',
+            'error'
+            )
+        </script>";
+        return $error;
+       }
+}
+
 function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo.php");
+        include (__DIR__ . "/config/correo/correo.php");
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
         echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
     }
@@ -512,7 +497,7 @@ function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
 
 function mail_smtp_v1_3_recibir($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo_recibir.php");
+        include (__DIR__ . "/config/correo/correo_recibir.php");
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
         echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
     }
@@ -520,7 +505,7 @@ function mail_smtp_v1_3_recibir($nombre,$asunto,$contenido,$correo){
 
 function mail_smtp_v1_3_check($correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo_check.php");
+        include (__DIR__ . "/config/correo/correo_check.php");
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
         echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
     }
@@ -597,14 +582,14 @@ function leer_tablas_mysql_custom($code){
 function insertar_datos_clasic_mysqli($tabla,$datos,$contenido){
     $conexion = conect_mysqli();
     $sql = "INSERT INTO $tabla ($datos) VALUES ($contenido);";
-    mysqli_query($conexion, $sql);
+    $conexion -> query($sql);
     mysqli_close($conexion);
 }
 
 function insertar_datos_custom_mysqli($codigo_sql){
     $conexion = conect_mysqli();
     $sql = "$codigo_sql";
-    mysqli_query($conexion, $sql);
+    $conexion -> query($sql);
     mysqli_close($conexion);
 }
 
@@ -625,7 +610,7 @@ function insertar_datos_post_mysqli($tabla,$post){
     
     $sql = $insert.$values; 
 
-    mysqli_query($conexion, $sql);
+    $conexion -> query($sql);
 
     mysqli_close($conexion);
 }
