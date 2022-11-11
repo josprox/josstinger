@@ -20,6 +20,11 @@ $token = $_GET['token'];
 
 $id_de_pago = $_GET['payment_id'];
 $estado_de_pago = $_GET['status'];
+if($_GET['status'] == "in_process"){
+    $echo_estado_de_pago = "Pendiente";
+}elseif($_GET['status'] == "approved"){
+    $echo_estado_de_pago = "Aprobado";
+}
 $tipo_de_pago = $_GET['payment_type'];
 $id_del_pedido = $_GET['merchant_order_id'];
 
@@ -29,6 +34,11 @@ $meses= (int)$_GET['mut'];
 
 if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && estado = 'Completado'") > 0){
     header("Location: ./");
+}else{
+    $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
+    $id_token = $consula['id'];
+    insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Pendiente', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
+
 }
 
 
@@ -54,6 +64,26 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
 
     <section class="contenedor">
 
+        <?php
+        if($_GET['status'] == "in_process"){
+            ?>
+            
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              <strong>El estado de pago está pendiente</strong> Si ya le cobraron no tienes nada de qué preocuparte, sino se le ha cobrado Mercado Pago tiene 7 dias para pagarlo o entonces borraremos todos los datos de tu paquete. Después de registrar tus datos en el formulario de abajo y haber enviado el pago, le pediremos que acceda a este contrato en su panel y envíe una solicitud de revisión del pago.
+            </div>
+            
+            <script>
+              var alertList = document.querySelectorAll('.alert');
+              alertList.forEach(function (alert) {
+                new bootstrap.Alert(alert)
+              })
+            </script>
+            
+            <?php
+        }
+        ?>
+
         <div class="flex_center">
 
             <div class="grid_1_auto">
@@ -65,7 +95,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         <li>id del pago: <?php echo $id_de_pago; ?></li>
                         <li>id del pedido: <?php echo $id_del_pedido; ?></li>
                         <li>Tipo de pago: <?php echo $tipo_de_pago; ?></li>
-                        <li>Estado del pago: <?php echo $estado_de_pago; ?></li>
+                        <li>Estado del pago: <?php echo $echo_estado_de_pago; ?></li>
                     </ul>
 
 
@@ -160,7 +190,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $fecha_creacion->modify('+'.$meses.' months');
                         $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
                         
-                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Completado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', expiracion = '$fecha_final', usuario = '$username', correo = '$email', updated_at = '$fecha' WHERE id = $id_token");
+                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', updated_at = '$fecha' WHERE id = $id_token");
                         
                         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 

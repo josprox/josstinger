@@ -11,7 +11,7 @@ if(isset($_POST['renovar'])){
     $total = $precio * $meses;
     $token_new = generar_llave_alteratorio(16);
     insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `token` = '$token_new' WHERE `tokens_pays`.`id` = $id_producto");
-    $preference_id = mercado_pago($rows['nombre'],$meses,$precio,"USD","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses","users/falla?usr=$iduser","users/pendiente");
+    $preference_id = mercado_pago($rows['nombre'],$meses,$precio,"USD","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses","users/falla?usr=$iduser","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses");
     foreach(arreglo_consulta("SELECT nombre,descripcion FROM servicios WHERE id = $servicio") as $row){
         ?>
         <div class="block-7">
@@ -44,7 +44,7 @@ if(isset($_POST['select'])){
     $total = $precio * $meses;
     $token = generar_llave_alteratorio(16);
     insertar_datos_custom_mysqli("INSERT INTO `tokens_pays` (`id`, `token`, `estado`, `id_user`, `id_servicio`, `id_pedido`, `id_pago`, `pagado_con`, `created_at`, `updated_at`) VALUES (NULL, '$token', 'Cancelado', '$iduser', '$servicio', NULL, NULL, NULL, '$fecha', NULL);");
-    $preference_id = mercado_pago($rows['nombre'],$meses,$precio,"USD","users/hestia_config?token=$token&usr=$iduser&prdct=$servicio&mut=$meses","users/falla?usr=$iduser","users/pendiente");
+    $preference_id = mercado_pago($rows['nombre'],$meses,$precio,"USD","users/hestia_config?token=$token&usr=$iduser&prdct=$servicio&mut=$meses","users/falla?usr=$iduser","users/hestia_config?token=$token&usr=$iduser&prdct=$servicio&mut=$meses");
     foreach(arreglo_consulta("SELECT nombre,descripcion FROM servicios WHERE id = $servicio") as $row){
         ?>
         <div class="block-7">

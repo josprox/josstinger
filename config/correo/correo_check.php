@@ -3,13 +3,13 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . './../vendor/phpmailer/phpmailer/src/Exception.php';
-require __DIR__ . './../vendor/phpmailer/phpmailer/src/PHPMailer.php';
-require __DIR__ .'./../vendor/phpmailer/phpmailer/src/SMTP.php';
+require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
+require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
 
 // Load .env
-require __DIR__ . './../vendor/autoload.php';
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__, './../.env');
+require __DIR__ . '/../../vendor/autoload.php';
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__, '/../../.env');
 $dotenv->load();
 
 //Create an instance; passing `true` enables exceptions

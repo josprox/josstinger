@@ -1,0 +1,1 @@
+sudo  php -f /home/admin/web/josprox.ovh/public_html/config/cron.hestia.php

@@ -32,6 +32,11 @@ if(isset($_POST['instalar'])){
   }else{
     $service = "0";
   }
+  if(isset($_POST['API'])){
+    $API = "1";
+  }else{
+    $API = "0";
+  }
   //Recaptcha
   $RCP = $_POST['RCP'];
   $RCS = $_POST['RCS'];
@@ -100,6 +105,9 @@ if(isset($_POST['instalar'])){
   if(file_exists("./LICENCE.txt")){
     $delete_licence = unlink('./LICENCE.txt');
   }
+  if(file_exists("./JosSecurity.postman_collection.json")){
+    $delete_licence = unlink('./JosSecurity.postman_collection.json');
+  }
 
   $zip_installer = glob('./*.zip'); //obtenemos todos los nombres de los ficheros
   foreach($zip_installer as $file){
@@ -139,7 +147,8 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "# modo de depuración.\n");
   fwrite($env_create, "DEBUG=0\n");
   fwrite($env_create, "PLUGINS=1\n");
-  fwrite($env_create, "PWA=".$service."\n\n");
+  fwrite($env_create, "PWA=".$service."\n");
+  fwrite($env_create, "API=".$API."\n\n");
   
   fwrite($env_create, "# Conexión a la base de datos MySQL.\n");
   fwrite($env_create, "USUARIO=".$usuariodb."\n");
@@ -244,10 +253,17 @@ if(isset($_POST['instalar'])){
 
             <div class="row justify-content-center">
 
-              <div class="col-10">
+              <div class="col-5">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="service" name="service">
                   <label class="form-check-label" for="service">¿Desea activar el service worker que viene por defecto?</label>
+                </div>
+              </div>
+
+              <div class="col-5">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="API" name="API">
+                  <label class="form-check-label" for="API">¿Deseas activar el sistema de API que viene por defecto?</label>
                 </div>
               </div>
 

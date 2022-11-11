@@ -58,11 +58,13 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   <p align="center">Un gusto volver a verte <?php echo $row['name']; ?></p>
   <p align="center">Versión: <?php echo $version_app; ?></p>
   
-  <div class="card">
+  <?php echo reproductor_video("../../resourses/video/Josstinger.mp4"); ?>
+  <!--<div class="card">
     <img class="card-img-top" src="./../../resourses/img/logo azul/cover.png" alt="Title">
-  </div>
+  </div>-->
 
   <br>
+
 
   </div>
 
