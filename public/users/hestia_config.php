@@ -32,13 +32,17 @@ $id_user_pay= $_GET['usr'];
 $id_product= $_GET['prdct'];
 $meses= (int)$_GET['mut'];
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && estado = 'Completado'") > 0){
+if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id = $id_user_pay") > 0 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && estado = 'Aprobado'") > 0){
     header("Location: ./");
-}else{
+}elseif($_GET['status'] == "in_process"){
     $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
     $id_token = $consula['id'];
     insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Pendiente', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 
+}elseif($_GET['status'] == "approved"){
+    $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
+    $id_token = $consula['id'];
+    insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Aprobado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 }
 
 
@@ -189,8 +193,9 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $fecha_creacion = new DateTime();
                         $fecha_creacion->modify('+'.$meses.' months');
                         $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
+                        $new_token = generar_llave_alteratorio(16);
                         
-                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', updated_at = '$fecha' WHERE id = $id_token");
+                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', token = '$new_token', updated_at = '$fecha' WHERE id = $id_token");
                         
                         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 

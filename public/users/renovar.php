@@ -28,6 +28,7 @@ $tipo_de_pago = $_GET['payment_type'];
 $id_del_pedido = $_GET['merchant_order_id'];
 
 $meses= (int)$_GET['mut'];
+$new_token = generar_llave_alteratorio(16);
 
 
 if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id_user = $iduser;") <= 0){
@@ -40,8 +41,10 @@ insertar_datos_custom_mysqli("UPDATE tokens_pays SET id_pedido = $id_del_pedido,
 
 $consulta_fecha = consulta_mysqli_custom_all("SELECT DATE_ADD(expiracion, interval $meses month) FROM tokens_pays WHERE id = $id_token;");
 $nueva_fecha = $consulta_fecha["DATE_ADD(expiracion, interval $meses month)"];
-insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `expiracion` = '$nueva_fecha' WHERE `tokens_pays`.`id` = $id_token");
-
+insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `token` = '$new_token',`expiracion` = '$nueva_fecha' WHERE `tokens_pays`.`id` = $id_token");
+if($_GET['status'] == "in_process"){
+insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `estado` = 'Actualizando' WHERE `tokens_pays`.`id` = $id_token");
+}
 header("Location: producto?id=$id_token");
 
 ?>

@@ -12,7 +12,7 @@ $iduser = $_SESSION['id_usuario'];
 
 $row = consulta_mysqli_where("name","users","id",$iduser);
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Completado';") >= 1){
+if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") >= 1){
     header("Location: ./");
 }
 

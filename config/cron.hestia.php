@@ -48,8 +48,6 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
         $data = json_decode($answer, true);
         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id;");
 
-    }else{
-        continue;
     }
 }
 

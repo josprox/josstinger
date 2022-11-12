@@ -112,7 +112,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
             
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
               <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-              <strong>El estado de pago está pendiente</strong> Si ya le cobraron le pedimos de la manera más atenta le de clic en el botón de abajo para que nosotros lo pongamos en completado.
+              <strong>El estado de pago está pendiente</strong> Si ya le cobraron le pedimos de la manera más atenta le de clic en el botón "Solicitar revisión" para que nosotros lo pongamos en completado.
             </div>
             
             <script>
@@ -121,12 +121,22 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                 new bootstrap.Alert(alert)
               })
             </script>
-
-            <div class="flex_center">
-                <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
-                    <button type="submit" class="btn btn-secondary" name="revision">Solicitar revisión</button>
-                </form>
+            
+            <?php
+        }elseif($consulta['estado'] == "Actualizando"){
+            ?>
+            
+            <div class="alert alert-primary alert-dismissible fade show" role="alert">
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              <strong>El estado de pago está pendiente</strong> Si ya le cobraron le pedimos de la manera más atenta le de clic en el botón "Solicitar revisión" para que nosotros lo pongamos en completado.
             </div>
+            
+            <script>
+              var alertList = document.querySelectorAll('.alert');
+              alertList.forEach(function (alert) {
+                new bootstrap.Alert(alert)
+              })
+            </script>
             
             <?php
         }
@@ -252,15 +262,21 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                                 <a class="btn btn-success" href="https://gran.josprox.ovh:2053/" role="button">Ingresar al panel</a>
                             </div>
     
-                            <?php
-                            if ($consulta['estado'] != "Pendiente"){
-                                ?>
                             <div class="capsula">
+                            <?php
+                            if ($consulta['estado'] == "Aprobado"){
+                                ?>
                                 <button onclick="renovar();" class="btn btn-primary">Renovar</button>
-                            </div>
+                                <?php
+                            }elseif($consulta['estado'] == "Pendiente" OR $consulta['estado'] == "Actualizando"){
+                                ?>
+                                <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+                                    <button type="submit" class="btn btn-secondary" name="revision">Solicitar revisión</button>
+                                </form>
                                 <?php
                             }
                             ?>
+                            </div>
 
                             <div class="capsula">
                                 <button onclick="agregar();" class="btn btn-warning">Agregar web/DNS</button>
