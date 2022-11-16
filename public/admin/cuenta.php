@@ -17,8 +17,12 @@ if(isset($_POST['actualizar_info'])){
 
   $name = mysqli_real_escape_string($conexion, $_POST['name']);
   $email = mysqli_real_escape_string($conexion, $_POST['correo']);
-
+  $password = mysqli_real_escape_string($conexion, $_POST['contra']);
+  mysqli_close($conexion);
+  $consulta = consulta_mysqli_where("password","users","id",$iduser);
+  if(password_verify($password,$consulta['password']) == TRUE){
     actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email'","id",$iduser);
+  }
 
 }
 
@@ -76,14 +80,23 @@ $row = consulta_mysqli_clasic("*","users");
 
       <div class="mb-3">
         <label for="name" class="form-label">Nombre</label>
-        <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>">
+        <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>" required>
         <small id="name" class="form-text text-muted">Nombre registrado</small>
       </div>
 
       <div class="mb-3">
         <label for="correo" class="form-label">Correo</label>
-        <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>">
+        <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>" required>
         <small id="correo" class="form-text text-muted">Correo Registrado</small>
+      </div>
+
+      <div class="mb-3">
+        <div class="mb-3">
+          <label for="contra" class="form-label">Contraseña</label>
+          <input type="text"
+            class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
+          <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
+        </div>
       </div>
 
       <div class="mb-3 row">

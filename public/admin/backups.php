@@ -38,16 +38,34 @@ if($_ENV['PLUGINS'] != 1){
   <div class="container">
 
     <h1 align="Center">Sistema de respaldo</h1>
-    <p align="justify">Tener un respaldo garantiza que los datos estén seguros y que la información crítica no se pierda. Esto aplica para proteger configuración, robo de datos o cualquier otro tipo de emergencia.</p>
+    <p align="justify">Tener un respaldo garantiza que los datos estén seguros y que la información crítica no se pierda. Esto aplica para proteger su configuración, prevenir robo de datos o cualquier otro tipo de emergencia. Este sistema respalda lo que tú necesitas, cada respaldo guarda el archivo SQL de la base de datos.</p>
 
     <?php
     if(isset($_POST['allinone'])){
-      echo all_in_one();
+      $tipo = (int)$_POST['tipo'];
+      all_in_one($tipo);
+    }
+    if(isset($_POST['eliminar'])){
+      borrar_directorio($_POST['directorio']);
     }
     ?>
 
     <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
     <center>
+      <div class="col-10">
+        <div class="mb-3">
+          <label for="tipo" class="form-label">¿Qué carpeta desea respaldar?</label>
+          <select class="form-select form-select-lg" name="tipo" id="tipo">
+            <option selected>Selecciona una opción</option>
+            <option value="1">Todo</option>
+            <option value="2">Plugins</option>
+            <option value="3">Config</option>
+            <option value="4">Public</option>
+            <option value="5">Resourses</option>
+            <option value="6">Routes</option>
+          </select>
+        </div>
+      </div>
       <button name="allinone" type="submit" class="btn btn-warning">Respaldar</button>
     </center>
     </form>

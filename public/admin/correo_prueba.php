@@ -47,17 +47,17 @@ secure_auth_admin($iduser,"../");
     <?php
     
     if(isset($_POST['mail'])){
-        mail_smtp_v1_3_check($_POST['correo']);
+        if (mail_smtp_v1_3_check($_POST['correo']) == TRUE){
         echo "
         <script>
-        Swal.fire(
-        'Enviado',
-        'El mensaje ha sido enviado con éxito',
-        'success'
-        )
-    </script>
-        ";
+            Swal.fire(
+            'Enviado',
+            'El mensaje ha sido enviado con éxito',
+            'success'
+            )
+        </script>";
         }
+    }
 
     ?>
         <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">

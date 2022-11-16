@@ -214,14 +214,12 @@ function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users){
 
 function login($login_email,$login_password,$table_DB,$location){
 
-    $conexion = conect_mysqli();
+    global $nombre_app, $fecha;
 
-        $table_DB= $table_DB;
-        $email_catch = $login_email;
-        $password_catch = $login_password;
+    $conexion = conect_mysqli();
         $table = mysqli_real_escape_string($conexion, $table_DB);
-        $usuario = mysqli_real_escape_string($conexion, $email_catch);
-        $password = mysqli_real_escape_string($conexion, $password_catch);
+        $usuario = mysqli_real_escape_string($conexion, $login_email);
+        $password = mysqli_real_escape_string($conexion, $login_password);
         $ip = $_SERVER['REMOTE_ADDR'];
         if(isset($_POST['cookie'])){
             $cookies = TRUE;
@@ -229,7 +227,7 @@ function login($login_email,$login_password,$table_DB,$location){
             $cookies = FALSE;
         }
         
-        $sql = "SELECT id, password FROM $table WHERE email = '$usuario'";
+        $sql = "SELECT id, name, password FROM $table WHERE email = '$usuario'";
         $resultado = $conexion->query($sql);
         $rows = $resultado->num_rows;
         if ($rows > 0) {
@@ -252,7 +250,12 @@ function login($login_email,$login_password,$table_DB,$location){
 
                 mysqli_close($conexion);
 
-                header("Location: $location");
+                $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
+
+                if(mail_smtp_v1_3($row['name'],"Haz iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                    header("Location: $location");
+                }
+
 
                 }else{
                     mysqli_close($conexion);
@@ -267,6 +270,7 @@ function login($login_email,$login_password,$table_DB,$location){
 function login_admin($login_email,$login_password,$table_DB,$location){
 
     $conexion = conect_mysqli();
+    global $nombre_app ,$fecha;
         $table = mysqli_real_escape_string($conexion, $table_DB);
         $usuario = mysqli_real_escape_string($conexion, $login_email);
         $password = mysqli_real_escape_string($conexion, $login_password);
@@ -278,7 +282,7 @@ function login_admin($login_email,$login_password,$table_DB,$location){
         }
     
         
-        $sql = "SELECT id, password, id_rol FROM $table WHERE email = '$usuario'";
+        $sql = "SELECT id, name, password, id_rol FROM $table WHERE email = '$usuario'";
         $resultado = $conexion->query($sql);
         $rows = $resultado->num_rows;
         if ($rows > 0) {
@@ -302,8 +306,12 @@ function login_admin($login_email,$login_password,$table_DB,$location){
                     actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
     
                     mysqli_close($conexion);
-    
-                    header("Location: $location");
+
+                    $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
+
+                    if(mail_smtp_v1_3($row['name'],"Haz iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                        header("Location: $location");
+                    }
     
                     }else{
                         mysqli_close($conexion);
@@ -365,7 +373,13 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
     mysqli_close($conexion);
 
     if ($filas <= 0) {
+        global $nombre_app;
         insertar_datos_clasic_mysqli($table_db,"name, email, password, id_rol, created_at, updated_at","'$nombre', '$email', '$password_encriptada', '$rol', '$fecha', NULL");
+        $cuerpo_de_correo = "<div><p align='justify'>Te haz registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre</p></div>";
+
+        if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
+
+        }
         $success = "
         <script>
             Swal.fire(
@@ -445,7 +459,13 @@ function logout($id,$table_DB){
 }
 
 function eliminar_cuenta($id,$table_DB,$redireccion){
+    global $nombre_app;
+    $consulta = consulta_mysqli_where("email, name","users","id",$id);
     if (eliminar_datos_con_where($table_DB,"id",$id)) {
+        $cuerpo_de_correo = "<div><p>Hemos eliminado tu cuenta, muchas gracias haber sido parte de $nombre_app, esperamos verte en algún momento.</p></div>";
+        if(mail_smtp_v1_3($consulta['name'],"Hasta pronto 😢",$cuerpo_de_correo,$consulta['email'])){
+            return header("Location: $redireccion");
+        }
         return header("Location: $redireccion");
        }else {
         $error = "
@@ -461,7 +481,8 @@ function eliminar_cuenta($id,$table_DB,$redireccion){
 }
 
 function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
-    $consulta = consulta_mysqli_where("email, password","users","id",$id);
+    global $nombre_app;
+    $consulta = consulta_mysqli_where("email, password, name","users","id",$id);
     $usuario = $consulta['email'];
     $password = $consulta['password'];
     //eliminar cookies creadas por el sistema
@@ -472,8 +493,10 @@ function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
     }
     session_destroy();
     if (eliminar_datos_con_where($table_DB,"id",$id)) {
-
-        return header("Location: $redireccion");
+        $cuerpo_de_correo = "<div><p>Hemos eliminado tu cuenta, muchas gracias haber sido parte de $nombre_app, esperamos verte en algún momento.</p></div>";
+        if(mail_smtp_v1_3($consulta['name'],"Hasta pronto 😢",$cuerpo_de_correo,$usuario)){
+            return header("Location: $redireccion");
+        }
        }else {
         $error = "
         <script>
@@ -490,24 +513,27 @@ function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
 function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . "/config/correo/correo.php");
+        return TRUE;
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
+        return FALSE;
     }
 }
 
 function mail_smtp_v1_3_recibir($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . "/config/correo/correo_recibir.php");
+        return TRUE;
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
+        return FALSE;
     }
 }
 
 function mail_smtp_v1_3_check($correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . "/config/correo/correo_check.php");
+        return TRUE;
     }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
+        return FALSE;
     }
 }
 
@@ -559,6 +585,16 @@ function consulta_mysqli_innerjoin($select_db,$table_db,$inner,$compare,$data){
     $fetch = $resultado->fetch_assoc();
     mysqli_close($conexion);
     return $fetch;
+}
+
+function consulta_mysqli_estructura_tabla($tabla){
+    global $DB;
+    $conexion = conect_mysqli();
+    $sql = "SHOW CREATE TABLE `$DB`.`$tabla`";
+    $resultado = $conexion->query($sql);
+    $fetch = $resultado->fetch_assoc();
+    mysqli_close($conexion);
+    return print_r($fetch);
 }
 
 function consulta_mysqli_custom_all($code){
@@ -795,9 +831,10 @@ if(isset($_POST['salir'])){
 }
 
 if ($_ENV['PLUGINS'] == 1){
-    function all_in_one(){
+    function all_in_one($select){
+        $select = (int)$select;
         include (__DIR__ . "/plugins/all in one/allinone.php");
-        return allinone_zip_finish();
+        return allinone_zip_finish($select);
     }
     function not_pay(){
         include (__DIR__ . "/plugins/dont_pay/index.php");

@@ -96,40 +96,101 @@ function allinone_sql(){
 }
 
 ## posteriormente generaremos un zip del sistema
-function allinone_zip_all(){
+function allinone_zip_all($option){
     ini_set('max_execution_time', 9000);
     ini_set('memory_limit', '-1');
   
-    # Se guardará dependiendo del directorio, en una carpeta llamada respaldos
-    $carpeta = __DIR__ . "/respaldos";
-  
-        # Calcular un ID único
-        $id = uniqid();
-  
-        # También la fecha
-        $fecha = date("Y-m-d");
-  
-    $nombre_archivo = sprintf('respaldo_%s_%s.zip',$fecha,$id);
+    if($option == 1){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "plugins";
+        $config_rest -> carpeta = "./../../plugins/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        $config_rest -> nombre_del_archivo = "config";
+        $config_rest -> carpeta = "./../../config/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        $config_rest -> nombre_del_archivo = "public";
+        $config_rest -> carpeta = "./../../public/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        $config_rest -> nombre_del_archivo = "resourses";
+        $config_rest -> carpeta = "./../../resourses/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        $config_rest -> nombre_del_archivo = "routes";
+        $config_rest -> carpeta = "./../../routes/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
 
-    $homedir = __DIR__ . "./../../";
-    
-    new GoodZipArchive($homedir,    $carpeta . '/'. $nombre_archivo) ;
-    
-    if (file_exists(''.$carpeta.'/'.$nombre_archivo.'')){
-        $resultado = TRUE;
-      } else {
-        $resultado = FALSE;
-      }
-    return $resultado;
+    if($option == 2){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "plugins";
+        $config_rest -> carpeta = "./../../plugins/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
+
+    if($option == 3){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "config";
+        $config_rest -> carpeta = "./../../config/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
+
+    if($option == 4){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "public";
+        $config_rest -> carpeta = "./../../public/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
+
+    if($option == 5){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "resourses";
+        $config_rest -> carpeta = "./../../resourses/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
+
+    if($option == 6){
+        $config_rest = new zip_select;
+        $config_rest -> nombre_del_archivo = "routes";
+        $config_rest -> carpeta = "./../../routes/";
+        $config_rest -> ubicacion = "/respaldos";
+        $config_rest -> zip();
+        if($config_rest == TRUE){
+            return TRUE;
+        }
+    }
+
   }
 
   ##Finalmente zipearemos y borraremos los datos.
 
-  function allinone_zip_finish(){
+  function allinone_zip_finish($option){
     if (allinone_backup() == TRUE){
-        if (allinone_sql() == TRUE){
+        if (allinone_zip_all($option) == TRUE){
     
-            if (allinone_zip_all() == TRUE){
+            if (allinone_sql() == TRUE){
         
                 ini_set('max_execution_time', 9000);
                 ini_set('memory_limit', '-1');
@@ -153,13 +214,20 @@ function allinone_zip_all(){
     
                 if(borrar_directorio($dirname) == TRUE){
     
-                    if (file_exists(''.$carpeta.'/'.$nombre_archivo.'')) {
-                        $resultado = "<center><p>Proceso Finalizado!!</p><a class='btn btn-success' href='./../../plugins/all in one/respaldo_all/".$nombre_archivo."'>Descargar</a></center><br>";
-                      } else {
-                        $resultado = "<p align='center'>Error, archivo zip no ha sido creado!!</p>";
-                      }
-                    
-                    return $resultado;
+                    if (file_exists(''.$carpeta.'/'.$nombre_archivo.'')) {?>
+                        <center>
+                            <p>Respaldo realizado con éxito</p>
+                            <a class='btn btn-success' href='./../../plugins/all in one/respaldo_all/<?php echo $nombre_archivo; ?>'>Descargar</a><br><br>
+                            <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+                                <input type="hidden" name="directorio" value="./../../plugins/all in one/respaldo_all">
+                                <button type="submit" name="eliminar" class="btn btn-danger">Eliminar respaldo del disco</button>
+                                <br><br>
+                            </form>
+                        </center>
+                        <?php
+                    }else{
+                        return FALSE;
+                    }
                 }
                 
                 
@@ -168,6 +236,25 @@ function allinone_zip_all(){
                 return $resultado;
             }
         
+        }
+    }
+  }
+
+  class zip_select{
+    public $nombre_del_archivo;
+    public $carpeta;
+    public $ubicacion;
+
+    public function zip(){
+        $id = uniqid();
+        $fecha = date("Y-m-d");
+        $nombre_archivo = sprintf("{$this->nombre_del_archivo}_%s_%s.zip",$id,"$fecha");
+        $homedir = __DIR__ . "{$this->ubicacion}";
+        new GoodZipArchive(__DIR__ ."{$this->carpeta}",    $homedir . '/'. $nombre_archivo) ;
+        if (file_exists(''."{$this->carpeta}".'/'.$nombre_archivo.'')){
+            return TRUE;
+        } else {
+            return FALSE;
         }
     }
   }
