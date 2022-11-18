@@ -103,23 +103,23 @@ function allinone_zip_all($option){
     if($option == 1){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "plugins";
-        $config_rest -> carpeta = "./../../plugins/";
+        $config_rest -> carpeta = "/../../plugins";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         $config_rest -> nombre_del_archivo = "config";
-        $config_rest -> carpeta = "./../../config/";
+        $config_rest -> carpeta = "/../../config";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         $config_rest -> nombre_del_archivo = "public";
-        $config_rest -> carpeta = "./../../public/";
+        $config_rest -> carpeta = "/../../public";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         $config_rest -> nombre_del_archivo = "resourses";
-        $config_rest -> carpeta = "./../../resourses/";
+        $config_rest -> carpeta = "/../../resourses";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         $config_rest -> nombre_del_archivo = "routes";
-        $config_rest -> carpeta = "./../../routes/";
+        $config_rest -> carpeta = "/../../routes";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -130,7 +130,7 @@ function allinone_zip_all($option){
     if($option == 2){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "plugins";
-        $config_rest -> carpeta = "./../../plugins/";
+        $config_rest -> carpeta = "/../../plugins";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -141,7 +141,7 @@ function allinone_zip_all($option){
     if($option == 3){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "config";
-        $config_rest -> carpeta = "./../../config/";
+        $config_rest -> carpeta = "/../../config";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -152,7 +152,7 @@ function allinone_zip_all($option){
     if($option == 4){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "public";
-        $config_rest -> carpeta = "./../../public/";
+        $config_rest -> carpeta = "/../../public";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -163,7 +163,7 @@ function allinone_zip_all($option){
     if($option == 5){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "resourses";
-        $config_rest -> carpeta = "./../../resourses/";
+        $config_rest -> carpeta = "/../../resourses";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -174,7 +174,7 @@ function allinone_zip_all($option){
     if($option == 6){
         $config_rest = new zip_select;
         $config_rest -> nombre_del_archivo = "routes";
-        $config_rest -> carpeta = "./../../routes/";
+        $config_rest -> carpeta = "/../../routes";
         $config_rest -> ubicacion = "/respaldos";
         $config_rest -> zip();
         if($config_rest == TRUE){
@@ -209,8 +209,8 @@ function allinone_zip_all($option){
               
                 $nombre_archivo = sprintf('respaldo_%s_%s.zip',$fecha,$id);
                 
-                new GoodZipArchive(__DIR__ .'./respaldos/',    $carpeta . '/'. $nombre_archivo) ;
-                $dirname = "./../../plugins/all in one/respaldos/";
+                new GoodZipArchive(__DIR__ .'/respaldos/',    $carpeta . '/'. $nombre_archivo) ;
+                $dirname = __DIR__ . "/../../plugins/all in one/respaldos/";
     
                 if(borrar_directorio($dirname) == TRUE){
     
@@ -250,8 +250,11 @@ function allinone_zip_all($option){
         $fecha = date("Y-m-d");
         $nombre_archivo = sprintf("{$this->nombre_del_archivo}_%s_%s.zip",$id,"$fecha");
         $homedir = __DIR__ . "{$this->ubicacion}";
+        if (!file_exists($homedir."/")) {
+            mkdir($homedir."/");
+        }
         new GoodZipArchive(__DIR__ ."{$this->carpeta}",    $homedir . '/'. $nombre_archivo) ;
-        if (file_exists(''."{$this->carpeta}".'/'.$nombre_archivo.'')){
+        if (file_exists(''. __DIR__."{$this->carpeta}" . "/".$nombre_archivo.'')){
             return TRUE;
         } else {
             return FALSE;

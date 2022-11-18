@@ -28,21 +28,21 @@ function head(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/head/head.php");
+    return include (__DIR__ . "/config/general_rutes/head/head.php");
 }
 
 function head_users(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head admin está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/head/head_users.php");
+    return include (__DIR__ . "/config/general_rutes/head/head_users.php");
 }
 
 function head_admin(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head admin está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/head/head_admin.php");
+    return include (__DIR__ . "/config/general_rutes/head/head_admin.php");
 }
 
 function navbar(){
@@ -70,21 +70,21 @@ function footer(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/footer/footer.php");
+    return include (__DIR__ . "/config/general_rutes/footer/footer.php");
 }
 
 function footer_users(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer admin está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/footer/footer_admin.php");
+    return include (__DIR__ . "/config/general_rutes/footer/footer_admin.php");
 }
 
 function footer_admin(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer admin está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/footer/footer_admin.php");
+    return include (__DIR__ . "/config/general_rutes/footer/footer_admin.php");
 }
 
 // JosSecurity
