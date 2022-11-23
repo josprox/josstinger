@@ -43,12 +43,13 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
 
       if(isset($_POST['eliminar'])){
         $id_product = $_POST['id_product'];
-
+        $pedido_catch = $consulta['id_pedido'];
+        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
         // Server credentials
-        $hst_hostname = (string)$_ENV['HST_HOSTNAME'];
-        $hst_port = (int)$_ENV['HST_PORT'];
-        $hst_username = (string)$_ENV['HST_USUARIO'];
-        $hst_password = (string)$_ENV['HST_CONTRA'];
+        $hst_hostname = (string)$consulta_hestia['host'];
+        $hst_port = (int)$consulta_hestia['port'];
+        $hst_username = (string)$consulta_hestia['user'];
+        $hst_password = (string)$consulta_hestia['password'];
         $hst_returncode = 'yes';
         $hst_command = 'v-delete-user';
 
@@ -81,6 +82,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
         // Check result
         if(is_numeric($answer) && $answer == '0') {
             eliminar_datos_con_where("tokens_pays","id",$id_product);
+            eliminar_datos_con_where("request_dns","id_pedido",$pedido_catch);
             echo "
             <script>
                 Swal.fire(
@@ -174,11 +176,13 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                     if(isset($_POST['agregar'])){
                         $conexion = conect_mysqli();
                         $dominio = (string)(mysqli_real_escape_string($conexion,$_POST['dominio']));
+                        $pedido_catch = $consulta['id_pedido'];
+                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
                         // Server credentials
-                        $hst_hostname = (string)$_ENV['HST_HOSTNAME'];
-                        $hst_port = (int)$_ENV['HST_PORT'];
-                        $hst_username = (string)$_ENV['HST_USUARIO'];
-                        $hst_password = (string)$_ENV['HST_CONTRA'];
+                        echo $hst_hostname = (string)$consulta_hestia['host'];
+                        $hst_port = (int)$consulta_hestia['port'];
+                        $hst_username = (string)$consulta_hestia['user'];
+                        $hst_password = (string)$consulta_hestia['password'];
                         $hst_returncode = 'yes';
                         $hst_command = 'v-add-domain';
 
@@ -243,18 +247,28 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                         <li>Producto: <?php echo $consulta['nombre']; ?></li>
                         <li>ID del pedido: <?php echo $consulta['id_pedido']; ?></li>
                         <li>ID del pago: <?php echo $consulta['id_pago']; ?></li>
+                        <li>Estado del pago: <?php echo $consulta['estado']; ?></li>
                         <li>Forma de pago que usó: <?php echo $consulta['pagado_con']; ?></li>
                         <li>Expiración: <?php echo $consulta['expiracion']; ?></li>
                     </ul>
-
+                    
                     <p class="text-justify">Los siguientes datos son tus credenciales de acceso.</p>
-
+                    
                     <ul>
                         <li>Usuario: <?php echo $consulta['usuario']; ?></li>
                         <li>Correo: <?php echo $consulta['correo']; ?></li>
                         <li>Contraseña: La misma que usaste cuando te registraste</li>
                     </ul>
-
+                    <p class="text-justify">DNS correspondiente del pedido.</p>
+                    <?php
+                    $pedido = $consulta['id_pedido'];
+                    $consulta_dns = consulta_mysqli_custom_all("SELECT nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE request_dns.id_pedido = $pedido;");
+                    ?>
+                    <ul>
+                        <li>Namerserver 1: <?php echo $consulta_dns['dns1']; ?></li>
+                        <li>Namerserver 1: <?php echo $consulta_dns['dns2']; ?></li>
+                    </ul>
+                    
                     <div class="flex_center">
                         <div class="grid_4_auto">
 

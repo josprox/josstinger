@@ -90,10 +90,10 @@ function footer_admin(){
 // JosSecurity
 
 function edit_file($titulo,$directorio){
-    $archivo = strip_tags($directorio);
+    $archivo = strip_tags((string) $directorio);
     if(isset($_POST['enviar'])){
         $fp=fopen($archivo, "w+");
-        fputs($fp,$_POST['contenido']);
+        fputs($fp,(string) $_POST['contenido']);
         fclose($fp);
         echo "Editado correctamente";
     }
@@ -198,8 +198,8 @@ if ($_ENV['CONECT_DATABASE'] == 1){
 
 function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users){
     $conexion = conect_mysqli();
-    $tabla = mysqli_real_escape_string($conexion, $tabla);
-    $correo = mysqli_real_escape_string($conexion, $correo);
+    $tabla = mysqli_real_escape_string($conexion, (string) $tabla);
+    $correo = mysqli_real_escape_string($conexion, (string) $correo);
     mysqli_close($conexion);
     if(leer_tablas_mysql_custom("SELECT id FROM $tabla WHERE email = '$correo'")>= 1){
         $consulta = consulta_mysqli_where("id_rol","$tabla","email","'$correo'");
@@ -217,9 +217,9 @@ function login($login_email,$login_password,$table_DB,$location){
     global $nombre_app, $fecha;
 
     $conexion = conect_mysqli();
-        $table = mysqli_real_escape_string($conexion, $table_DB);
-        $usuario = mysqli_real_escape_string($conexion, $login_email);
-        $password = mysqli_real_escape_string($conexion, $login_password);
+        $table = mysqli_real_escape_string($conexion, (string) $table_DB);
+        $usuario = mysqli_real_escape_string($conexion, (string) $login_email);
+        $password = mysqli_real_escape_string($conexion, (string) $login_password);
         $ip = $_SERVER['REMOTE_ADDR'];
         if(isset($_POST['cookie'])){
             $cookies = TRUE;
@@ -234,15 +234,15 @@ function login($login_email,$login_password,$table_DB,$location){
             $row = $resultado->fetch_assoc();
             $password_encriptada = $row['password'];
             $id = $row['id'];
-            if(password_verify($password,$password_encriptada) == TRUE){
+            if(password_verify($password,(string) $password_encriptada) == TRUE){
 
                 $_SESSION['id_usuario'] = $row['id'];
 
                 if ($cookies == TRUE){
                     //Cookie de usuario y contraseña
-                    setcookie("COOKIE_INDEFINED_SESSION", TRUE, time()+$_ENV['COOKIE_SESSION'], "/");
-                    setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, time()+$_ENV['COOKIE_SESSION'], "/");
-                    setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, time()+$_ENV['COOKIE_SESSION'], "/");
+                    setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                    setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                    setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                 }
                 
 
@@ -271,9 +271,9 @@ function login_admin($login_email,$login_password,$table_DB,$location){
 
     $conexion = conect_mysqli();
     global $nombre_app ,$fecha;
-        $table = mysqli_real_escape_string($conexion, $table_DB);
-        $usuario = mysqli_real_escape_string($conexion, $login_email);
-        $password = mysqli_real_escape_string($conexion, $login_password);
+        $table = mysqli_real_escape_string($conexion, (string) $table_DB);
+        $usuario = mysqli_real_escape_string($conexion, (string) $login_email);
+        $password = mysqli_real_escape_string($conexion, (string) $login_password);
         $ip = $_SERVER['REMOTE_ADDR'];
         if(isset($_POST['cookie'])){
             $cookies = TRUE;
@@ -298,9 +298,9 @@ function login_admin($login_email,$login_password,$table_DB,$location){
                     
                     if ($cookies == TRUE){
                         //Cookie de usuario y contraseña
-                        setcookie("COOKIE_INDEFINED_SESSION", TRUE, time()+$_ENV['COOKIE_SESSION'], "/");
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, time()+$_ENV['COOKIE_SESSION'], "/");
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, time()+$_ENV['COOKIE_SESSION'], "/");
+                        setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                     }
 
                     actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
@@ -347,7 +347,7 @@ function login_cookie($table_DB){
             if ($rows > 0) {
                 $row = $resultado->fetch_assoc();
                 $password_encriptada = $row['password'];
-                if(password_verify($password_user,$password_encriptada) == TRUE){
+                if(password_verify((string) $password_user,(string) $password_encriptada) == TRUE){
                     $_SESSION['id_usuario'] = $row['id'];
                     mysqli_close($conexion);
                 }
@@ -359,11 +359,11 @@ function login_cookie($table_DB){
 function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
     global $fecha;
     $conexion = conect_mysqli();
-    $nombre = mysqli_real_escape_string($conexion, $name_user);
-    $email = mysqli_real_escape_string($conexion, $email_user);
-	$password = mysqli_real_escape_string($conexion, $contra_user);
+    $nombre = mysqli_real_escape_string($conexion, (string) $name_user);
+    $email = mysqli_real_escape_string($conexion, (string) $email_user);
+	$password = mysqli_real_escape_string($conexion, (string) $contra_user);
 	$password_encriptada = password_hash($password,PASSWORD_BCRYPT,["cost"=>10]);
-	$rol = mysqli_real_escape_string($conexion,$rol_user);
+	$rol = mysqli_real_escape_string($conexion,(string) $rol_user);
     $rol = (int)$rol;
 
 
@@ -407,7 +407,7 @@ function generar_llave_alteratorio($caracteres){
     $pattern = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
     $max = strlen($pattern)-1;
     for($i = 0; $i < $caracteres; $i++){
-        $key .= substr($pattern, mt_rand(0,$max), 1);
+        $key .= substr($pattern, random_int(0,$max), 1);
     }
     return $key;
 }
@@ -416,7 +416,7 @@ function resetear_contra($correo){
     global $fecha;
     $conexion = conect_mysqli();
     $key = generar_llave_alteratorio(16);
-    $password_encriptada = password_hash($key,PASSWORD_BCRYPT,["cost"=>10]);
+    $password_encriptada = password_hash((string) $key,PASSWORD_BCRYPT,["cost"=>10]);
     $insert = "UPDATE `users` SET `password` = '$password_encriptada', `updated_at` = '$fecha' WHERE `users`.`email` = '$correo'";
     $conexion -> query($insert);
 
@@ -439,7 +439,7 @@ function resetear_contra($correo){
 function logout($id,$table_DB){
 
     $conexion = conect_mysqli();
-    $table = mysqli_real_escape_string($conexion, $table_DB);
+    $table = mysqli_real_escape_string($conexion, (string) $table_DB);
     $sql = "SELECT email,password FROM $table WHERE id = '$id'";
     $resultado = $conexion->query($sql);
     $row = $resultado->fetch_assoc();
@@ -448,9 +448,9 @@ function logout($id,$table_DB){
 
     //eliminar cookies creadas por el sistema
     if (isset($_COOKIE['COOKIE_INDEFINED_SESSION'])) {
-        setcookie("COOKIE_INDEFINED_SESSION", FALSE, time()-$_ENV['COOKIE_SESSION'], "/");
-        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, time()-$_ENV['COOKIE_SESSION'], "/");
-        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, time()-$_ENV['COOKIE_SESSION'], "/");
+        setcookie("COOKIE_INDEFINED_SESSION", FALSE, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", (string) $usuario, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", (string) $password, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
     }
 
     session_destroy();
@@ -487,9 +487,9 @@ function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
     $password = $consulta['password'];
     //eliminar cookies creadas por el sistema
     if (isset($_COOKIE['COOKIE_INDEFINED_SESSION'])) {
-        setcookie("COOKIE_INDEFINED_SESSION", FALSE, time()-$_ENV['COOKIE_SESSION'], "/");
-        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, time()-$_ENV['COOKIE_SESSION'], "/");
-        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, time()-$_ENV['COOKIE_SESSION'], "/");
+        setcookie("COOKIE_INDEFINED_SESSION", FALSE, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", (string) $usuario, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", (string) $password, ['expires' => time()-$_ENV['COOKIE_SESSION'], 'path' => "/"]);
     }
     session_destroy();
     if (eliminar_datos_con_where($table_DB,"id",$id)) {
@@ -773,14 +773,14 @@ function secure_auth_admin($iduser,$location){
 }
 
 function nombre_de_pagina(){
-    $url = explode("/", $_SERVER['SCRIPT_NAME']);
+    $url = explode("/", (string) $_SERVER['SCRIPT_NAME']);
     $url = array_reverse($url);
     $url = $url[0];
     return $url;
 }
 
 function borrar_directorio($dirname) {
-	//si es un directorio lo abro
+         //si es un directorio lo abro
          if (is_dir($dirname))
            $dir_handle = opendir($dirname);
         //si no es un directorio devuelvo false para avisar de que ha habido un error
@@ -811,7 +811,7 @@ if($_ENV['RECAPTCHA'] == 1){
     
         $respuesta_captcha = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=$secretkey&response=$captcha&remoteip=$ip");
     
-        $atributos = json_decode($respuesta_captcha, TRUE);
+        $atributos = json_decode($respuesta_captcha, TRUE, 512, JSON_THROW_ON_ERROR);
     
         if(!$atributos['success']){
             if ($_ENV['DEBUG'] != 1){

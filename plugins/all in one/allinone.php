@@ -7,6 +7,7 @@
     Creador: Melchor Estrada José Luis (JOSPROX MX | Internacional).
     Web: https://josprox.com
 */
+
 # Lo primero que haremos será crear las carpetas necesarias.
 
 function allinone_backup(){
@@ -53,7 +54,7 @@ function allinone_sql(){
                 }
                 $contenido .= "\n(";
                 for ($j = 0; $j < $cantidadDeCampos; $j++) {
-                    $fila[$j] = str_replace("\n", "\\n", addslashes($fila[$j]));
+                    $fila[$j] = str_replace("\n", "\\n", addslashes((string) $fila[$j]));
                     if (isset($fila[$j])) {
                         $contenido .= '"' . $fila[$j] . '"';
                     } else {
@@ -240,6 +241,7 @@ function allinone_zip_all($option){
     }
   }
 
+  //Creo la clase zip_select para hacer movimientos rápidos de zipeo con la herramienta GoodZipArchive de manera más eficaz para JosSecurity.
   class zip_select{
     public $nombre_del_archivo;
     public $carpeta;
@@ -271,7 +273,7 @@ function allinone_zip_all($option){
 		if($input_folder !== false && $output_zip_file !== false)
 		{
 			$res = $this->open($output_zip_file, ZipArchive::CREATE);
-			if($res === TRUE) 	{ $this->addDir($input_folder, basename($input_folder)); $this->close(); }
+			if($res === TRUE) 	{ $this->addDir($input_folder, basename((string) $input_folder)); $this->close(); }
 			else  				{ echo 'Could not create a zip archive. Contact Admin.'; }
 		}
 	}

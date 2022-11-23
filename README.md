@@ -53,29 +53,62 @@ Podrás ayudarnos si detectas algún error o si podemos mejorar algo, tendrás q
 - Espacio requerido en disco: 10 mb.
 - Transferencia de red recomendada del servidor: 5 mb.
 
-### ¿Cómo instalarlo?
+### ¿Cómo puedo instalarlo si descargo el archivo en github?
 
-Para poder instalar JosSecurity puedes <a href="https://github.com/josprox/JosSecurity/releases">dar clic aquí</a> y descargar el instalador que viene por defecto.
-
-También puedes descargarlo via npm con el siguiente código:
-
-	npm i jossecurity
-
-En caso de usar npm deberás sacar los archivos "installer.php" y JosSecurity-x.x.x-zip (las x son porque puede variar en la versión) de la carpeta node_modules.
+Para poder instalar JosSecurity puedes <a href="https://github.com/josprox/JosSecurity/releases">dar clic aquí</a> y descargar el código source que viene por defecto en cada actualización.
 
 Si trabajas en un servidor:
-- Descomprime el archivo zip, se descomprimirá un archivo php el cuál es el instalador, también tendrás un archivo zip con los archivos necesarios para instalar JosSecurity.
+- Descarga el archivo comprimido y ponlo en tu directorio, si usas cpanel, hestia cp u otro accede a tu dominio y a la carpeta public_html, ahora descomprime el archivo zip.
 - Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
-- accede a tu dominio y al archivo correspondiente "installer.php", ejemplo: ("https://tudominio.com/installer.php")
+- accede a tu dominio y al archivo correspondiente "installer.php", ejemplo: ("https://tudominio.com/installer.php").
 - Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
 - Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará a tu panel con la versión de JosSecurity instalado.
 
 Si trabajas en un localhost (usando de ejemplo xampp):
-- Descarga el archivo comprimido y guárdalo en una raíz de documentos de tú servidor. Si ocupas XAMPP puede ser: C:\xampp\htdocs\
-- Ahora creamos una carpeta llamada JosSecurity (esto es un ejemplo, puedes llamarlo cómo gustes): C:\xampp\htdocs\jossecurity\
-- Descomprime el archivo zip, se descomprimirá un archivo php el cuál es el instalador, también tendrás un archivo zip con los archivos necesarios para instalar JosSecurity.
+- Descarga el archivo comprimido, ahora crea una carpeta y guárdalo en una raíz de documentos de tú servidor. Si ocupas XAMPP puede ser: C:\xampp\htdocs\
+- Ahora descomprimiremos el zip en la carpeta creada, en este caso creamos una carpeta llamada jossecurity (esto es un ejemplo, puedes llamarlo cómo gustes): C:\xampp\htdocs\jossecurity\
 - Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
 - Ve al directorio antes creado con dirección a "installer.php", ejemplo: ("http://localhost/jossecurity/installer.php").
+- Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
+- Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará al panel del sistema.
+
+### ¿Cómo puedo instalarlo si descargo el archivo por NPM?
+
+También puedes descargar JosSecurity por medio de npm con el siguiente código:
+
+	npm i jossecurity
+
+JosSecurity por defecto viene con algunas dependencias y con una interfaz para poder usarlo, tu podrás usar este sistema para tener una base, para ello tendrás que extraer los archivos de JosSecurity que vienen dentro de las carpetas /node_modules/jossecurity/ y ponerlos en la raíz del archivo. Listo, ahora puedes usar JosSecurity y, si hay una actualización recibirás todos los archivos actualizados de JosSecurity dentro de /node_modules/jossecurity/, de esta manera aseguras que, solo actualizarás los archivos que tu desees actualizar.
+
+Si trabajas en un servidor:
+- Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
+- accede a tu dominio y al archivo correspondiente "installer.php", ejemplo: ("https://tudominio.com/installer.php").
+- Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
+- Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará a tu panel con la versión de JosSecurity instalado.
+
+Si trabajas en un localhost (usando de ejemplo xampp):
+- Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
+- Accede al directorio donde instalaste JosSecurity y ponle un acceso a "installer.php", ejemplo: ("http://localhost/jossecurity/installer.php").
+- Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
+- Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará al panel del sistema.
+
+### ¿Cómo puedo instalarlo si descargo el archivo por Composer?
+
+También puedes descargar JosSecurity por medio de composer con el siguiente código:
+
+	composer require josprox/jossecurity
+
+JosSecurity por defecto viene con algunas dependencias y con una interfaz para poder usarlo, tu podrás usar este sistema para tener una base, para ello tendrás que extraer los archivos de JosSecurity que vienen dentro de las carpetas /vendor/josprox/jossecurity/ y ponerlos en la raíz del archivo. Listo, ahora puedes usar JosSecurity y, si hay una actualización recibirás todos los archivos actualizados de JosSecurity dentro de /vendor/josprox/jossecurity/, de esta manera aseguras que, solo actualizarás los archivos que tu desees actualizar.
+
+Si trabajas en un servidor:
+- Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
+- accede a tu dominio y al archivo correspondiente "installer.php", ejemplo: ("https://tudominio.com/installer.php").
+- Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
+- Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará a tu panel con la versión de JosSecurity instalado.
+
+Si trabajas en un localhost (usando de ejemplo xampp):
+- Crea una base de datos, de preferencia usa un cortejo utf8mb4_unicode_ci.
+- Accede al directorio donde instalaste JosSecurity y ponle un acceso a "installer.php", ejemplo: ("http://localhost/jossecurity/installer.php").
 - Sigue las instrucciones para llevar a cabo la instalación, recuerda completar todos los campos y cumplir con los requisitos mínimos.
 - Una vez instalado te saldrá el siguiente mensaje 'Se ha insertado los datos de manera correcta.' y te redireccionará al panel del sistema.
 
@@ -85,7 +118,7 @@ Si trabajas en un localhost (usando de ejemplo xampp):
 - Se recomienda ejecutarse con seguridad usando el protocolo ssl / tls.
 - Se recomienda usar un panel de control para administrar el servidor, puede usar sin problemas Cpanel y Hestia Control Panel. De preferencia debería usar <a href="https://hestiacp.com/">Hestia Control Panel</a>.
 - En caso de pruebas y mejoras, se recomienda usar XAMPP con php 8.1.0 o superior, debido a que, fue programado con esa versión.
-- Para tener un buen funcionamiento, se recomienda que, una vez subidos los archivos, ponle los todos los permisos de leer, escribir y ejecutar (permiso 750).
+- Para tener un buen funcionamiento, se recomienda que, una vez subidos los archivos, ponle todos los permisos de leer, escribir y ejecutar (permiso 750).
 
 #### Donaciones.
 

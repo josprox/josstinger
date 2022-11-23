@@ -30,6 +30,7 @@ $id_del_pedido = $_GET['merchant_order_id'];
 $meses= (int)$_GET['mut'];
 $new_token = generar_llave_alteratorio(16);
 
+$clasic_id_pedido = $_GET['back_order'];
 
 if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id_user = $iduser;") <= 0){
     header("Location: ./bienvenidos");
@@ -38,7 +39,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
     header("Location: ./");
 }
 insertar_datos_custom_mysqli("UPDATE tokens_pays SET id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = $id_token;");
-
+actualizar_datos_mysqli("request_dns","`id_pedido` = $id_del_pedido","id_pedido",$clasic_id_pedido);
 $consulta_fecha = consulta_mysqli_custom_all("SELECT DATE_ADD(expiracion, interval $meses month) FROM tokens_pays WHERE id = $id_token;");
 $nueva_fecha = $consulta_fecha["DATE_ADD(expiracion, interval $meses month)"];
 insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `token` = '$new_token',`expiracion` = '$nueva_fecha' WHERE `tokens_pays`.`id` = $id_token");

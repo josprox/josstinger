@@ -9,9 +9,10 @@ if(isset($_POST['renovar'])){
     $rows = consulta_mysqli_where("nombre,precio","servicios","id",$servicio);
     $precio = $rows['precio'];
     $total = $precio * $meses;
+    $id_pedido = $consulta['id_pedido'];
     $token_new = generar_llave_alteratorio(16);
     insertar_datos_custom_mysqli("UPDATE `tokens_pays` SET `token` = '$token_new' WHERE `tokens_pays`.`id` = $id_producto");
-    $preference_id = mercado_pago($rows['nombre'],1,$total,"USD","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses","users/falla?usr=$iduser","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses");
+    $preference_id = mercado_pago($rows['nombre'],1,$total,"USD","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses&back_order=$id_pedido","users/falla?usr=$iduser","users/renovar?token=$token_new&usr=$iduser&prdct=$servicio&mut=$meses&back_order=$id_pedido");
     foreach(arreglo_consulta("SELECT nombre,descripcion FROM servicios WHERE id = $servicio") as $row){
         ?>
         <div class="block-7">

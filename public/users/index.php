@@ -55,10 +55,20 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                     <div class="tarjeta_contenido">
                         <h4 class="text-center">Gestiona tus DNS en tu hosting</h4>
                         <p class="text-justify">Tu puedes gestionar tus DNS con nosotros, en cada paquete viene como mínimo 1 gestor dns, solo deberás apuntar nos nameservers a los siguientes dominios</p>
-                        <ul>
-                            <li>Nameserver 1: dns10.josprox.ovh</li>
-                            <li>Nameserver 2: ns10.josprox.ovh</li>
-                        </ul>
+                        <?php
+                            foreach(arreglo_consulta("SELECT id_pedido FROM request_dns WHERE id_user = $iduser LIMIT 4") as $pedido){
+                                $pedido_num = $pedido['id_pedido'];
+                                foreach(arreglo_consulta("SELECT nameservers.id,nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE id_pedido = $pedido_num;" ) as $name){
+                                    ?>
+                            <p>DNS correspondiente del pedido: <?php echo $pedido_num; ?></p>
+                            <ul>
+                                <li>Nameserver 1: <?php echo $name['dns1']; ?></li>
+                                <li>Nameserver 2: <?php echo $name['dns2']; ?></li>
+                            </ul>
+                                    <?php
+                                }
+                            }
+                            ?>
                     </div>
                 </div>
                 <div class="capsula">

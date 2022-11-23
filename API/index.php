@@ -9,13 +9,13 @@ if(!isset($_ENV['API']) OR $_ENV['API'] != 1){
 }elseif($_GET['email'] != "" && $_GET['password'] != "" && $_GET['cmd'] != ""){
     echo "CONECTANDO...\n\tConexión establecida.\n\tChecando usuario...\n\t";
     $conexion = conect_mysqli();
-    $email = mysqli_real_escape_string($conexion, $_GET['email']);
-    $password = mysqli_real_escape_string($conexion, $_GET['password']);
+    $email = mysqli_real_escape_string($conexion, (string) $_GET['email']);
+    $password = mysqli_real_escape_string($conexion, (string) $_GET['password']);
     $consulta_admin = consulta_mysqli_where("id , password, id_rol","users","email","'$email'");
     $password_encriptada = $consulta_admin['password'];
     $ip = $_SERVER['REMOTE_ADDR'];
     actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$consulta_admin['id']);
-    if((int)$consulta_admin['id_rol'] == 1 && password_verify($password,$password_encriptada) == TRUE){
+    if((int)$consulta_admin['id_rol'] == 1 && password_verify($password,(string) $password_encriptada) == TRUE){
         echo "Usuario correcto.\n\tEjecutando código insertado...\n";
         if($_GET['cmd'] == "test"){
             echo "\tAPI funcionando.";

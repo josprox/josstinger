@@ -50,20 +50,20 @@ function check_not_paid(){
             global $fecha;
             $conexion = conect_mysqli();
             if(isset($_POST['check_pay'])){
-                $check = mysqli_real_escape_string($conexion, $_POST['check_pay']);
+                $check = mysqli_real_escape_string($conexion, (string) $_POST['check_pay']);
                 if ($check == "on"){
                     $check = TRUE;
                 }
             }else{
                 $check = FALSE;
             }
-            $fecha_updated = mysqli_real_escape_string($conexion, $_POST['fecha']);
+            $fecha_updated = mysqli_real_escape_string($conexion, (string) $_POST['fecha']);
             if($_POST['dias'] <= 60 OR $_POST['dias'] >= 0){
-                $dias = (int)mysqli_real_escape_string($conexion, $_POST['dias']);
+                $dias = (int)mysqli_real_escape_string($conexion, (string) $_POST['dias']);
             }elseif($_POST['dias'] > 60 OR $_POST['dias'] < 0){
                 $dias = (int)60;
             }
-            $token = password_hash(mysqli_real_escape_string($conexion, $_POST['token']),PASSWORD_BCRYPT,["cost"=>10]);
+            $token = password_hash(mysqli_real_escape_string($conexion, (string) $_POST['token']),PASSWORD_BCRYPT,["cost"=>10]);
 
             mysqli_close($conexion);
 
@@ -90,22 +90,22 @@ function check_not_paid(){
         not_paid_submit();
         if(isset($_POST['receptor_not_paid'])){
             $conexion = conect_mysqli();
-            $id = mysqli_real_escape_string($conexion, $_POST['id']);
+            $id = mysqli_real_escape_string($conexion, (int) $_POST['id']);
             if(isset($_POST['check_pay'])){
-                $check = mysqli_real_escape_string($conexion, $_POST['check_pay']);
+                $check = mysqli_real_escape_string($conexion, (string) $_POST['check_pay']);
                 if ($check == "on"){
                     $check = TRUE;
                 }
             }else{
                 $check = FALSE;
             }
-            $fecha_updated = mysqli_real_escape_string($conexion, $_POST['fecha']);
+            $fecha_updated = mysqli_real_escape_string($conexion, (string) $_POST['fecha']);
             if($_POST['dias'] <= 60 OR $_POST['dias'] >= 0){
-                $dias = (int)mysqli_real_escape_string($conexion, $_POST['dias']);
+                $dias = (int)mysqli_real_escape_string($conexion, (string) $_POST['dias']);
             }elseif($_POST['dias'] > 60 OR $_POST['dias'] < 0){
                 $dias = (int)60;
             }
-            $token = mysqli_real_escape_string($conexion, $_POST['token']);
+            $token = mysqli_real_escape_string($conexion, (string) $_POST['token']);
         
             mysqli_close($conexion);
         
@@ -113,7 +113,7 @@ function check_not_paid(){
         
             $token_encriptado = $row['token'];
         
-            if(password_verify($token,$token_encriptado) == TRUE){
+            if(password_verify($token,(string) $token_encriptado) == TRUE){
                 actualizar_datos_mysqli("not_pay"," `check_pay` = '$check', `fecha` = '$fecha_updated', `dias` = '$dias'","id",$id);
                 echo "
                 <script>
@@ -147,8 +147,8 @@ function check_not_paid(){
         if(isset($_POST['eliminar_not_paid'])){
             $conexion = conect_mysqli();
             $pdo = conect_mysql();
-            $id = mysqli_real_escape_string($conexion, $_POST['id']);
-            $token = mysqli_real_escape_string($conexion, $_POST['token']);
+            $id = mysqli_real_escape_string($conexion, (string) $_POST['id']);
+            $token = mysqli_real_escape_string($conexion, (string) $_POST['token']);
         
             mysqli_close($conexion);
         
@@ -156,7 +156,7 @@ function check_not_paid(){
         
             $token_encriptado = $row['token'];
         
-            if(password_verify($token,$token_encriptado) == TRUE){
+            if(password_verify($token,(string) $token_encriptado) == TRUE){
                 eliminar_datos_con_where("not_pay","id",$id);
                 echo "
                 <script>

@@ -297,14 +297,10 @@ try {
     $mail->Body    = $cuerpo;
 
     $mail->SMTPAutoTLS = false;
-    $mail->SMTPOptions = array(
-        'ssl' => array(
-          'crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT
-        )
-    );
+    $mail->SMTPOptions = ['ssl' => ['crypto_method' => STREAM_CRYPTO_METHOD_TLSv1_3_CLIENT]];
 
     $mail->send();
-} catch (Exception $e) {
+} catch (Exception) {
     echo "Tuvimos un error, pruebalo mas tarde: {$mail->ErrorInfo}";
 }
 

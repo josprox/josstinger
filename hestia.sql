@@ -2,10 +2,10 @@
 -- version 5.2.0
 -- https://www.phpmyadmin.net/
 --
--- Servidor: localhost:3306
--- Tiempo de generación: 22-10-2022 a las 20:57:45
--- Versión del servidor: 10.6.7-MariaDB-2ubuntu1.1
--- Versión de PHP: 8.1.11
+-- Servidor: 127.0.0.1
+-- Tiempo de generación: 22-11-2022 a las 03:16:22
+-- Versión del servidor: 10.4.25-MariaDB
+-- Versión de PHP: 8.1.10
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,8 +18,35 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `admin_josstinger`
+-- Base de datos: `hestia`
 --
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `hestia_accounts`
+--
+
+CREATE TABLE `hestia_accounts` (
+  `id` bigint(21) NOT NULL,
+  `nameserver` bigint(21) NOT NULL,
+  `host` varchar(125) NOT NULL,
+  `port` int(12) NOT NULL,
+  `user` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `nameservers`
+--
+
+CREATE TABLE `nameservers` (
+  `id` bigint(21) NOT NULL,
+  `dns1` varchar(125) NOT NULL,
+  `dns2` varchar(125) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
 
@@ -33,6 +60,22 @@ CREATE TABLE `not_pay` (
   `fecha` date NOT NULL,
   `dias` int(11) NOT NULL,
   `token` varchar(255) NOT NULL,
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `request_dns`
+--
+
+CREATE TABLE `request_dns` (
+  `id` bigint(22) NOT NULL,
+  `id_hestia` bigint(21) NOT NULL,
+  `id_nameserver` bigint(22) NOT NULL,
+  `id_user` bigint(22) NOT NULL,
+  `id_pedido` bigint(21) NOT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -128,16 +171,34 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `id_rol`, `last_ip`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, '189.217.100.182', '2022-10-04 00:39:35', '2022-10-22 19:43:20');
+(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, NULL, '2022-10-04 00:39:35', '2022-10-22 19:43:20');
 
 --
 -- Índices para tablas volcadas
 --
 
 --
+-- Indices de la tabla `hestia_accounts`
+--
+ALTER TABLE `hestia_accounts`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `nameservers`
+--
+ALTER TABLE `nameservers`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `not_pay`
 --
 ALTER TABLE `not_pay`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `request_dns`
+--
+ALTER TABLE `request_dns`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -171,10 +232,28 @@ ALTER TABLE `users`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `hestia_accounts`
+--
+ALTER TABLE `hestia_accounts`
+  MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `nameservers`
+--
+ALTER TABLE `nameservers`
+  MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de la tabla `not_pay`
 --
 ALTER TABLE `not_pay`
   MODIFY `id` bigint(25) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de la tabla `request_dns`
+--
+ALTER TABLE `request_dns`
+  MODIFY `id` bigint(22) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `roles`
@@ -198,7 +277,7 @@ ALTER TABLE `tokens_pays`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
 
 --
 -- Restricciones para tablas volcadas

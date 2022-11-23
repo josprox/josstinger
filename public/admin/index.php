@@ -63,6 +63,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
     <img class="card-img-top" src="./../../resourses/img/logo azul/cover.png" alt="Title">
   </div>-->
   <br>
+  <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentacion</a> para saber cómo usar el sistema de JosSecurity.</p>
 
 
   </div>

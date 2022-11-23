@@ -1,8 +1,22 @@
 {
+    "name": "josprox/hestia",
+    "description": "JosSecurity es un framework y librería al mismo tiempo, debido a que, el sistema lo podrás usar como primer uso o segundo uso en tu proyecto, JosSecurity tiene herramientas para que puedas crear tu sitio web de una manera fácil y sencilla sin tener conocimientos en el back-end.",
+    "type": "library",
+    "license": "CC-BY-4.0",
+    "authors": [
+        {
+            "name": "Jose Luis Melchor Estrada",
+            "email": "joss@int.josprox.com"
+        }
+    ],
     "require": {
+        "php": ">=8.1",
         "vlucas/phpdotenv": "^5.4",
         "phpmailer/phpmailer": "^6.6",
         "mercadopago/dx-php": "^2.5",
         "evert/sitemap-php": "^1.2"
+    },
+    "require-dev": {
+        "rector/rector": "^0.14.8"
     }
 }

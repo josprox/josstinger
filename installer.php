@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "1.6";
+$version_app_default = "1.7";
 
 if(isset($_POST['instalar'])){
 
@@ -48,6 +48,8 @@ if(isset($_POST['instalar'])){
   $puerto_hestia = $_POST['puerto_hestia'];
   $usuario_hestia = $_POST['usuario_hestia'];
   $contra_hestia = $_POST['contra_hestia'];
+  $ns1 = $_POST['ns1'];
+  $ns2 = $_POST['ns2'];
   //Sistema de correo
   $user_smtp = $_POST['user_smtp'];
   $pass_smtp = $_POST['pass_smtp'];
@@ -89,6 +91,18 @@ if(isset($_POST['instalar'])){
             </script>
             ');
             $query= '';             
+    }
+
+    
+  }
+  $sql_insert = "INSERT INTO `nameservers` (`dns1`, `dns2`) VALUES ('$ns1', '$ns2');";
+    if($conexion -> query($sql_insert)){
+      $sql_info = "SELECT id FROM nameservers WHERE dns1 = '$ns1' && dns2 = '$ns2'";
+      $datos_procesados = $conexion -> query($sql_info);
+      $fetch = $datos_procesados->fetch_assoc();
+      $id_fetch = $fetch['id'];
+      $sql_insert_2 = "INSERT INTO `hestia_accounts` (`nameserver`, `host`, `port`, `user`, `password`) VALUES($id_fetch, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');";
+      $conexion -> query($sql_insert_2);
     }
   if(file_exists("./.gitignore")){
     $delete_gitignore = unlink('./.gitignore');
@@ -173,12 +187,6 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "MERCADO_PAGO=1\n");
   fwrite($env_create, "MERCADO_PAGO_PUBLIC_KEY=".$MPPK."\n");
   fwrite($env_create, "MERCADO_PAGO_ACCESS_TOKEN=".$MPAT."\n\n");
-
-  fwrite($env_create, "#Credenciales de Hestia Panel.\n");
-  fwrite($env_create, "HST_HOSTNAME=".$host_hestia."\n");
-  fwrite($env_create, "HST_PORT=".$puerto_hestia."\n");
-  fwrite($env_create, "HST_USUARIO=".$usuario_hestia."\n");
-  fwrite($env_create, "HST_CONTRA=".$contra_hestia."\n\n");
   
   fwrite($env_create, "# Acceso smtp para enviar correos.\n");
   fwrite($env_create, "SMTP_ACTIVE=1\n");
@@ -218,8 +226,6 @@ if(isset($_POST['instalar'])){
     window.location= './public/panel';
     </script>";
   }
-
-}
 
 
 }
@@ -495,10 +501,27 @@ if(isset($_POST['instalar'])){
 
                 <div class="col-5">
                   <div class="mb-3">
-                    <label for="contra_hestia" class="form-label">Contraseña </label>
+                    <label for="contra_hestia" class="form-label">Contraseña</label>
                     <input type="password"
                       class="form-control" name="contra_hestia" id="contra_hestia" aria-describedby="contra_hestia" placeholder="Pon la contraseña" required>
                     <small id="contra_hestia" class="form-text text-muted">Pon la contraseña de acceso del usuario de administración.</small>
+                  </div>
+                </div>
+
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="ns1" class="form-label">Nombre del servidor primario</label>
+                    <input type="text"
+                      class="form-control" name="ns1" id="ns1" aria-describedby="ns1" placeholder="Pon el nombre del primer servidor">
+                    <small id="ns1" class="form-text text-muted">Cuando el usuario se registre, necesitará un nameserver a donde apuntar su dominio, este paso es obligatorio, ejemplo dns10.josprox.ovh</small>
+                  </div>
+                </div>
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="ns2" class="form-label">Nombre del servidor secundario</label>
+                    <input type="text"
+                      class="form-control" name="ns2" id="ns2" aria-describedby="ns2" placeholder="Pon el nombre del segundo servidor">
+                    <small id="ns2" class="form-text text-muted">Cuando el usuario se registre, necesitará un segundo nameserver a donde apuntar su dominio, este paso es obligatorio, ejemplo ns10.josprox.ovh</small>
                   </div>
                 </div>
 

@@ -122,27 +122,36 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                     <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="POST">
                         <div class="form-group">
                             <label for="username">Usuario:</label>
-                            <input type="text" class="form-control" id="username" placeholder="Usuario" name="usuario">
+                            <input type="text" class="form-control" id="username" placeholder="Usuario" name="usuario" required>
                         </div>
                         <div class="form-group">
                             <label for="password">Contraseña:</label>
-                            <input type="password" class="form-control" id="password" placeholder="Contraseña"
-                                name="contra">
+                            <input type="password" class="form-control" id="password" placeholder="Contraseña" name="contra" required>
                         </div>
                         <div class="form-group">
                             <label for="email">Correo Electrónico:</label>
-                            <input type="email" class="form-control" id="email" placeholder="Correo Electrónico"
-                                name="correo">
+                            <input type="email" class="form-control" id="email" placeholder="Correo Electrónico" name="correo" required>
                         </div>
                         <div class="form-group">
                             <label for="nombre">Nombre del Usuario:</label>
-                            <input type="text" class="form-control" id="first_name" placeholder="Nombre del Usuario"
-                                name="nombre">
+                            <input type="text" class="form-control" id="first_name" placeholder="Nombre del Usuario" name="nombre" required>
                         </div>
                         <div class="form-group">
                             <label for="apellidos">Apellido del Usuario:</label>
-                            <input type="text" class="form-control" id="last_name" placeholder="Apellido del Usuario"
-                                name="apellidos">
+                            <input type="text" class="form-control" id="last_name" placeholder="Apellido del Usuario" name="apellidos" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nameserver" class="form-label">Selecciona algun sistema nameservers para continuar</label>
+                            <select class="form-select form-select-lg" name="nameserver" id="nameserver" required>
+                                <option selected>Selecciona alguno</option>
+                                <?php
+                                foreach(arreglo_consulta("SELECT * FROM nameservers") as $row){
+                                    ?>
+                                <option value="<?php echo $row['id']; ?>"><?php echo $row['dns1']; ?> - <?php echo $row['dns2']; ?></option>
+                                    <?php
+                                }
+                                ?>
+                            </select>
                         </div>
                         <button type="submit" name="registrar_hestia" class="btn btn-primary">Registrar</button>
                     </form>
@@ -158,17 +167,17 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         
                         
                         if (isset($_POST['registrar_hestia'])) {
+                        $conexion = conect_mysqli();
+                        $nameservers = mysqli_real_escape_string($conexion, $_POST['nameserver']);
+                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = hestia_accounts.id WHERE nameservers.id = $nameservers");
                         // Server credentials
-                        $hst_hostname = (string)$_ENV['HST_HOSTNAME'];
-                        $hst_port = (int)$_ENV['HST_PORT'];
-                        $hst_username = (string)$_ENV['HST_USUARIO'];
-                        $hst_password = (string)$_ENV['HST_CONTRA'];
+                        $hst_hostname = (string)$consulta_hestia['host'];
+                        $hst_port = (int)$consulta_hestia['port'];
+                        $hst_username = (string)$consulta_hestia['user'];
+                        $hst_password = (string)$consulta_hestia['password'];
                         $hst_returncode = 'yes';
                         $hst_command = 'v-add-user';
-                        // Server credentials
-                        $hst_hostname = $_ENV['HST_HOSTNAME'];
-                        $hst_port = $_ENV['HST_PORT'];
-                        $conexion = conect_mysqli();
+                        $hst_id = $consulta_hestia['id'];
                         // New Account
                         $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_product;");
                         $username = mysqli_real_escape_string($conexion, $_POST['usuario']);
@@ -196,6 +205,9 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $new_token = generar_llave_alteratorio(16);
                         
                         insertar_datos_custom_mysqli("UPDATE tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', token = '$new_token', updated_at = '$fecha' WHERE id = $id_token");
+
+
+                        insertar_datos_clasic_mysqli("request_dns","id_hestia ,id_nameserver, id_user, id_pedido, created_at","$hst_id,$nameservers, $id_user_pay, $id_del_pedido, '$fecha'");
                         
                         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 

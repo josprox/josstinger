@@ -35,11 +35,11 @@ secure_auth_admin($iduser,"../");
 
     error_reporting(0);
     
-    $archivo = strip_tags($_GET['archivo']);
+    $archivo = strip_tags((string) $_GET['archivo']);
 
     if($archivo==""){
         $archivos = scandir("./");
-        for ($i=0; $i < count($archivos); $i++) { 
+        for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
             if ($archivos[$i] !="." && $archivos[$i] !="..") {
                 if(!is_dir($archivos[$i])){
                     echo "<a href='?archivo=" . $archivos[$i] . "'>".$archivos[$i]."</a><br>";
@@ -53,7 +53,7 @@ secure_auth_admin($iduser,"../");
 
         if($_POST['enviar']){
             $fp=fopen($archivo, "w+");
-            fputs($fp,$_POST['contenido']);
+            fputs($fp,(string) $_POST['contenido']);
             fclose($fp);
             echo "Editado correctamente";
         }
