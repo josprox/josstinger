@@ -2,7 +2,7 @@
 
 require (__DIR__ . "/../jossecurity.php");
 
-foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM tokens_pays") as $row){
+foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracion FROM tokens_pays") as $row){
     if($row['expiracion'] < $fecha){
 
         $id = $row['id_user'];
@@ -11,9 +11,10 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
 
         mail_smtp_v1_3($row['usuario'],"Tu paquete ya expiró.",$cuerpo,$row['correo']);
 
-        $conexion = conect_mysqli();
-        $nameservers = mysqli_real_escape_string($conexion, $_POST['nameserver']);
-        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = hestia_accounts.id WHERE nameservers.id = $nameservers");
+        $pedido = $row['id_pedido'];
+        $resultado = consulta_mysqli_custom_all("SELECT id_hestia FROM request_dns WHERE id_pedido = $pedido");
+        $id_hestia = $resultado['id_hestia'];
+        $consulta_hestia = consulta_mysqli_custom_all("SELECT * FROM hestia_accounts WHERE id = $id_hestia");
         
         // Server credentials
         $hst_hostname = (string)$consulta_hestia['host'];
@@ -27,13 +28,7 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
         $username = $row['usuario'];
         
         // Prepare POST query
-        $postvars = array(
-            'user' => $hst_username,
-            'password' => $hst_password,
-            'returncode' => $hst_returncode,
-            'cmd' => $hst_command,
-            'arg1' => $username
-        );
+        $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $username];
         
         // Send POST query via cURL
         $postdata = http_build_query($postvars);
@@ -47,10 +42,9 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
         $answer = curl_exec($curl);
         
         // Parse JSON output
-        $data = json_decode($answer, true);
-        eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id;");
-
-        mysqli_close($conexion);
+        $data = json_decode($answer, true, 512, JSON_THROW_ON_ERROR);
+        eliminar_datos_custom_mysqli("DELETE FROM request_dns WHERE id_pedido = $pedido;");
+        eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_pedido = $pedido;");
 
     }
 }

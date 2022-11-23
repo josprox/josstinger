@@ -57,13 +57,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
         $username = $consulta['usuario'];
 
         // Prepare POST query
-        $postvars = array(
-            'user' => $hst_username,
-            'password' => $hst_password,
-            'returncode' => $hst_returncode,
-            'cmd' => $hst_command,
-            'arg1' => $username
-        );
+        $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $username];
 
         // Send POST query via cURL
         $postdata = http_build_query($postvars);
@@ -77,7 +71,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
         $answer = curl_exec($curl);
 
         // Parse JSON output
-        $data = json_decode($answer, true);
+        $data = json_decode($answer, true, 512, JSON_THROW_ON_ERROR);
 
         // Check result
         if(is_numeric($answer) && $answer == '0') {
@@ -175,7 +169,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                     <?php
                     if(isset($_POST['agregar'])){
                         $conexion = conect_mysqli();
-                        $dominio = (string)(mysqli_real_escape_string($conexion,$_POST['dominio']));
+                        $dominio = (mysqli_real_escape_string($conexion,(string) $_POST['dominio']));
                         $pedido_catch = $consulta['id_pedido'];
                         $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
                         // Server credentials
@@ -191,14 +185,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                         $domain = $dominio;
 
                         // Prepare POST query
-                        $postvars = array(
-                            'user' => $hst_username,
-                            'password' => $hst_password,
-                            'returncode' => $hst_returncode,
-                            'cmd' => $hst_command,
-                            'arg1' => $username,
-                            'arg2' => $domain
-                        );
+                        $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $username, 'arg2' => $domain];
 
                         // Send POST query via cURL
                         $postdata = http_build_query($postvars);

@@ -39,8 +39,8 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
 
         $conexion = conect_mysqli();
       
-        $name = mysqli_real_escape_string($conexion, $_POST['name']);
-        $email = mysqli_real_escape_string($conexion, $_POST['correo']);
+        $name = mysqli_real_escape_string($conexion, (string) $_POST['name']);
+        $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
       
         actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email'","id",$iduser);
         
@@ -62,13 +62,13 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
     if(isset($_POST['update_password'])){
         $conexion = conect_mysqli();
       
-        $password = mysqli_real_escape_string($conexion, $_POST['password']);
-        $password_new = mysqli_real_escape_string($conexion, $_POST['password_new']);
-        $password_repeat = mysqli_real_escape_string($conexion, $_POST['password_repeat']);
+        $password = mysqli_real_escape_string($conexion, (string) $_POST['password']);
+        $password_new = mysqli_real_escape_string($conexion, (string) $_POST['password_new']);
+        $password_repeat = mysqli_real_escape_string($conexion, (string) $_POST['password_repeat']);
         $row = consulta_mysqli_where("password","users","id",$iduser);
         $password_encrypt = $row['password'];
       
-        if(password_verify($password, $password_encrypt) == TRUE){
+        if(password_verify($password, (string) $password_encrypt) == TRUE){
           if ($password_new == $password_repeat){
               $password_encriptada = password_hash($password_new,PASSWORD_BCRYPT,["cost"=>10]);
             actualizar_datos_mysqli('users',"`password` = '$password_encriptada'",'id',$iduser);

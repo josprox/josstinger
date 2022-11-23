@@ -4,7 +4,7 @@ if(isset($_POST['renovar'])){
     $conexion = conect_mysqli();
     $servicio = $consulta['id_servicio'];
     $id_producto = $consulta['id'];
-    $meses = (int)mysqli_real_escape_string($conexion, $_POST['meses']);
+    $meses = (int)mysqli_real_escape_string($conexion, (int) $_POST['meses']);
     mysqli_close($conexion);
     $rows = consulta_mysqli_where("nombre,precio","servicios","id",$servicio);
     $precio = $rows['precio'];
@@ -36,9 +36,9 @@ if(isset($_POST['select'])){
     if($_POST['servicio'] == ""){
         $servicio = 1;
     }else{
-        $servicio = (int)mysqli_real_escape_string($conexion, $_POST['servicio']);
+        $servicio = (int)mysqli_real_escape_string($conexion, (int) $_POST['servicio']);
     }
-    $meses = (int)mysqli_real_escape_string($conexion, $_POST['meses']);
+    $meses = (int)mysqli_real_escape_string($conexion, (int) $_POST['meses']);
     mysqli_close($conexion);
     $rows = consulta_mysqli_where("nombre,precio","servicios","id",$servicio);
     $precio = $rows['precio'];

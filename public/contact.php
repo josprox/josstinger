@@ -32,10 +32,10 @@ include (__DIR__ . "/../jossecurity.php");
     <?php
         if(isset($_POST['contacto'])){
           $conexion = conect_mysqli();
-          $nombre = (string)mysqli_real_escape_string($conexion, $_POST['nombre']);
-          $correo = (string)mysqli_real_escape_string($conexion, $_POST['correo']);
-          $asunto = (string)mysqli_real_escape_string($conexion, $_POST['asunto']);
-          $mensaje = (string)mysqli_real_escape_string($conexion, $_POST['mensaje']);
+          $nombre = mysqli_real_escape_string($conexion, (string) $_POST['nombre']);
+          $correo = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
+          $asunto = mysqli_real_escape_string($conexion, (string) $_POST['asunto']);
+          $mensaje = mysqli_real_escape_string($conexion, (string) $_POST['mensaje']);
           mysqli_close($conexion);
           mail_smtp_v1_3_recibir($nombre,$asunto,$mensaje,$correo);
           echo "

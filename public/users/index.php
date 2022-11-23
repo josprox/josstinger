@@ -36,7 +36,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
     <?php
     if (isset($_POST['eliminar'])){
         $conexion = conect_mysqli();
-        $id = mysqli_real_escape_string($conexion, $_POST['txtID']);
+        $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
         mysqli_close($conexion);
     
         echo eliminar_datos_con_where("tokens_pays","id",$id);

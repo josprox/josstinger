@@ -32,7 +32,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser &
 <?php
 if (isset($_POST['eliminar'])){
     $conexion = conect_mysqli();
-    $id = mysqli_real_escape_string($conexion, $_POST['txtID']);
+    $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
     mysqli_close($conexion);
     eliminar_datos_con_where("tokens_pays","id_user",$id);
     echo eliminar_cuenta_con_cookies($id,"users","../");

@@ -168,7 +168,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         
                         if (isset($_POST['registrar_hestia'])) {
                         $conexion = conect_mysqli();
-                        $nameservers = mysqli_real_escape_string($conexion, $_POST['nameserver']);
+                        $nameservers = mysqli_real_escape_string($conexion, (int) $_POST['nameserver']);
                         $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = hestia_accounts.id WHERE nameservers.id = $nameservers");
                         // Server credentials
                         $hst_hostname = (string)$consulta_hestia['host'];
@@ -180,12 +180,12 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $hst_id = $consulta_hestia['id'];
                         // New Account
                         $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_product;");
-                        $username = mysqli_real_escape_string($conexion, $_POST['usuario']);
-                        $password = mysqli_real_escape_string($conexion, $_POST['contra']);
-                        $email = mysqli_real_escape_string($conexion, $_POST['correo']);
+                        $username = mysqli_real_escape_string($conexion, (string) $_POST['usuario']);
+                        $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
+                        $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
                         $package = (string)$consulta_paquetes['nombre'];
-                        $first_name = mysqli_real_escape_string($conexion, $_POST['nombre']);
-                        $last_name = mysqli_real_escape_string($conexion, $_POST['apellidos']);
+                        $first_name = mysqli_real_escape_string($conexion, (string) $_POST['nombre']);
+                        $last_name = mysqli_real_escape_string($conexion, (string) $_POST['apellidos']);
                         mysqli_close($conexion);
                         
                         $token = $_GET['token'];
@@ -212,18 +212,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 
                         // Prepare POST query
-                        $postvars = array(
-                            'user' => $hst_username,
-                            'password' => $hst_password,
-                            'returncode' => $hst_returncode,
-                            'cmd' => $hst_command,
-                            'arg1' => $username,
-                            'arg2' => $password,
-                            'arg3' => $email,
-                            'arg4' => $package,
-                            'arg5' => $first_name,
-                            'arg6' => $last_name
-                        );
+                        $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $username, 'arg2' => $password, 'arg3' => $email, 'arg4' => $package, 'arg5' => $first_name, 'arg6' => $last_name];
 
                         // Send POST query via cURL
                         $postdata = http_build_query($postvars);
