@@ -11,13 +11,15 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
 
         mail_smtp_v1_3($row['usuario'],"Tu paquete ya expiró.",$cuerpo,$row['correo']);
 
-        
+        $conexion = conect_mysqli();
+        $nameservers = mysqli_real_escape_string($conexion, $_POST['nameserver']);
+        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = hestia_accounts.id WHERE nameservers.id = $nameservers");
         
         // Server credentials
-        $hst_hostname = (string)$_ENV['HST_HOSTNAME'];
-        $hst_port = (int)$_ENV['HST_PORT'];
-        $hst_username = (string)$_ENV['HST_USUARIO'];
-        $hst_password = (string)$_ENV['HST_CONTRA'];
+        $hst_hostname = (string)$consulta_hestia['host'];
+        $hst_port = (int)$consulta_hestia['port'];
+        $hst_username = (string)$consulta_hestia['user'];
+        $hst_password = (string)$consulta_hestia['password'];
         $hst_returncode = 'yes';
         $hst_command = 'v-delete-user';
         
@@ -47,6 +49,8 @@ foreach (arreglo_consulta("SELECT id_user, usuario, correo, expiracion FROM toke
         // Parse JSON output
         $data = json_decode($answer, true);
         eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id;");
+
+        mysqli_close($conexion);
 
     }
 }

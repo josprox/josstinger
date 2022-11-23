@@ -1,4 +1,4 @@
-    <section class="bienvenida">
+<section class="bienvenida">
         <div class="contenedor">
             <h2 class="text-center text-shadow-black">Hola <?php echo $row['name']; ?></h2>
             <hr>

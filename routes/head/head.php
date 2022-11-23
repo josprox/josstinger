@@ -1,4 +1,4 @@
-  <!-- JQUERY -->
+<!-- JQUERY -->
   <script src="../node_modules/jquery/dist/jquery.min.js"></script>
   
   <link rel="shortcut icon" href="../resourses/img/josstinger degradado/vector/default.svg" type="image/x-icon">

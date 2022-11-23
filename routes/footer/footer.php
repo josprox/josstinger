@@ -1,4 +1,4 @@
-            <section class="footer">
+<section class="footer">
             
                     <div class="grid_4_auto">
             

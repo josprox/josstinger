@@ -1,4 +1,4 @@
-    <!-- JosSecurity está funcionando -->
+<!-- JosSecurity está funcionando -->
 
     <!-- JQUERY -->
     <script src="../../node_modules/jquery/dist/jquery.min.js"></script>

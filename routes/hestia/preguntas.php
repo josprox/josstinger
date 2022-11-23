@@ -1,4 +1,4 @@
-    <section class="flex_center">
+<section class="flex_center">
         <div class="contenedor">
 
             <div class="tarjeta-blanca">
