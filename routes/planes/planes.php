@@ -1,4 +1,4 @@
-	<section class="app_josstinger">
+<section class="app_josstinger">
         <div class="flex_center">
             <div class="contenedor">
                 <div class="grid_2_auto">
