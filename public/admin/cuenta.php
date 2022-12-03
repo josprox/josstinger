@@ -142,7 +142,6 @@ $row = consulta_mysqli_clasic("*","users");
 
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
-  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
 </body>
 
 </html>

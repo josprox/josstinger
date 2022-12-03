@@ -22,7 +22,13 @@ if ($pagina  == "panel.php"){
   <link href="../resourses/css/video-js.min.css" rel="stylesheet">
   <?php
 }elseif($pagina  != "panel.php"){
-  include __DIR__ . "/../../../routes/head/head.php";
+  ?>
+  <!-- Metas generales -->
+  <meta name="viewport" content= "width=device-width, user-scalable=no">
+  <?php
+  if(file_exists(__DIR__ . "/../../../routes/head/head.php")){
+    include (__DIR__ . "/../../../routes/head/head.php");
+  }
 }
 
 if($_ENV['PWA'] == 1){

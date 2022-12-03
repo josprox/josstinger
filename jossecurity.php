@@ -49,21 +49,21 @@ function navbar(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." navbar está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/navbar/navbar.php");
+    return include (__DIR__ . "/config/general_rutes/navbar/navbar.php");
 }
 
 function navbar_users(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." navbar users está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/navbar/navbar_users.php");
+    return include (__DIR__ . "/config/general_rutes/navbar/navbar_users.php");
 }
 
 function navbar_admin(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." navbar admin está activo.');</script>";
     }
-    return include (__DIR__ . "/routes/navbar/navbar_admin.php");
+    return include (__DIR__ . "/config/general_rutes/navbar/navbar_admin.php");
 }
 
 function footer(){
@@ -252,7 +252,7 @@ function login($login_email,$login_password,$table_DB,$location){
 
                 $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
 
-                if(mail_smtp_v1_3($row['name'],"Haz iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
                     header("Location: $location");
                 }
 
@@ -309,7 +309,7 @@ function login_admin($login_email,$login_password,$table_DB,$location){
 
                     $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
 
-                    if(mail_smtp_v1_3($row['name'],"Haz iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                    if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
                         header("Location: $location");
                     }
     
@@ -375,7 +375,7 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
     if ($filas <= 0) {
         global $nombre_app;
         insertar_datos_clasic_mysqli($table_db,"name, email, password, id_rol, created_at, updated_at","'$nombre', '$email', '$password_encriptada', '$rol', '$fecha', NULL");
-        $cuerpo_de_correo = "<div><p align='justify'>Te haz registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre</p></div>";
+        $cuerpo_de_correo = "<div><p align='justify'>Te has registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre</p></div>";
 
         if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
 
@@ -778,7 +778,13 @@ function nombre_de_pagina(){
     $url = $url[0];
     return $url;
 }
-
+function crear_archivo($directorio,$contenido_C){
+    $dirname = __DIR__ . DIRECTORY_SEPARATOR . $directorio;
+    $create = fopen($dirname, 'w');
+    fwrite($create, "$contenido_C");
+    fclose($create);
+    return TRUE;
+}
 function borrar_directorio($dirname) {
          //si es un directorio lo abro
          if (is_dir($dirname))
@@ -843,7 +849,7 @@ if ($_ENV['PLUGINS'] == 1){
     if($_ENV['MERCADO_PAGO'] == 1){
         include (__DIR__ . "/plugins/mercado_pago/sdk.php");
     }
-
+    include (__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php");
 }
 
 // Podrás crear tus propios Jossitos en el achivo mis_jossitos.php en la carpeta config.

@@ -233,7 +233,6 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
 
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
-  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
 </body>
 
 </html>

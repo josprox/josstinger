@@ -36,5 +36,5 @@ $arr = ["name" => $_ENV['NAME_APP'] . " Solution PWA: " . $_ENV['VERSION'], "sho
     "type" => "image/png"
     ]
 ]];
-print_r(json_encode($arr));
+print_r(json_encode($arr, JSON_THROW_ON_ERROR));
 ?>

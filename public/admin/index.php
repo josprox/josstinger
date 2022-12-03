@@ -58,10 +58,27 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   <p align="center">Un gusto volver a verte <?php echo $row['name']; ?></p>
   <p align="center">Versión: <?php echo $version_app; ?></p>
   
-  <?php echo reproductor_video("../../resourses/video/Josstinger.mp4"); ?>
-  <!--<div class="card">
-    <img class="card-img-top" src="./../../resourses/img/logo azul/cover.png" alt="Title">
-  </div>-->
+  <?php 
+  // Le hablamos a Visibility Logic
+  $control = new VisibilityLogic();
+  // Le pedimos que muestre el contenido.
+  $control -> accion = "mostrar";
+  // Ahora condicionamos que solo muestre a esta dirección IP.
+  $control -> ip = "::1";
+  if($control -> ip() == TRUE){
+    echo reproductor_video("../../resourses/video/Josstinger.mp4");
+  }
+  //En el caso que el usuario no usa esta IP, mostrará lo siguiente.
+  elseif($control -> ip() == FALSE){
+    ?>
+    <div class="card">
+      <img class="card-img-top" src="./../../resourses/img/logo azul/cover.png" alt="Title">
+    </div>
+    <?php
+  }
+  // Cerramos la clase.
+  $control -> cerrar();
+  ?>
   <br>
   <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentacion</a> para saber cómo usar el sistema de JosSecurity.</p>
 
@@ -70,7 +87,6 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
 
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
-  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
 </body>
 
 </html>
