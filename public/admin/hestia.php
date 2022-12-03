@@ -57,7 +57,6 @@ secure_auth_admin($iduser,"../");
     insertar_datos_custom_mysqli("INSERT INTO `nameservers` (dns1, dns2) VALUES ('$dns1_hestia', '$dns2_hestia');");
     $id_consulta_nameservers = consulta_mysqli_custom_all("SELECT nameservers.id FROM nameservers WHERE nameservers.dns1 = '$dns1_hestia' && nameservers.dns2 = '$dns2_hestia';");
     $id_nameservers = $id_consulta_nameservers['id'];
-    echo "<br>" . $id_nameservers;
     insertar_datos_custom_mysqli("INSERT INTO `hestia_accounts` (nameserver, host, port, user, password) VALUES($id_nameservers, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');");
   }
 
