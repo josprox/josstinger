@@ -61,40 +61,66 @@ include (__DIR__ . "/../jossecurity.php");
           </ul>
         </div>
         <div class="contacto_form_form">
-          <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+          <?php
+          $control = new VisibilityLogic();
+          $control -> accion = "mostrar";
+          $control -> iduser_tabla = "users";
+          if($control -> rol_usuario() == 6 OR $control -> rol_usuario() == 1){
+            ?>
+            <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
-            <div class="mb-3">
-              <label for="nombre" class="form-label">Nombre</label>
-              <input type="text"
-                  class="form-control form-control-sm" name="nombre" id="nombre" aria-describedby="nombre" placeholder="Pon tu nombre">
-              <small id="nombre" class="form-text text-muted">Pon tu nombre para identificarte</small>
+              <div class="mb-3">
+                <label for="nombre" class="form-label">Nombre</label>
+                <input type="text"
+                    class="form-control form-control-sm" name="nombre" id="nombre" aria-describedby="nombre" placeholder="Pon tu nombre">
+                <small id="nombre" class="form-text text-muted">Pon tu nombre para identificarte</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="correo" class="form-label">Correo</label>
+                <input type="email"
+                    class="form-control form-control-sm" name="correo" id="correo" aria-describedby="correo" placeholder="Pon tu correo">
+                <small id="correo" class="form-text text-muted">Necesitamos tu correo para poder contactarte</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="asunto" class="form-label">Asunto</label>
+                <input type="text"
+                    class="form-control form-control-sm" name="asunto" id="asunto" aria-describedby="asunto" placeholder="Pon el asunto">
+                <small id="asunto" class="form-text text-muted">Ayudanos a saber qué necesitas</small>
+              </div>
+
+              <div class="mb-3">
+                <label for="mensaje" class="form-label">Pon tu mensaje</label>
+                <textarea class="textarea" name="mensaje" id="mensaje" rows="3"></textarea>
+              </div>
+
+              <br>
+              <center>
+                <input name="contacto" type="submit" value="Enviar correo" class="btn btn-primary py-3 px-5">
+              </center>
+              
+            </form>
+            <?php
+          }else{
+            ?>
+            <div class="contacto_form_login">
+              <h2>Antes de continuar</h2>
+              <div class="grid_2_auto">
+                <div>
+                  <img src="./../resourses/img/josstinger degradado/default.png" alt="Josstinger">
+                </div>
+                <div>
+                  <p align="justify">Para poder continuar deberás crear una cuenta o acceder para enviar un correo, recuerda que, si haces spam serás baneado.</p>
+                  <div class="flex_center">
+                    <a class="btn btn-primary" href="panel" role="button">Acceder</a>
+                  </div>
+                </div>
+              </div>
             </div>
-
-            <div class="mb-3">
-              <label for="correo" class="form-label">Correo</label>
-              <input type="email"
-                  class="form-control form-control-sm" name="correo" id="correo" aria-describedby="correo" placeholder="Pon tu correo">
-              <small id="correo" class="form-text text-muted">Necesitamos tu correo para poder contactarte</small>
-            </div>
-
-            <div class="mb-3">
-              <label for="asunto" class="form-label">Asunto</label>
-              <input type="text"
-                  class="form-control form-control-sm" name="asunto" id="asunto" aria-describedby="asunto" placeholder="Pon el asunto">
-              <small id="asunto" class="form-text text-muted">Ayudanos a saber qué necesitas</small>
-            </div>
-
-            <div class="mb-3">
-              <label for="mensaje" class="form-label">Pon tu mensaje</label>
-              <textarea class="textarea" name="mensaje" id="mensaje" rows="3"></textarea>
-            </div>
-
-            <br>
-            <center>
-              <input name="contacto" type="submit" value="Enviar correo" class="btn btn-primary py-3 px-5">
-            </center>
-            
-          </form>
+            <?php
+          }
+          ?>
         </div>
       </div>
     </section>

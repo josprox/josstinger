@@ -9,7 +9,7 @@ include (__DIR__ . "/../jossecurity.php");
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $nombre_app; ?> - El hosting que tú necesitas</title>
     <?php head(); ?>
-    <meta name="description" content="Aloja tu sitio web o aplicación web de manera segura,<?php echo $nombre_app; ?> es el mejor proveedor de hosting de México, consulta nuestros precios.">
+    <meta name="description" content="Aloja tu sitio web o aplicación web de manera segura, <?php echo $nombre_app; ?> es el mejor proveedor de hosting de México, consulta nuestros precios.">
 </head>
 <body>
 
@@ -56,7 +56,7 @@ include (__DIR__ . "/../jossecurity.php");
                     <div class="icono"><i class="fa-solid fa-shield-halved"></i></div>
                     <div class="contenido_card">
                         <h3>Seguro y protegido</h3>
-                        <p>Nuestros servicios de hosting están alojados en el servidor de Oracle Cloud.</p>
+                        <p>Nuestros servicios de hosting están alojados servidores privados.</p>
                     </div>
                 </div>
                 <div class="card_icono">
@@ -91,9 +91,8 @@ include (__DIR__ . "/../jossecurity.php");
         </div>
     </section>
 
-    <section class="contenedor">
-        <?php include ("../routes/planes/planes.php"); ?>
-    </section>
+    
+    <?php include ("../routes/planes/planes.php"); ?>
 
     <section class="info">
         <img src="../resourses/images/image_2.jpg" class="filtro" alt="">

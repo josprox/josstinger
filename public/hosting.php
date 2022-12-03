@@ -34,6 +34,13 @@ include (__DIR__ . "/../jossecurity.php");
 
             <div class="grid_3_auto">
                 <div class="card_icono">
+                    <div class="icono"><i class="fa-regular fa-user"></i></div>
+                    <div class="contenido_card">
+                        <h3>Crea una cuenta</h3>
+                        <p>Para poderte identificar te pedimos que crees una cuenta.</p>
+                    </div>
+                </div>
+                <div class="card_icono">
                     <div class="icono">
                         <i class="fa-solid fa-globe"></i>
                     </div>
@@ -43,17 +50,10 @@ include (__DIR__ . "/../jossecurity.php");
                     </div>
                 </div>
                 <div class="card_icono">
-                    <div class="icono"><i class="fa-regular fa-user"></i></div>
-                    <div class="contenido_card">
-                        <h3>Crea una cuenta</h3>
-                        <p>Para poderte identificar te pedimos que crees una cuenta.</p>
-                    </div>
-                </div>
-                <div class="card_icono">
                     <div class="icono"><i class="fa-solid fa-headset"></i></div>
                     <div class="contenido_card">
                         <h3>Accede</h3>
-                        <p>Te daremos tus credenciales de login para que puedas subir tu sitio web de una manera fácil y sencilla.</p>
+                        <p>Una vez pagado el plan que seleccionaste, solo deberás crear tu cuenta para conectarte a tu panel de control.</p>
                     </div>
                 </div>
                 
@@ -62,9 +62,7 @@ include (__DIR__ . "/../jossecurity.php");
         </div>
     </section>
 
-    <section class="contenedor">
-      <?php include "../routes/planes/planes.php"; include "../routes/hestia/preguntas.php";  ?>
-    </section>
+    <?php include "../routes/planes/planes.php"; include "../routes/hestia/preguntas.php";  ?>
 
     <?php footer(); ?>
     

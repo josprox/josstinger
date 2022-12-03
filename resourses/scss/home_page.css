@@ -481,6 +481,27 @@ button {
   width: 100%;
   height: 100%;
 }
+.contacto_form .contacto_form_login {
+  grid-area: form;
+  padding: 10px;
+  margin: 12px 0;
+  min-width: 150px;
+  min-height: 150px;
+  width: 100%;
+  height: 100%;
+}
+.contacto_form .contacto_form_login h2 {
+  font-family: "Dancing", sans-serif;
+  font-weight: bold;
+  text-align: center;
+}
+.contacto_form .contacto_form_login img {
+  min-width: 120px;
+  min-height: 120px;
+  width: 210px;
+  height: 210px;
+  border-radius: 12px;
+}
 @media screen and (min-width: 800px) {
   .contacto_form {
     grid-template-columns: repeat(2, 1fr);
@@ -627,6 +648,89 @@ button {
   .home .encima {
     margin-top: -300px;
   }
+}
+
+.app_josstinger {
+  min-width: 100%;
+  min-height: 12px;
+  height: auto;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-image: url("../img/josstinger%20degradado/cover.png");
+  background-size: cover;
+}
+.app_josstinger .app_josstinger_info {
+  margin: 12px 8px;
+  text-align: justify;
+  text-shadow: black 0.1em 0.1em 0.2em;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 12px;
+}
+.app_josstinger .app_josstinger_info h2, .app_josstinger .app_josstinger_info h3 {
+  text-align: center;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+  grid-template-areas: "img" "text";
+}
+@media screen and (min-width: 600px) {
+  .app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "img text";
+  }
+}
+@media screen and (min-width: 800px) {
+  .app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "img text text";
+  }
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .img_appgallery {
+  grid-area: img;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .img_appgallery img {
+  min-width: 30px;
+  min-height: 30px;
+  width: 100px;
+  height: 100px;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .text_appgallery {
+  grid-area: text;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .text_appgallery p {
+  text-align: justify;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_youtube {
+  margin: 12px 8px;
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_youtube .app_josstinger_youtube_video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.btn_transparente {
+  margin: 12px auto;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px #fff;
+}
+.btn_transparente:hover {
+  background-color: #e35473;
+  color: #fff;
+  border: 2px #fff;
 }
 
 .secction {

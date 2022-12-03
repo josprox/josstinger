@@ -47,93 +47,95 @@ secure_auth_admin($iduser,"../");
 
   if (isset($_POST['registro'])){
     $conexion = conect_mysqli();
-    $host = mysqli_real_escape_string($conexion, (string) $_POST['host']);
-    $puerto = mysqli_real_escape_string($conexion, (int) $_POST['port']);
-    $usuario = mysqli_real_escape_string($conexion, (string) $_POST['user']);
-    $contra = mysqli_real_escape_string($conexion, (string) $_POST['password']);
-    $dns1 = mysqli_real_escape_string($conexion, (string) $_POST['dns1']);
-    $dns2 = mysqli_real_escape_string($conexion, (string) $_POST['dns2']);
+    $host_hestia = mysqli_real_escape_string($conexion, (string) $_POST['host_hestia']);
+    $puerto_hestia = mysqli_real_escape_string($conexion, (int) $_POST['port_hestia']);
+    $usuario_hestia = mysqli_real_escape_string($conexion, (string) $_POST['user_hestia']);
+    $contra_hestia = mysqli_real_escape_string($conexion, (string) $_POST['password_hestia']);
+    $dns1_hestia = mysqli_real_escape_string($conexion, (string) $_POST['dns1_hestia']);
+    $dns2_hestia = mysqli_real_escape_string($conexion, (string) $_POST['dns2_hestia']);
     mysqli_close($conexion);
-    if(insertar_datos_custom_mysqli("INSERT INTO `nameservers` (`dns1`, `dns2`) VALUES ('$dns1', '$dns2');")){
-      $id_consulta_nameservers = consulta_mysqli_custom_all("SELECT id FROM nameservers WHERE dns1 = '$dns1' && dns2 = '$dns2'");
-      $id_nameservers = $id_consulta_nameservers['id'];
-      if(insertar_datos_custom_mysqli("INSERT INTO `hestia_accounts` (`nameserver`, `host`, `port`, `user`, `password`) VALUES($id_nameservers, '$host', $puerto, '$usuario', '$contra');")){
-        echo `
-        Swal.fire(
-          'Correcto',
-          'Se ha insertado de manera correcta',
-          'success'
-        )
-        `;
-      }
-    }
+    insertar_datos_custom_mysqli("INSERT INTO `nameservers` (dns1, dns2) VALUES ('$dns1_hestia', '$dns2_hestia');");
+    $id_consulta_nameservers = consulta_mysqli_custom_all("SELECT nameservers.id FROM nameservers WHERE nameservers.dns1 = '$dns1_hestia' && nameservers.dns2 = '$dns2_hestia';");
+    $id_nameservers = $id_consulta_nameservers['id'];
+    echo "<br>" . $id_nameservers;
+    insertar_datos_custom_mysqli("INSERT INTO `hestia_accounts` (nameserver, host, port, user, password) VALUES($id_nameservers, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');");
   }
 
   ?>
-
-  <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
-
-  <div class="row justify-content-center">
-
-    <div class="col-3">
-      <div class="mb-3">
-        <label for="host" class="form-label">Host</label>
-        <input type="text"
-          class="form-control" name="host" id="host" aria-describedby="host" placeholder="Pon el host a registrar">
-        <small id="host" class="form-text text-muted">Es necesario registrar el post</small>
+  <div id="register">
+    <button class="btn btn-primary" onclick="closeForm();">Cancelar</button>
+    <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+  
+      <div class="row justify-content-center">
+  
+        <div class="col-3">
+          <div class="mb-3">
+            <label for="host_hestia" class="form-label">Host</label>
+            <input type="text"
+              class="form-control" name="host_hestia" id="host_hestia" aria-describedby="host_hestia" placeholder="Pon el host a registrar">
+            <small id="host_hestia" class="form-text text-muted">Es necesario registrar el post</small>
+          </div>
+        </div>
+  
+        <div class="col-4">
+          <div class="mb-3">
+            <label for="port_hestia" class="form-label">Puerto</label>
+            <input type="number"
+              class="form-control" name="port_hestia" id="port_hestia" aria-describedby="port_hestia" placeholder="Pon el puerto donde se conecta">
+            <small id="port_hestia" class="form-text text-muted">Es necesario saber a donde nos conectamos.</small>
+          </div>
+        </div>
+  
+        <div class="col-3">
+          <div class="mb-3">
+            <label for="user_hestia" class="form-label">Usuario</label>
+            <input type="text"
+              class="form-control" name="user_hestia" id="user_hestia" aria-describedby="user_hestia" placeholder="Pon el usuario admin">
+            <small id="user_hestia" class="form-text text-muted">Pon las credenciales de acceso del usuario de administración.</small>
+          </div>
+        </div>
+  
+        <div class="col-3">
+          <div class="mb-3">
+            <label for="password_hestia" class="form-label">Contraseña</label>
+            <input type="password_hestia"
+              class="form-control" name="password_hestia" id="password_hestia" aria-describedby="password_hestia" placeholder="Pon la contraseña de acceso">
+            <small id="password_hestia" class="form-text text-muted">Pon la contraseña del usuario.</small>
+          </div>
+        </div>
+  
+        <div class="col-4">
+          <div class="mb-3">
+            <label for="dns1_hestia" class="form-label">DNS 1</label>
+            <input type="text"
+              class="form-control" name="dns1_hestia" id="dns1_hestia" aria-describedby="dns1_hestia" placeholder="Pon el primer nameserver">
+            <small id="dns1_hestia" class="form-text text-muted">Necesitamos saber con cuál nameserver se conectará el usuario.</small>
+          </div>
+        </div>
+  
+        <div class="col-3">
+        <div class="mb-3">
+            <label for="dns2_hestia" class="form-label">DNS 2</label>
+            <input type="text"
+              class="form-control" name="dns2_hestia" id="dns2_hestia" aria-describedby="dns2_hestia" placeholder="Pon el segundo nameserver">
+            <small id="dns2_hestia" class="form-text text-muted">Necesitamos saber con cuál nameserver se conectará el usuario.</small>
+          </div>
+        </div>
+  
+        
       </div>
-    </div>
-
-    <div class="col-4">
-      <div class="mb-3">
-        <label for="port" class="form-label">Puerto</label>
-        <input type="text"
-          class="form-control" name="port" id="port" aria-describedby="port" placeholder="Pon el puerto donde se conecta">
-        <small id="port" class="form-text text-muted">Es necesario saber a donde nos conectamos.</small>
-      </div>
-    </div>
-
-    <div class="col-3">
-      <div class="mb-3">
-        <label for="user" class="form-label">Usuario</label>
-        <input type="text"
-          class="form-control" name="user" id="user" aria-describedby="user" placeholder="Pon el usuario admin">
-        <small id="user" class="form-text text-muted">Pon las credenciales de acceso del usuario de administración.</small>
-      </div>
-    </div>
-
-    <div class="col-3">
-      <div class="mb-3">
-        <label for="password" class="form-label">Contraseña </label>
-        <input type="password"
-          class="form-control" name="password" id="password" aria-describedby="password" placeholder="Pon la contraseña de acceso">
-        <small id="password" class="form-text text-muted">Pon la contraseña del usuario.</small>
-      </div>
-    </div>
-
-    <div class="col-4">
-      <div class="mb-3">
-        <label for="dns1" class="form-label">DNS 1</label>
-        <input type="text"
-          class="form-control" name="dns1" id="dns1" aria-describedby="dns1" placeholder="Pon el primer nameserver">
-        <small id="dns1" class="form-text text-muted">Necesitamos saber con cuál nameserver se conectará el usuario.</small>
-      </div>
-    </div>
-
-    <div class="col-3">
-    <div class="mb-3">
-        <label for="dns2" class="form-label">DNS 2</label>
-        <input type="text"
-          class="form-control" name="dns2" id="dns2" aria-describedby="dns2" placeholder="Pon el segundo nameserver">
-        <small id="dns2" class="form-text text-muted">Necesitamos saber con cuál nameserver se conectará el usuario.</small>
-      </div>
-    </div>
-
-    
+      <center>
+        <button name="registro" type="submit" class="btn btn-success">Guardar</button>
+      </center>
+  
+    </form>
   </div>
-  <button name="registro" type="submit" class="btn btn-success">Guardar</button>
 
-  </form>
+  <div id="login">
+    <button class="btn btn-primary" onclick="registerForm();">Registrar nuevo servidor</button>
+  </div>
+
+  <br>
 
   <div class="table-responsive">
     <table class="table table-striped
@@ -184,7 +186,16 @@ secure_auth_admin($iduser,"../");
 
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
-  <script src="../node_modules/jquery/dist/jquery.min.js"></script>
+  <script>
+    function registerForm(){
+      document.getElementById('login').style.display = 'none';
+      document.getElementById('register').style.display = 'block';
+    }
+    function closeForm(){
+      document.getElementById('login').style.display = 'block';
+      document.getElementById('register').style.display = 'none';
+    }
+  </script>
 </body>
 
 </html>
