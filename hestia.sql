@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 22-11-2022 a las 03:16:22
+-- Tiempo de generación: 03-12-2022 a las 23:04:12
 -- Versión del servidor: 10.4.25-MariaDB
 -- Versión de PHP: 8.1.10
 
@@ -123,9 +123,9 @@ CREATE TABLE `servicios` (
 --
 
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `precio`, `created_at`, `updated_at`) VALUES
-(1, 'Startup', '<span class=\"excerpt d-block\">Este hosting es el Startup, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>3 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>3 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Control de DNS: <strong>1 disponible.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>5 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>1 disponible.</strong></li>\r\n<li>Respaldos: <strong>1 disponible.</strong></li>\r\n</ul>', 5.99, NULL, NULL),
-(2, 'Premium', '<span class=\"excerpt d-block\">Este hosting es el Premium, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>6 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>10 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Control de DNS: <strong>3 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>8 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>2 disponibles.</strong></li>\r\n<li>Respaldos: <strong>3 disponibles.</strong></li>\r\n</ul>', 8.25, NULL, NULL),
-(3, 'Pro', '<span class=\"excerpt d-block\">Este hosting es el Pro, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>10 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>20 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Control de DNS: <strong>6 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>10 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>5 disponibles.</strong></li>\r\n<li>Respaldos: <strong>6 disponibles.</strong></li>\r\n</ul>', 12, NULL, NULL);
+(1, 'Startup', '<span class=\"excerpt d-block\">Este hosting es el Startup, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>3 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>3 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>2GB.</strong></li>\r\n<li>Control de DNS: <strong>1 disponible.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>5 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>1 disponible.</strong></li>\r\n<li>Respaldos: <strong>1 disponible.</strong></li>\r\n</ul>', 5.99, NULL, NULL),
+(2, 'Premium', '<span class=\"excerpt d-block\">Este hosting es el Premium, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>6 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>10 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>5GB.</strong></li>\r\n<li>Control de DNS: <strong>3 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>8 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>2 disponibles.</strong></li>\r\n<li>Respaldos: <strong>3 disponibles.</strong></li>\r\n</ul>', 8.25, NULL, NULL),
+(3, 'Pro', '<span class=\"excerpt d-block\">Este hosting es el Pro, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>10 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>20 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>8GB.</strong></li>\r\n<li>Control de DNS: <strong>6 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>10 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>5 disponibles.</strong></li>\r\n<li>Respaldos: <strong>6 disponibles.</strong></li>\r\n</ul>', 12, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -277,7 +277,7 @@ ALTER TABLE `tokens_pays`
 -- AUTO_INCREMENT de la tabla `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- Restricciones para tablas volcadas
