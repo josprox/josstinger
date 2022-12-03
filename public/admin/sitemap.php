@@ -38,7 +38,7 @@ secure_auth_admin($iduser,"../");
           ?>
           <div class="alert alert-success alert-dismissible fade show" role="alert">
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            <strong>Felicidades</strong> Acabas de crear el archivo donde podrás editar tu head sin problemas.
+            <strong>Felicidades</strong> Acabas de crear el archivo donde podrás editar tu sitemap sin problemas.
           </div>
           
           <script>
@@ -52,9 +52,9 @@ secure_auth_admin($iduser,"../");
         }
       }
       if(isset($_POST['deletefile'])){
-        unlink(__DIR__ . "./../../plugins/sitemap/rutas.php");
+        unlink(__DIR__ . "/../../plugins/sitemap/rutas.php");
       }
-      if(!file_exists(__DIR__ . "./../../plugins/sitemap/rutas.php")){
+      if(!file_exists(__DIR__ . "/../../plugins/sitemap/rutas.php")){
         ?>
         <div class="alert alert-primary" role="alert">
           <strong>Novedad:</strong> Esta alerta es para informarte que, desde la actualización 1.7.3 ya no es obligatorio tener el archivo por defecto, ahora tu decides si crearlo o no, de esta manera previenes que en alguna futura acualizacion tus datos se pierdan o se actualicen sin tu requerimiento.
@@ -66,7 +66,7 @@ secure_auth_admin($iduser,"../");
         </center>
         <?php
       }else{
-        edit_file("Modificar Sitemap","../../plugins/sitemap/rutas.php");
+        edit_file("Modificar Sitemap","./../../plugins/sitemap/rutas.php");
         ?>
         <br>
           <center>

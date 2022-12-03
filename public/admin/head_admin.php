@@ -52,9 +52,9 @@ secure_auth_admin($iduser,"../");
       }
     }
     if(isset($_POST['deletefile'])){
-      unlink(__DIR__ . "./../../routes/head/head_admin.php");
+      unlink(__DIR__ . "/../../routes/head/head_admin.php");
     }
-    if(!file_exists(__DIR__ . "./../../routes/head/head_admin.php")){
+    if(!file_exists(__DIR__ . "/../../routes/head/head_admin.php")){
       ?>
       <div class="alert alert-primary" role="alert">
         <strong>Novedad:</strong> Esta alerta es para informarte que, desde la actualización 1.7.3 ya no es obligatorio tener el archivo por defecto, ahora tu decides si crearlo o no, de esta manera previenes que en alguna futura acualizacion tus datos se pierdan o se actualicen sin tu requerimiento.

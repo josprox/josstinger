@@ -52,7 +52,7 @@ secure_auth_admin($iduser,"../");
         }
       }
       if(isset($_POST['deletefile'])){
-        unlink(__DIR__ . "./../../routes/navbar/navbar_users.php");
+        unlink(__DIR__ . "/../../routes/navbar/navbar_users.php");
       }
       if(!file_exists(__DIR__ . "/../../routes/navbar/navbar_users.php")){
         ?>
@@ -66,7 +66,7 @@ secure_auth_admin($iduser,"../");
         </center>
         <?php
       }else{
-        edit_file("Navbar de los usuarios","../../routes/navbar/navbar_users.php");
+        edit_file("Navbar de los usuarios","./../../routes/navbar/navbar_users.php");
         ?>
         <center>
           <h3 class="center">¿Deseas borrar este archivo?</h3>
