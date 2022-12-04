@@ -36,14 +36,14 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
     <?php include (__DIR__ . "../../../routes/hestia/bienvenida.php") ?>
     <?php
     if(isset($_POST['actualizar_info'])){
-
-        $conexion = conect_mysqli();
-      
-        $name = mysqli_real_escape_string($conexion, (string) $_POST['name']);
-        $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
-      
+      $conexion = conect_mysqli();
+      $name = mysqli_real_escape_string($conexion, (string) $_POST['name']);
+      $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
+      $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
+      mysqli_close($conexion);
+      $consulta = consulta_mysqli_where("password","users","id",$iduser);
+      if(password_verify($password,(string) $consulta['password']) == TRUE){
         actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email'","id",$iduser);
-        
         echo "
         <script>
             Swal.fire(
@@ -56,7 +56,7 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
           window.location.href = 'cuenta';
         </script>
         ";
-      
+      }
     }
       
     if(isset($_POST['update_password'])){
@@ -138,6 +138,15 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
         <label for="correo" class="form-label">Correo</label>
         <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>">
         <small id="correo" class="form-text text-muted">Correo Registrado</small>
+      </div>
+
+      <div class="mb-3">
+        <div class="mb-3">
+          <label for="contra" class="form-label">Contraseña</label>
+          <input type="text"
+            class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
+          <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
+        </div>
       </div>
 
       <div class="mb-3 row">

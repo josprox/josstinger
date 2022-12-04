@@ -45,7 +45,7 @@
 				foreach(arreglo_consulta("SELECT nombre, descripcion,precio FROM servicios") as $row){
 					?>
 	
-					<div class="col-lg-4 col-md-6 ftco-animate">
+					<div class="col-lg-4 col-md-6 ftco-animate" id="#<?php echo $row['nombre']; ?>">
 					  <div class="block-7">
 						<div class="text-center">
 							<h2 class="heading"><?php echo $row['nombre']; ?></h2>
