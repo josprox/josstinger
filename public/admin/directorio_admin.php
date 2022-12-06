@@ -31,42 +31,40 @@ secure_auth_admin($iduser,"../");
   <br>
 
   <div class="container">
-    <?php
+      <?php
 
-    error_reporting(0);
-    
-    $archivo = strip_tags((string) $_GET['archivo']);
+error_reporting(0);
 
-    if($archivo==""){
-        $archivos = scandir("./");
+$archivo = strip_tags((string) $_GET['archivo']);
+
+if($archivo==""){
+    $archivos = scandir(__DIR__ ."/");
+    ?>
+        <h1>Lista de directorios.</h1>
+        <ul class="directorios grid_3_auto">
+        <?php
         for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
             if ($archivos[$i] !="." && $archivos[$i] !="..") {
                 if(!is_dir($archivos[$i])){
-                    echo "<a href='?archivo=" . $archivos[$i] . "'>".$archivos[$i]."</a><br>";
+                    ?>
+                    <a href='?archivo=<?php echo $archivos[$i]; ?>'><li><i class="fa-solid fa-folder"></i> <?php echo $archivos[$i]; ?></li></a>
+                    <?php
                 }else{
                     echo $archivos[$i] . "<br>";
                 }
                 
             }
         }
+        ?>
+        </ul>
+        <?php
     }else{
 
-        if($_POST['enviar']){
-            $fp=fopen($archivo, "w+");
-            fputs($fp,(string) $_POST['contenido']);
-            fclose($fp);
-            echo "Editado correctamente";
-        }
-
-        $fp=fopen($archivo, "r");
-        $contenido = fread($fp, filesize($archivo));
-        $contenido = htmlspecialchars($contenido);
-        fclose($fp);
-        echo '<form action="" method="post">';
-        echo "<textarea name='contenido' cols=60' rows='20'>$contenido</textarea>";
-        echo "<input type='submit' name='enviar' value='Editar'>";
-        echo "</form>";
-        echo "<a href='".basename(__FILE__)."'>Regresar</a>";
+        $titulo = $_GET['archivo'];
+        echo edit_file("Estás editando: $archivo",$archivo);
+        ?>
+        <a class="btn btn-primary" href="<?php echo basename(__FILE__); ?>" role="button">Regresar</a>
+        <?php
     }
 
     ?>

@@ -13,7 +13,6 @@
             <a class="dropdown-item" href="./"><i class="fa-solid fa-house"></i> Inicio</a>
             <a class="dropdown-item" href="cuenta"><i class="fa-solid fa-user"></i> Mi Cuenta</a>
             <a class="dropdown-item" href="usuarios"><i class="fa-solid fa-users"></i> Usuarios</a>
-            <a class="dropdown-item" href="registrar"><i class="fa-solid fa-plus"></i> Registrar</a>
           </div>
         </li>
         <li class="nav-item dropdown">

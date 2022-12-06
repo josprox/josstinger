@@ -536,28 +536,12 @@ function mail_smtp_v1_3_check($correo){
         return FALSE;
     }
 }
-
-function consulta_mysqli($select_db,$table_db,$custom,$sentence,$data,$compare,$inner){
-    $conexion = conect_mysqli();
-    if ($sentence == "clasic"){
-        $sql = "SELECT $select_db FROM $table_db";
-        $resultado = $conexion->query($sql);
-        $fetch = $resultado->fetch_assoc();
-        mysqli_close($conexion);
-        return $fetch;
-    }elseif($sentence == "where"){
-        $sql = "SELECT $select_db FROM $table_db $custom WHERE $data = $compare";
-        $resultado = $conexion->query($sql);
-        $fetch = $resultado->fetch_assoc();
-        mysqli_close($conexion);
-        return $fetch;
-    }elseif($sentence == "innerjoin"){
-        $sql = "SELECT $select_db FROM $table_db INNER JOIN $inner ON $compare = $data $custom";
-        $resultado = $conexion->query($sql);
-        $fetch = $resultado->fetch_assoc();
-        mysqli_close($conexion);
-        return $fetch;
-    }
+function arreglo_consulta($code){
+    $conexion = conect_mysql();
+    $sql = "$code";
+    $query = $conexion->query($sql);
+    $conexion = null;
+    return $query;
 }
 
 function consulta_mysqli_clasic($select_db,$table_db){
@@ -618,15 +602,25 @@ function leer_tablas_mysql_custom($code){
 function insertar_datos_clasic_mysqli($tabla,$datos,$contenido){
     $conexion = conect_mysqli();
     $sql = "INSERT INTO $tabla ($datos) VALUES ($contenido);";
-    $conexion -> query($sql);
-    mysqli_close($conexion);
+    if($conexion -> query($sql) == TRUE){
+        mysqli_close($conexion);
+        return TRUE;
+    }else{
+        mysqli_close($conexion);
+        return FALSE;
+    }
 }
 
 function insertar_datos_custom_mysqli($codigo_sql){
     $conexion = conect_mysqli();
     $sql = "$codigo_sql";
-    $conexion -> query($sql);
-    mysqli_close($conexion);
+    if($conexion -> query($sql) == TRUE){
+        mysqli_close($conexion);
+        return TRUE;
+    }else{
+        mysqli_close($conexion);
+        return FALSE;
+    }
 }
 
 function insertar_datos_post_mysqli($tabla,$post){
@@ -646,9 +640,13 @@ function insertar_datos_post_mysqli($tabla,$post){
     
     $sql = $insert.$values; 
 
-    $conexion -> query($sql);
-
-    mysqli_close($conexion);
+    if($conexion -> query($sql) == TRUE){
+        mysqli_close($conexion);
+        return TRUE;
+    }else{
+        mysqli_close($conexion);
+        return FALSE;
+    }
 }
 
 function actualizar_datos_mysqli($tabla,$edicion,$where,$dato){
@@ -656,17 +654,13 @@ function actualizar_datos_mysqli($tabla,$edicion,$where,$dato){
     $miconexion = conect_mysqli();
     $sql = "UPDATE `$tabla` SET $edicion, `updated_at` = '$fecha' WHERE `$tabla`.`$where` = $dato";
     $miconexion -> query($sql);
-    $miconexion -> close();
-
-}
-
-function arreglo_consulta($code){
-
-    $conexion = conect_mysql();
-    $sql = "$code";
-    $query = $conexion->query($sql);
-    $conexion = null;
-    return $query;
+    if($miconexion -> query($sql) == TRUE){
+        $miconexion -> close();
+        return TRUE;
+    }else{
+        $miconexion -> close();
+        return FALSE;
+    }
 
 }
 

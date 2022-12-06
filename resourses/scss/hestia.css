@@ -651,4 +651,25 @@ button {
 
 #register, #reset {
   display: none;
+}
+
+.directorios a {
+  text-align: center;
+  text-decoration: none;
+}
+.directorios li {
+  margin: 12px 8px;
+  background-color: #4158D0;
+  background-image: linear-gradient(43deg, #4158D0 0%, #C850C0 46%, #FFCC70 100%);
+  list-style: none;
+  padding: 5px;
+  border-radius: 12px;
+  color: #fff;
+}
+.directorios li:hover {
+  background-color: #d63384;
+  text-shadow: black 0.1em 0.1em 0.2em;
+}
+.directorios li i {
+  color: #f2b16f;
 }/*# sourceMappingURL=hestia.css.map */
