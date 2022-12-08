@@ -412,6 +412,15 @@ function generar_llave_alteratorio($caracteres){
     return $key;
 }
 
+function generar_llave($caracteres, $patron){
+    $key = "";
+    $max = strlen($patron)-1;
+    for($i = 0; $i < $caracteres; $i++){
+        $key .= substr($patron, random_int(0,$max), 1);
+    }
+    return $key;
+}
+
 function resetear_contra($correo){
     global $fecha;
     $conexion = conect_mysqli();
