@@ -32,7 +32,51 @@ secure_auth_admin($iduser,"../");
 
   <div class="container">
 
-    <?php edit_file("Creador de jossitos","./../../config/mis_jossitos.php"); ?>
+  <?php
+    if(isset($_POST['newfile'])){
+      if(crear_archivo("config/mis_jossitos.php","<?php //Aquí podrás crear tus propios Jossitos ?>") == TRUE){
+        ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          <strong>Felicidades</strong> Acabas de crear el archivo donde podrás crear tus jossitos sin problemas.
+        </div>
+        
+        <script>
+          var alertList = document.querySelectorAll('.alert');
+          alertList.forEach(function (alert) {
+            new bootstrap.Alert(alert)
+          })
+        </script>
+        
+        <?php
+      }
+    }
+    if(isset($_POST['deletefile'])){
+      unlink(__DIR__ . "/../../config/mis_jossitos.php");
+    }
+    if(!file_exists(__DIR__ . "/../../config/mis_jossitos.php")){
+      ?>
+      <div class="alert alert-primary" role="alert">
+        <strong>Novedad:</strong> Esta alerta es para informarte que, desde la actualización 1.7.6 ya no es obligatorio tener el archivo por defecto, ahora tu decides si crearlo o no, de esta manera previenes que en alguna futura acualizacion tus datos se pierdan o se actualicen sin tu requerimiento.
+      </div>
+      <center>
+        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+          <button name="newfile" type="submit" class="btn btn-primary">Crear archivo</button>
+        </form>
+      </center>
+      <?php
+    }else{
+      edit_file("Creador de jossitos","./../../config/mis_jossitos.php");
+      ?>
+        <center>
+          <h3 class="center">¿Deseas borrar este archivo?</h3>
+          <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
+            <button name="deletefile" type="submit" class="btn btn-warning">Eliminar archivo</button>
+          </form>
+        </center>
+      <?php
+    }
+  ?>
 
 
   </div>

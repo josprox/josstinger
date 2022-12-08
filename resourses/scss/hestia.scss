@@ -12,7 +12,7 @@
           rgba(245, 93, 165, 1) 0%,
           rgba(221, 124, 210, 1) 50%,
           rgba(0, 255, 179, 1) 100%
-        ); 
+        );
     }
     &::-webkit-scrollbar-thumb {
         background: rgb(240, 137, 103);
@@ -26,8 +26,8 @@
     }
 }
 body{
-    background-color: #8EC5FC;
-    background-image: linear-gradient(62deg, #8EC5FC 0%, #E0C3FC 100%);
+    background-color: #FA8BFF;
+    background-image: linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -41,6 +41,35 @@ img{
 button{
     border: none;
 }
+// Modificación de iconos.
+.fa-shield-halved, .fa-database, .fa-folder-tree, .fa-envelope{
+    color: #FFCC70;
+}
+.fa-file, .fa-file-arrow-down, .fa-file-arrow-up{
+    color: #dfe;
+}
+.fa-file-zipper{
+    color: $rojo;
+}
+.fa-user,.fa-users{
+    color: #00DBDE;
+}
+.fa-house, .fa-gear{
+    color: #FBAB7E;
+}
+.fa-toolbox{
+    color: #FBDA61;
+}
+.fa-code{
+    color: #3EECAC;
+}
+.fa-signs-post{
+    color: #52ACFF;
+}
+.fa-trowel-bricks{
+    color: #F761A1;
+}
+// Código clasic.
 .contenedor{
     display: block;
     margin: 8px auto;

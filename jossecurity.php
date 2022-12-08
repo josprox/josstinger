@@ -843,14 +843,22 @@ if ($_ENV['PLUGINS'] == 1){
     if($_ENV['MERCADO_PAGO'] == 1){
         include (__DIR__ . "/plugins/mercado_pago/sdk.php");
     }
-    include (__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php");
+    if(file_exists(__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php")){
+        include (__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php");
+    }
+    if(file_exists(__DIR__ . "/plugins/granmysql/gran_mysql.php")){
+        include (__DIR__ . "/plugins/granmysql/gran_mysql.php");
+    }
 }
 
 // Podrás crear tus propios Jossitos en el achivo mis_jossitos.php en la carpeta config.
-
-include (__DIR__ . "/config/mis_jossitos.php");
+if(file_exists(__DIR__ . "/config/mis_jossitos.php")){
+    include (__DIR__ . "/config/mis_jossitos.php");
+}
 
 // Uso de la configuración plugins internos cuando el sistema de plugins no funcione o se encuentre desactivado.
-include (__DIR__ . "/config/not_paid.php");
+if(file_exists(__DIR__ . "/config/not_paid.php")){
+    include (__DIR__ . "/config/not_paid.php");
+}
 
 ?>
