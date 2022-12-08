@@ -273,12 +273,13 @@ secure_auth_admin($iduser,"../");
               <th>Número de pedido</th>
               <th>Número de pago</th>
               <th>Forma de pago</th>
+              <th>Fecha de expiración</th>
               <th>Acciones</th>
             </tr>
             </thead>
             <tbody class="table-group-divider">
               <?php
-              foreach (arreglo_consulta("SELECT tokens_pays.id ,tokens_pays.estado, users.name, users.email, servicios.nombre, tokens_pays.usuario, tokens_pays.correo,tokens_pays.id_pedido, tokens_pays.id_pago, tokens_pays.pagado_con FROM tokens_pays INNER JOIN users ON users.id = tokens_pays.id_user INNER JOIN servicios ON servicios.id = tokens_pays.id_servicio ORDER BY tokens_pays.id DESC") as $row){?>
+              foreach (arreglo_consulta("SELECT tokens_pays.id ,tokens_pays.estado, users.name, users.email, servicios.nombre, tokens_pays.usuario, tokens_pays.correo,tokens_pays.id_pedido, tokens_pays.id_pago, tokens_pays.pagado_con, tokens_pays.expiracion FROM tokens_pays INNER JOIN users ON users.id = tokens_pays.id_user INNER JOIN servicios ON servicios.id = tokens_pays.id_servicio ORDER BY tokens_pays.id DESC") as $row){?>
               <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
                 <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
               <tr class="table-primary" >
@@ -292,6 +293,7 @@ secure_auth_admin($iduser,"../");
                 <td><?php echo $row['id_pedido']; ?></td>
                 <td><?php echo $row['id_pago']; ?></td>
                 <td><?php echo $row['pagado_con']; ?></td>
+                <td><?php echo $row['expiracion']; ?></td>
                 <td>
                   <center>
                     <div><button type="submit" name="actualizar" class="btn btn-success">Actualizar</button></div>
