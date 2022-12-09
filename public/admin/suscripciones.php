@@ -104,7 +104,7 @@ secure_auth_admin($iduser,"../");
     $id_pago = generar_llave(10,"123456789");
     $pagado_con = "Manual";
     // Consulta de datos de acceso.
-    $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = hestia_accounts.id WHERE nameservers.id = $nameserver");
+    $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts WHERE hestia_accounts.nameserver = $nameserver");
     $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_servicio;");
     $package = (string)$consulta_paquetes['nombre'];
     // --------------------------------------------------------

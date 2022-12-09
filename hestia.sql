@@ -149,7 +149,7 @@ CREATE TABLE `tokens_pays` (
   `id_user` bigint(21) NOT NULL,
   `id_servicio` bigint(21) NOT NULL,
   `id_pedido` bigint(21) DEFAULT NULL,
-  `id_pago` int(21) DEFAULT NULL,
+  `id_pago` bigint(21) DEFAULT NULL,
   `pagado_con` text DEFAULT NULL,
   `usuario` varchar(255) DEFAULT NULL,
   `correo` varchar(255) DEFAULT NULL,
