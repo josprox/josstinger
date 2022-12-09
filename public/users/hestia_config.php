@@ -169,7 +169,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         if (isset($_POST['registrar_hestia'])) {
                         $conexion = conect_mysqli();
                         $nameservers = mysqli_real_escape_string($conexion, (int) $_POST['nameserver']);
-                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts WHERE hestia_accounts.nameserver = $nameserver");
+                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts WHERE hestia_accounts.nameserver = $nameservers");
                         // Server credentials
                         $hst_hostname = (string)$consulta_hestia['host'];
                         $hst_port = (int)$consulta_hestia['port'];

@@ -56,7 +56,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                         <h4 class="text-center">Gestiona tus DNS en tu hosting</h4>
                         <p class="text-justify">Tu puedes gestionar tus DNS con nosotros, en cada paquete viene como mínimo 1 gestor dns, solo deberás apuntar nos nameservers a los siguientes dominios</p>
                         <?php
-                            foreach(arreglo_consulta("SELECT id_pedido FROM request_dns WHERE id_user = $iduser LIMIT 4") as $pedido){
+                            foreach(arreglo_consulta("SELECT id_pedido FROM request_dns WHERE id_user = $iduser ORDER BY id DESC LIMIT 3") as $pedido){
                                 $pedido_num = $pedido['id_pedido'];
                                 foreach(arreglo_consulta("SELECT nameservers.id,nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE id_pedido = $pedido_num;" ) as $name){
                                     ?>
