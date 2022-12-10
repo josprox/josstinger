@@ -165,17 +165,11 @@ secure_auth_admin($iduser,"../");
           <select class="form-control" name="rol" id="rol">
             <option selected>¿Cuál rol le corresponde?</option>
             <?php
-
-              $conexion = conect_mysqli();
-
-              $rol = "SELECT * FROM `roles`";
-
-              if ($resultadosex = mysqli_query($conexion, $rol)) {
-                  while ($registro1 = mysqli_fetch_array($resultadosex)) {
-                      echo '<option value="' . $registro1['id'] .'">' . $registro1['rol'] .'</option>';
-                  }
-              }
-              mysqli_close($conexion);
+            foreach(arreglo_consulta("SELECT * FROM `roles`") as $rol){
+              ?>
+              <option value="<?php echo $rol['id']; ?>"><?php echo $rol['rol']; ?></option>
+              <?php
+            }
             ?>
           </select>
         </div>

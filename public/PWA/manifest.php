@@ -1,7 +1,7 @@
 <?php
 include (__DIR__ . "/../../jossecurity.php");
 
-$arr = ["name" => $_ENV['NAME_APP'] . " Solution PWA: " . $_ENV['VERSION'], "short_name" => $_ENV['NAME_APP'], "description"=> "JosSecurity, la mejor seguridad al alcance de tus manos.", "background_color"=> "#fff", "theme_color"=> "#99eb91", "orientation"=> "portrait", "display" => "standalone", "start_url" => "./../panel?utm_source=web_app_manifest", "scope" => "./../panel", "lang" => "es-MX", "icons" => [
+$arr = ["name" => $_ENV['NAME_APP'] . " APP V" . $_ENV['VERSION'], "short_name" => $_ENV['NAME_APP'], "description"=> "JosSecurity, la mejor seguridad al alcance de tus manos.", "background_color"=> "#fff", "theme_color"=> "#99eb91", "orientation"=> "portrait", "display" => "standalone", "start_url" => "./../panel?utm_source=web_app_manifest", "scope" => "./../panel", "lang" => "es-MX", "icons" => [
     [
         "src" => "../../resourses/img/app/default_1000.png",
         "sizes" => "1000x1000",

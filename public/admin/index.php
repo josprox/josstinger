@@ -45,7 +45,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   </div>
 
   <center>
-    <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
       <button name="eliminar" class="btn btn-success" type="submit">Eliminar ahora</button>
     </form>
   </center>

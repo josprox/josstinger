@@ -60,7 +60,7 @@ secure_auth_admin($iduser,"../");
     }
 
     ?>
-        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
         <div class="mb-3 row">
             <div class="mb-3 row">
                 <label for="inputName" class="col-4 col-form-label">correo</label>

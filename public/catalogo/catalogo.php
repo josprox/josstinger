@@ -9,27 +9,33 @@ if($_ENV['HOMEDIR'] != "/"){
 }
 header('Content-Type: text/xml');
 //Impresión del sistema.
-echo ' <rss xmlns:g="http://base.google.com/ns/1.0" version="2.0"> ';
-echo '<channel>';
-echo '<title>'.$_ENV['NAME_APP'].'</title>';
-echo '<link>https://'.$_ENV['DOMINIO'].'</link>';
-echo '<description>Este catalogo ha sido generado de manera automática por el sistema de Josstinger, creado por El Diamante Soluciones TI.</description>';
-//Generador de código por catalogo.
-foreach(arreglo_consulta("SELECT * FROM servicios") as $row){
-    echo '<item>';
-    echo '<g:id>'.$row['id'].'</g:id>';
-    echo '<g:availability>in stock</g:availability>';
-    echo '<g:condition>New</g:condition>';
-    echo '<g:description>'.$row['descripcion_text'].'</g:description>';
-    echo '<g:image_link>https://'.$dir.$salto.'resourses/img/josstinger degradado/default.png</g:image_link>';
-    echo '<g:link>https://'.$dir.'hosting#'.$row['nombre'].'</g:link>';
-    echo '<g:title>Paquete de hosting: '.$row['nombre'].'</g:title>';
-    echo '<g:product_type>Hosting plan</g:product_type>';
-    echo '<g:sale_price>USD '.$row['precio'].'</g:sale_price>';
-    echo '<g:identifier_exists>no</g:identifier_exists>';
-    echo '</item>';
-}
-echo '</channel>';
-echo '</rss>';
-
+?>
+<rss xmlns:g="http://base.google.com/ns/1.0" version="2.0">
+    <channel>
+        <title><?php echo $_ENV['NAME_APP']; ?></title>
+        <link>https://<?php echo $_ENV['DOMINIO']; ?></link>
+        <description>Este catalogo ha sido generado de manera automática por el sistema de Josstinger, creado por El Diamante Soluciones TI.</description>
+        <?php
+        //Generador de código por catalogo.
+        foreach(arreglo_consulta("SELECT * FROM servicios") as $row){
+            ?>
+            <item>
+                <g:id><?php echo $row['id']; ?></g:id>
+                <g:availability>in stock</g:availability>
+                <g:condition>New</g:condition>
+                <g:description><?php echo $row['descripcion_text']; ?></g:description>
+                <g:image_link>https://<?php echo $dir.$salto; ?>resourses/img/josstinger degradado/default.png</g:image_link>
+                <g:link>https://<?php echo $dir; ?>hosting#<?php echo $row['nombre']; ?></g:link>
+                <g:title>Paquete de hosting: <?php echo $row['nombre']; ?></g:title>
+                <g:product_type>Hosting plan</g:product_type>
+                <g:sale_price>USD <?php echo $row['precio']; ?></g:sale_price>
+                <g:identifier_exists>no</g:identifier_exists>
+            </item>
+            <?php
+        }
+        ?>
+    </channel>
+</rss>
+<?php
+//Fin de la edicion.
 ?>

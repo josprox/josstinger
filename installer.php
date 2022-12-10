@@ -253,7 +253,7 @@ if(isset($_POST['instalar'])){
     <h1 align="center">Instalador de JosSecurity</h1>
     <div class="container">
         <p align="center">Bienvenido al instalador de JosSecurity, a continuación tendrás que llenar un formulario para poder instalar el sistema de manera fácil y segura.</p><br>
-        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
 
           <p align="justify">Por defecto el sistema maneja el nombre de JosSecurity y la versión preliminar del mismo pero, si tu quieres modificarlo podrás hacerlo, de esta manera también evitarás que las personas conozcan el sistema de seguridad que usas.</p>
 

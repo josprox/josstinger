@@ -102,13 +102,17 @@ function edit_file($titulo,$directorio){
     $contenido = fread($fp, filesize($archivo));
     $contenido = htmlspecialchars($contenido);
     fclose($fp);
-    echo '<h1 align="center">'.$titulo.'</h1>';
-    echo '<form action="" method="post">';
-    echo '<div class="mb-3">';
-    echo "<textarea class='form-control' name='contenido' rows='15'>$contenido</textarea>";
-    echo '</div>';
-    echo "<center><input type='submit' class='btn btn-success' name='enviar' value='Guardar archivo'></center>";
-    echo "</form>";
+    ?>
+    <h1 align="center"><?php echo $titulo; ?></h1>
+    <form action="" method="post">
+        <div class="mb-3">
+            <textarea name="contenido" rows="15" class="form-control"><?php echo $contenido; ?></textarea>
+        </div>
+        <center>
+            <input name="enviar" type="submit" class="btn btn-success" value="Guardar archivo">
+        </center>
+    </form>
+    <?php
 }
 
 if ($_ENV['CONECT_DATABASE'] == 1){
@@ -439,7 +443,9 @@ function resetear_contra($correo){
         return TRUE;
     }
     if($_ENV['SMTP_ACTIVE'] != 1){
-        echo "<p>No puedes enviar correos porque no está activado en el sistema.</p>";
+        ?>
+        <p>No puedes enviar correos porque no está activado en el sistema.</p>
+        <?php
         mysqli_close($conexion);
         return FALSE;
     }
@@ -761,9 +767,11 @@ function eliminar_tabla_PDO($tabla){
 }
 
 function reproductor_video($url){
-    echo '<video class="fm-video video-js vjs-16-9 vjs-big-play-centered" style="margin-top: 12px; margin-bottom: 12px;" data-setup="{}" controls id="form-video">
-        <source src="'.$url.'" type="video/mp4">
-    </video>';
+    ?>
+    <video class="fm-video video-js vjs-16-9 vjs-big-play-centered" style="margin-top: 12px; margin-bottom: 12px;" data-setup="{}" controls id="form-video">
+        <source src="<?php echo $url; ?>" type="video/mp4">
+    </video>
+    <?php
 }
 
 function secure_auth_admin($iduser,$location){

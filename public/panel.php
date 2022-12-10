@@ -108,7 +108,7 @@ login_cookie("users");
 
                     <div id="login">
                         <h1 class="text-center">Iniciar sesión</h1>
-                        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+                        <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
 
                             <div class="forms">
 
@@ -143,7 +143,7 @@ login_cookie("users");
 
                     <div id="register">
                         <h1 class="text-center">Regístrate</h1>
-                            <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+                            <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
 
                                 <div class="forms">
 
@@ -178,7 +178,7 @@ login_cookie("users");
 
                     <div id="reset">
                         <h1 class="text-center">Olvidé mi contraseña</h1>
-                        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+                        <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
 
                             <div class="forms">
                                 

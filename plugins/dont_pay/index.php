@@ -17,7 +17,7 @@ function check_not_paid(){
 
         <h2 align="center">Vamos a activarlo</h2>
         <p align="justify">Por defecto el sistema viene desactivado para poder evitar el mal uso del sistema, si deseas activarlo por favor llene los siguientes datos.</p>
-        <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
         <div class="form-check form-switch">
             <input class="form-check-input" name="check_pay" type="checkbox" id="flexSwitchCheckDefault" >
             <label class="form-check-label" for="flexSwitchCheckDefault">Por favor, selecciona si deseas activarlo ahorita o después</label>
@@ -81,7 +81,7 @@ function check_not_paid(){
         }
 
     }elseif(leer_tablas_mysql_custom("SELECT * FROM not_pay")>=1){ ?>
-    <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
     <?php
         not_paid_check(); 
         not_paid_fecha();
@@ -140,7 +140,7 @@ function check_not_paid(){
         }
         ?>
     </form>
-    <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
         <?php 
         not_paid_token();
         not_paid_delete();

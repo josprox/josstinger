@@ -77,7 +77,7 @@
         }
         ?>
       </ul>
-      <form class="d-flex my-2 my-lg-0" action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
+      <form class="d-flex my-2 my-lg-0" action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
         <button class="btn btn-outline-light my-2 my-sm-0" style="width: 100%;" name ="salir" type="submit">Salir</button>
       </form>
     </div>
