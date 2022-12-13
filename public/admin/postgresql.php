@@ -40,7 +40,7 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
     <h1 align="Center">Sistema de PostgreSQL</h1>
     <p align="justify">Aquí podrás hacer todo lo que requieras con PostgreSQL.</p>
 
-    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
       <div class="col-auto">
         <div class="mb-3">
           <label for="usos" class="form-label">Usos</label>
@@ -87,7 +87,7 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
       $opcion = $_POST['usos'];
       if($opcion == 1){
         ?>
-        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
           <div class="row justify-content-center">
 
@@ -117,7 +117,7 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
         <?php
       }elseif($opcion == 2){
         ?>
-        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
           <div class="row justify-content-center">
 
@@ -156,7 +156,7 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
       <?php
       }elseif($opcion == 3){
         ?>
-        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
           <div class="row justify-content-center">
 
@@ -204,7 +204,7 @@ if($_ENV['CONECT_POSTGRESQL'] != 1){
       <?php
       }elseif($opcion == 4){
         ?>
-        <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
           <div class="row justify-content-center">
 

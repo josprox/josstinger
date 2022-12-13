@@ -21,19 +21,38 @@ login_cookie("users");
 </head>
 <body>
     <?php
+    if(isset($_GET['check_user'])){
+        $conexion = conect_mysqli();
+        $check = mysqli_real_escape_string($conexion, (string) $_GET['check_user']);
+        if(leer_tablas_mysql_custom("SELECT id_user FROM check_users WHERE check_users.url = '$check'") >=1){
+            $checking = consulta_mysqli_where("id, id_user","check_users","check_users.url","'$check'");
+            $id_user = $checking['id_user'];
+            if(actualizar_datos_mysqli("users","`checked_status` = 'TRUE'","id",$id_user) == TRUE){
+                eliminar_datos_con_where("check_users","id_user",$id_user);?>
+                <script>
+                    Swal.fire(
+                    'Completado',
+                    'Se ha verificado tu cuenta de manera correcta.',
+                    'success'
+                    )
+                </script>
+                <?php
+            }
+        }else{
+            ?>
+            <script>
+                Swal.fire(
+                'Oh no!',
+                'No se ha podido verificar este token, favor de intentar acceder a tu cuenta para generar otro token.',
+                'error'
+                )
+            </script>
+            <?php
+        }
+    }
     if (isset($_POST["ingresar"])){
         if(recaptcha() == TRUE){
             logins($_POST['txtCorreo'],$_POST['txtPassword'],"users","./admin/","./users/");
-        }
-        if (recaptcha() == FALSE){
-            echo "
-            <script>
-                Swal.fire(
-                'Falló',
-                'El inicio de sesión ha fallado, favor de volver a intentarlo.',
-                'error'
-                )
-            </script>";
         }
     }
     if(isset($_POST['reset'])){

@@ -37,15 +37,15 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   <div class="container">
   <?php
   if(isset($_POST['eliminar'])){
-    unlink('./../../installer.php');
+    unlink(__DIR__ . '/../../installer.php');
   }
-  if (file_exists("./../../installer.php")){?>
+  if (file_exists(__DIR__ . "/../../installer.php")){?>
   <div class="alert alert-warning" role="alert">
     <strong>Advertencia</strong> Se recomienda que elimines el fichero installer.
   </div>
 
   <center>
-    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
       <button name="eliminar" class="btn btn-success" type="submit">Eliminar ahora</button>
     </form>
   </center>

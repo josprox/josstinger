@@ -50,7 +50,7 @@ if($_ENV['PLUGINS'] != 1){
     }
     ?>
 
-    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
     <center>
       <div class="col-10">
         <div class="mb-3">

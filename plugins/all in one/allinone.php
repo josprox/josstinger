@@ -219,7 +219,7 @@ function allinone_zip_all($option){
                         <center>
                             <p>Respaldo realizado con éxito</p>
                             <a class='btn btn-success' href='./../../plugins/all in one/respaldo_all/<?php echo $nombre_archivo; ?>'>Descargar</a><br><br>
-                            <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+                            <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
                                 <input type="hidden" name="directorio" value="./../../plugins/all in one/respaldo_all">
                                 <button type="submit" name="eliminar" class="btn btn-danger">Eliminar respaldo del disco</button>
                                 <br><br>

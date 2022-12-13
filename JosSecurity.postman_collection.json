@@ -1,0 +1,677 @@
+{
+	"info": {
+		"_postman_id": "b0a74ff0-e6f2-475c-94e6-7008d969aaa5",
+		"name": "JosSecurity",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24296254"
+	},
+	"item": [
+		{
+			"name": "JosSecurity API",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=test",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "test",
+							"description": "Aquí deberás poner el comando"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API add user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-add-user&arg1=users&arg2=Joss Estrada&arg3=example@domain.com&arg4=123&arg5=6",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-add-user",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "users",
+							"description": "Tabla donde se agregará el usuario"
+						},
+						{
+							"key": "arg2",
+							"value": "Joss Estrada",
+							"description": "Nombre del nuevo usuario"
+						},
+						{
+							"key": "arg3",
+							"value": "example@domain.com",
+							"description": "Correo del nuevo usuario"
+						},
+						{
+							"key": "arg4",
+							"value": "123",
+							"description": "Contraseña del nuevo usuario"
+						},
+						{
+							"key": "arg5",
+							"value": "6",
+							"description": "Rol del nuevo usuario"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API change password",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-change-user-password&arg1=example@domain.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-change-user-password",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "example@domain.com",
+							"description": "Deberás poner el correo de quien cambiarás la contraseña"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API delete user",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-delete-user&arg1=2&arg2=users",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-delete-user",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "2",
+							"description": "Deberas poner el id del usuario"
+						},
+						{
+							"key": "arg2",
+							"value": "users",
+							"description": "Aquí va la tabla donde está el usuario registrado"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API test smtp",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-test-smtp&arg1=example@domain.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-test-smtp",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "example@domain.com",
+							"description": "Deberás poner el correo donde recibirás la prueba"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API send smtp",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-send-smtp&arg1=Joss&arg2=Prueba&arg3=Hola mundo&arg4=example@domain.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-send-smtp",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "Joss",
+							"description": "Nombre de la persona a quien se le enviará el correo"
+						},
+						{
+							"key": "arg2",
+							"value": "Prueba",
+							"description": "Asunto"
+						},
+						{
+							"key": "arg3",
+							"value": "Hola mundo",
+							"description": "Contenido (preferible usar divs)"
+						},
+						{
+							"key": "arg4",
+							"value": "example@domain.com",
+							"description": "Correo del receptor"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API receive smtp",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-receive-smtp&arg1=Joss&arg2=Prueba&arg3=Hola mundo&arg4=example@domain.com",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-receive-smtp",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "Joss",
+							"description": "Nombre de la persona a quien envía el correo"
+						},
+						{
+							"key": "arg2",
+							"value": "Prueba",
+							"description": "Asunto"
+						},
+						{
+							"key": "arg3",
+							"value": "Hola mundo",
+							"description": "Contenido (preferible usar divs)"
+						},
+						{
+							"key": "arg4",
+							"value": "example@domain.com",
+							"description": "Correo del interceptor"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API create table mysqli",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-create-table-mysqli&arg1=&arg2",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-create-table-mysqli",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Pon el nombre de la tabla"
+						},
+						{
+							"key": "arg2",
+							"value": null,
+							"description": "Pon la estructura de la tabla sin created_at ni updated_at"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API insert data mysqli",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-insert-data-mysqli&arg1=",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-insert-data-mysqli",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Aquí deverá ir el código sql"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API update data mysqli",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-update-data-mysqli&arg1=&arg2&arg3=id&arg4=1",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-update-data-mysqli",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Aquí va la tabla a actualizar\n"
+						},
+						{
+							"key": "arg2",
+							"value": null,
+							"description": "Pon lo que vas a editar"
+						},
+						{
+							"key": "arg3",
+							"value": "id",
+							"description": "Comparación"
+						},
+						{
+							"key": "arg4",
+							"value": "1",
+							"description": "Dato a comparar"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API delete data mysqli",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-delete-data-mysqli&arg1=",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-delete-data-mysqli",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Aquí deverá ir el código sql"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API delete table mysqli",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-delete-table-mysqli&arg1=",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-delete-table-mysqli",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Pon el nombre de la tabla"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API delete directory",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-delete-directory&arg1=",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-delete-directory",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "",
+							"description": "Pon el directorio a borrar"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API cron",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=cron",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "cron",
+							"description": "Aquí deberás poner el comando"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		}
+	]
+}

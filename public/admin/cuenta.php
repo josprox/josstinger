@@ -69,7 +69,7 @@ $row = consulta_mysqli_clasic("*","users");
 
   <div class="container">
     <h2 align="center">Modifica tu información</h2>
-    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
       <div class="mb-3">
         <label for="id" class="form-label"><i class="fa fa-id-badge" aria-hidden="true"></i></label>
@@ -108,7 +108,7 @@ $row = consulta_mysqli_clasic("*","users");
 
     <h2 align="center">Modificar contraseña</h2>
 
-    <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
       <div class="mb-3 row">
         <label for="password" class="form-label">Pon tu contraseña actual</label>

@@ -14,12 +14,6 @@ $fecha = date("Y-m-d H:i:s");
 $nombre_app = (string)$_ENV['NAME_APP'];
 $version_app = (string)$_ENV['VERSION'];
 
-$host = (string)$_ENV['HOST'];
-$user = (string)$_ENV['USUARIO'];
-$pass = (string)$_ENV['CONTRA'];
-$DB = (string)$_ENV['BASE_DE_DATOS'];
-$puerto = (string)$_ENV['PUERTO'];
-
 if ($_ENV['DEBUG'] == 1) {
     echo "<script>console.log('".$nombre_app." está funcionando.');</script>";
 }
@@ -125,7 +119,11 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     if($_ENV['CONECT_MYSQLI'] == 1){
 
         function conect_mysqli(){
-            global $host,$user,$pass,$DB,$puerto;
+            $host = (string)$_ENV['HOST'];
+            $user = (string)$_ENV['USUARIO'];
+            $pass = (string)$_ENV['CONTRA'];
+            $DB = (string)$_ENV['BASE_DE_DATOS'];
+            $puerto = (string)$_ENV['PUERTO'];
             $conexion = new mysqli("$host","$user", "$pass","$DB", $puerto);
             $conexion->set_charset("utf8");
             
@@ -160,7 +158,11 @@ if ($_ENV['CONECT_DATABASE'] == 1){
 
         function conect_mysql(){
 
-            global $host,$user,$pass,$DB,$puerto;
+            $host = (string)$_ENV['HOST'];
+            $user = (string)$_ENV['USUARIO'];
+            $pass = (string)$_ENV['CONTRA'];
+            $DB = (string)$_ENV['BASE_DE_DATOS'];
+            $puerto = (string)$_ENV['PUERTO'];
         
             try {
                 $pdo = new PDO('mysql:host='.$host.';port='.$puerto.';dbname='.$DB.'', $user, $pass);
@@ -200,7 +202,7 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     }
 }
 
-function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users){
+function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users,$check_user = "panel"){
     $conexion = conect_mysqli();
     $tabla = mysqli_real_escape_string($conexion, (string) $tabla);
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
@@ -209,14 +211,14 @@ function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users){
         $consulta = consulta_mysqli_where("id_rol","$tabla","email","'$correo'");
         $resultado = $consulta['id_rol'];
         if($resultado == 1 OR $resultado == 2 OR $resultado == 4){
-            login_admin($correo,$contra,"$tabla","$localizacion_admin");
+            login_admin($correo,$contra,"$tabla","$localizacion_admin",$check_user);
         }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
-            login($correo,$contra,$tabla,$localizacion_users);
+            login($correo,$contra,$tabla,$localizacion_users,$check_user);
         }
     }
 }
 
-function login($login_email,$login_password,$table_DB,$location){
+function login($login_email,$login_password,$table_DB,$location,$check_user = "panel"){
 
     global $nombre_app, $fecha;
 
@@ -230,40 +232,72 @@ function login($login_email,$login_password,$table_DB,$location){
         }else{
             $cookies = FALSE;
         }
-        
-        $sql = "SELECT id, name, password FROM $table WHERE email = '$usuario'";
+        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+            $sql = "SELECT id, name, password FROM $table WHERE email = '$usuario'";
+        }else{
+            $sql = "SELECT id, name, password, checked_status FROM $table WHERE email = '$usuario'";
+        }
         $resultado = $conexion->query($sql);
         $rows = $resultado->num_rows;
         if ($rows > 0) {
             $row = $resultado->fetch_assoc();
             $password_encriptada = $row['password'];
             $id = $row['id'];
-            if(password_verify($password,(string) $password_encriptada) == TRUE){
-
-                $_SESSION['id_usuario'] = $row['id'];
-
-                if ($cookies == TRUE){
-                    //Cookie de usuario y contraseña
-                    setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                    setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                    setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                }
-                
-
-                actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
-
-                mysqli_close($conexion);
-
-                $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
-
-                if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
-                    header("Location: $location");
-                }
-
-
-                }else{
+            if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+                $check = TRUE;
+            }else{
+                $check = $row['checked_status'];
+            }
+            if($check == TRUE){
+                if(password_verify($password,(string) $password_encriptada) == TRUE){
+    
+                    $_SESSION['id_usuario'] = $row['id'];
+    
+                    if ($cookies == TRUE){
+                        //Cookie de usuario y contraseña
+                        setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                    }
+                    
+    
+                    actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
+    
                     mysqli_close($conexion);
+    
+                    $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
+    
+                    if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                        header("Location: $location");
+                    }
+    
+    
+                    }else{
+                        mysqli_close($conexion);
+                    }
+            }else{
+                if($_ENV['DOMINIO'] != "localhost"){
+                    $ssl_tls = "https://";
+                }else{
+                    $ssl_tls = "http://";
                 }
+                $key = generar_llave_alteratorio(16);
+                $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
+                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
+                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id,'$key', '$fecha_1_day'");
+                $conexion -> close();
+                if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
+                ?>
+                <script>
+                    Swal.fire(
+                    'Falló',
+                    'El usuario no ha sido verificado, favor de checar su correo para activarlo.',
+                    'error'
+                    )
+                </script>
+                <?php
+                }
+            }
             }
         else{
         mysqli_close($conexion);
@@ -271,7 +305,7 @@ function login($login_email,$login_password,$table_DB,$location){
             
 }
 
-function login_admin($login_email,$login_password,$table_DB,$location){
+function login_admin($login_email,$login_password,$table_DB,$location,$check_user = "panel"){
 
     $conexion = conect_mysqli();
     global $nombre_app ,$fecha;
@@ -285,8 +319,11 @@ function login_admin($login_email,$login_password,$table_DB,$location){
             $cookies = FALSE;
         }
     
-        
-        $sql = "SELECT id, name, password, id_rol FROM $table WHERE email = '$usuario'";
+        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+            $sql = "SELECT id, name, password, id_rol FROM $table WHERE email = '$usuario'";
+        }else{
+            $sql = "SELECT id, name, password, id_rol,checked_status FROM $table WHERE email = '$usuario'";
+        }
         $resultado = $conexion->query($sql);
         $rows = $resultado->num_rows;
         if ($rows > 0) {
@@ -294,35 +331,63 @@ function login_admin($login_email,$login_password,$table_DB,$location){
             $password_encriptada = (string)$row['password'];
             $rol = $row['id_rol'];
             $id = $row['id'];
-            if($rol == 1 OR $rol == 2 OR $rol == 4){
-
-                if(password_verify($password,$password_encriptada) == TRUE){
+            if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+                $check = TRUE;
+            }else{
+                $check = $row['checked_status'];
+            }
+            if($check == TRUE){
+                if($rol == 1 OR $rol == 2 OR $rol == 4){
     
-                    $_SESSION['id_usuario'] = $row['id'];
-                    
-                    if ($cookies == TRUE){
-                        //Cookie de usuario y contraseña
-                        setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                    }
-
-                    actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
+                    if(password_verify($password,$password_encriptada) == TRUE){
+        
+                        $_SESSION['id_usuario'] = $row['id'];
+                        
+                        if ($cookies == TRUE){
+                            //Cookie de usuario y contraseña
+                            setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                            setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                            setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
+                        }
     
-                    mysqli_close($conexion);
-
-                    $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
-
-                    if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
-                        header("Location: $location");
-                    }
-    
-                    }else{
+                        actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
+        
                         mysqli_close($conexion);
-                    }
+    
+                        $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
+    
+                        if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
+                            header("Location: $location");
+                        }
+        
+                        }else{
+                            mysqli_close($conexion);
+                        }
+                }
+            }else{
+                if($_ENV['DOMINIO'] != "localhost"){
+                    $ssl_tls = "https://";
+                }else{
+                    $ssl_tls = "http://";
+                }
+                $key = generar_llave_alteratorio(16);
+                $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
+                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
+                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id,'$key', '$fecha_1_day'");
+                $conexion -> close();
+                if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
+                ?>
+                <script>
+                    Swal.fire(
+                    'Falló',
+                    'El usuario no ha sido verificado, favor de checar su correo para activarlo.',
+                    'error'
+                    )
+                </script>
+                <?php
+                }
             }
-            }
-        else{
+        }else{
         mysqli_close($conexion);
         }
             
@@ -378,11 +443,24 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
 
     if ($filas <= 0) {
         global $nombre_app;
+        $key = generar_llave_alteratorio(16);
         insertar_datos_clasic_mysqli($table_db,"name, email, password, id_rol, created_at, updated_at","'$nombre', '$email', '$password_encriptada', '$rol', '$fecha', NULL");
-        $cuerpo_de_correo = "<div><p align='justify'>Te has registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre</p></div>";
-
-        if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
-
+        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+            $cuerpo_de_correo = "<div><p align='justify'>Te has registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre.</p></div>";
+            mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email);
+        }else{
+            if($_ENV['DOMINIO'] != "localhost"){
+                $ssl_tls = "https://";
+            }else{
+                $ssl_tls = "http://";
+            }
+            $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
+            $cuerpo_de_correo = "<div><p align='justify'>Te has registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre, antes de continuar, debes activar tu cuenta <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR']."panel?check_user=$key'>dando clic aquí</a> para terminar el proceso.</p></div>";
+            if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
+                $consulta_id_new = consulta_mysqli_where("id",$table_db,"email","'$email'");
+                $id_new = $consulta_id_new['id'];
+                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id_new, '$key', '$fecha_1_day'");
+            }
         }
         $success = "
         <script>
@@ -818,8 +896,9 @@ function borrar_directorio($dirname) {
 	 rmdir($dirname);
 	 return true;
 }
-
-if($_ENV['RECAPTCHA'] == 1){
+if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
+    echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
+}elseif($_ENV['RECAPTCHA'] == 1){
 
     function recaptcha(){
         $ip = $_SERVER['REMOTE_ADDR'];
@@ -847,7 +926,11 @@ if(isset($_POST['salir'])){
     header("Location: ./../panel");
 }
 
-if ($_ENV['PLUGINS'] == 1){
+if ($_ENV['PLUGINS'] != 1 OR !isset($_ENV['PLUGINS'])){
+    if($_ENV['DEBUG']){
+        echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de plugins.');</script>";
+    }
+}elseif($_ENV['PLUGINS'] == 1){
     function all_in_one($select){
         $select = (int)$select;
         include (__DIR__ . "/plugins/all in one/allinone.php");

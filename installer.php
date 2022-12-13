@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "1.7";
+$version_app_default = "1.8";
 
 if(isset($_POST['instalar'])){
 
@@ -36,6 +36,11 @@ if(isset($_POST['instalar'])){
     $API = "1";
   }else{
     $API = "0";
+  }
+  if(isset($_POST['check_user_db'])){
+    $CHECK_USER = "1";
+  }else{
+    $CHECK_USER = "0";
   }
   //Recaptcha
   $RCP = $_POST['RCP'];
@@ -108,6 +113,18 @@ if(isset($_POST['instalar'])){
     $delete_gitignore = unlink('./.gitignore');
   }
 
+  if(file_exists("./cron code.txt")){
+    $delete_gitignore = unlink('./cron code.txt');
+  }
+
+  if(file_exists("./.env")){
+    $delete_gitignore = unlink('./.env');
+  }
+
+  if(file_exists("./hestia.sql")){
+    $delete_gitignore = unlink('./hestia.sql');
+  }
+
   if(file_exists("./jossecurity.sql")){
     $delete_sql = unlink('./jossecurity.sql');
   }
@@ -162,7 +179,8 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "DEBUG=0\n");
   fwrite($env_create, "PLUGINS=1\n");
   fwrite($env_create, "PWA=".$service."\n");
-  fwrite($env_create, "API=".$API."\n\n");
+  fwrite($env_create, "API=".$API."\n");
+  fwrite($env_create, "CHECK_USER=".$CHECK_USER."\n\n");
   
   fwrite($env_create, "# Conexión a la base de datos MySQL.\n");
   fwrite($env_create, "USUARIO=".$usuariodb."\n");
@@ -259,14 +277,21 @@ if(isset($_POST['instalar'])){
 
             <div class="row justify-content-center">
 
-              <div class="col-5">
+              <div class="col-3">
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" id="check_user_db" name="check_user_db">
+                  <label class="form-check-label" for="check_user_db">¿Deseas activar el sistema de autenticacion de usuarios?</label>
+                </div>
+              </div>
+
+              <div class="col-4">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="service" name="service">
                   <label class="form-check-label" for="service">¿Desea activar el service worker que viene por defecto?</label>
                 </div>
               </div>
 
-              <div class="col-5">
+              <div class="col-3">
                 <div class="form-check form-switch">
                   <input class="form-check-input" type="checkbox" id="API" name="API">
                   <label class="form-check-label" for="API">¿Deseas activar el sistema de API que viene por defecto?</label>

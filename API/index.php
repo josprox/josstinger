@@ -18,54 +18,57 @@ if(!isset($_ENV['API']) OR $_ENV['API'] != 1){
     if((int)$consulta_admin['id_rol'] == 1 && password_verify($password,(string) $password_encriptada) == TRUE){
         echo "Usuario correcto.\n\tEjecutando código insertado...\n";
         if($_GET['cmd'] == "test"){
-            echo "\tAPI funcionando.";
+            echo "\n\tAPI funcionando.";
         }elseif($_GET['cmd'] == "v-add-user") {
             registro($_GET['arg1'], $_GET['arg2'], $_GET['arg3'], $_GET['arg4'], $_GET['arg5']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-change-user-password"){
             resetear_contra($_GET['arg1']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-delete-user"){
             eliminar_cuenta($_GET['arg1'], $_GET['arg2'],"");
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-test-smtp"){
             if(mail_smtp_v1_3_check($_GET['arg1']) == TRUE){
-                echo "\tCodigo insertado.";
+                echo "\n\tCodigo insertado.";
             }else{
-                echo "\tCodigo fallido.";
+                echo "\n\tCodigo fallido.";
             }
         }elseif($_GET['cmd'] == "v-send-smtp"){
             if(mail_smtp_v1_3($_GET['arg1'],$_GET['arg2'],$_GET['arg3'],$_GET['arg4']) == TRUE){
-                echo "\tCodigo insertado.";
+                echo "\n\tCodigo insertado.";
             }else{
-                echo "\tCodigo fallido.";
+                echo "\n\tCodigo fallido.";
             }
         }elseif($_GET['cmd'] == "v-receive-smtp"){
             if(mail_smtp_v1_3_recibir($_GET['arg1'],$_GET['arg2'],$_GET['arg3'],$_GET['arg4']) == TRUE){
-                echo "\tCodigo insertado.";
+                echo "\n\tCodigo insertado.";
             }else{
-                echo "\tCodigo fallido.";
+                echo "\n\tCodigo fallido.";
             }
         }elseif($_GET['cmd'] == "v-insert-data-mysqli"){
             insertar_datos_custom_mysqli($_GET['arg1']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-update-data-mysqli"){
             actualizar_datos_mysqli($_GET['arg1'],$_GET['arg2'],$_GET['arg3'],$_GET['arg4']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-delete-data-mysqli"){
             eliminar_datos_custom_mysqli($_GET['arg1']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-delete-table-mysqli"){
             eliminar_tabla_PDO($_GET['arg1']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-create-table-mysqli"){
             crear_tabla_PDO($_GET['arg1'],$_GET['arg2']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
         }elseif($_GET['cmd'] == "v-delete-directory"){
             borrar_directorio($_GET['arg1']);
-            echo "\tCodigo insertado.";
+            echo "\n\tCodigo insertado.";
+        }elseif($_GET['cmd'] == "cron"){
+            include (__DIR__ . DIRECTORY_SEPARATOR . "../config/cron.php");
+            echo "\n\tCron ejecutado.";
         }else{
-            echo "\tEl codigo insertado no existe.";
+            echo "\n\tEl codigo insertado no existe.";
         }
         
     }else{

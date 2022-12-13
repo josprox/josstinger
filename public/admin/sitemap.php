@@ -60,7 +60,7 @@ secure_auth_admin($iduser,"../");
           <strong>Novedad:</strong> Esta alerta es para informarte que, desde la actualización 1.7.3 ya no es obligatorio tener el archivo por defecto, ahora tu decides si crearlo o no, de esta manera previenes que en alguna futura acualizacion tus datos se pierdan o se actualicen sin tu requerimiento.
         </div>
         <center>
-          <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+          <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
             <button name="newfile" type="submit" class="btn btn-primary">Crear archivo</button>
           </form>
         </center>
@@ -78,7 +78,7 @@ secure_auth_admin($iduser,"../");
           <br>
         <center>
           <h3 class="center">¿Deseas borrar este archivo?</h3>
-          <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+          <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
             <button name="deletefile" type="submit" class="btn btn-warning">Eliminar archivo</button>
           </form>
         </center>
