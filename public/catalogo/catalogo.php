@@ -28,7 +28,7 @@ header('Content-Type: text/xml');
                 <g:link>https://<?php echo $dir; ?>hosting#<?php echo $row['nombre']; ?></g:link>
                 <g:title>Paquete de hosting: <?php echo $row['nombre']; ?></g:title>
                 <g:product_type>Hosting plan</g:product_type>
-                <g:sale_price>USD <?php echo $row['precio']; ?></g:sale_price>
+                <g:price>USD <?php echo $row['precio']; ?></g:price>
                 <g:identifier_exists>no</g:identifier_exists>
             </item>
             <?php
