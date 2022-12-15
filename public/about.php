@@ -32,7 +32,7 @@ include (__DIR__ . "/../jossecurity.php");
     <section class="contenedor">
         <div class="grid_2_auto">
             <div>
-                <img class="img_mediana" src="../resourses/images/image_3.jpg" alt="">
+                <img class="img_mediana" src="../resourses/images/image_3.webp" alt="">
             </div>
             <div class="tarjeta-blanca">
                 <h2>¿Quienes somos?</h2>
@@ -47,12 +47,12 @@ include (__DIR__ . "/../jossecurity.php");
                 <p>Nosotros queremos que, el usuario tenga lo que él necesita, ni más ni menos, mientras nuestros clientes estén satisfechos nosotros nos damos por bien servidos.</p>
             </div>
             <div>
-                <img class="img_mediana" src="../resourses/images/image_2.jpg" alt="">
+                <img class="img_mediana" src="../resourses/images/image_2.webp" alt="">
             </div>
         </div>
         <div class="grid_2_auto">
             <div>
-                <img class="img_mediana" src="../resourses/images/image_4.jpg" alt="">
+                <img class="img_mediana" src="../resourses/images/image_4.webp" alt="">
             </div>
             <div class="tarjeta-blanca">
                 <h2>Creador</h2>

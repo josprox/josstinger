@@ -109,7 +109,7 @@ include (__DIR__ . "/../jossecurity.php");
     <?php include ("../routes/planes/planes.php"); ?>
 
     <section class="info">
-        <img src="../resourses/images/image_2.jpg" class="filtro" alt="">
+        <img src="../resourses/images/image_2.webp" class="filtro" alt="">
         <div class="encima">
             <div class="contenedor">
                 <div class="grid_1_auto">
