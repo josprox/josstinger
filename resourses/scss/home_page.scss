@@ -206,61 +206,94 @@
 }
 
 .home{
-    width: 100%;
-    height: 500px;
-    position: relative;
-    display: inline-block;
-    text-align: center;
+    background-image: url("../images/bg_1.jpg");
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    margin-top: -12px;
+    min-width: auto;
+    min-height: 420px;
+    height: auto;
     .encima{
-        margin-top: -460px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        position: relative;
-        color: $blanco;
-        .contenido{
-            margin: 12px 8px;
-            padding: 10px;
-        }
-    }
-    img.filtro{
+        padding-top: 56px;
         width: 100%;
-        height: 500px;
-        filter: grayscale(15%) sepia(20%) blur(1px) brightness(87%) saturate(102%) contrast(127%) invert(19%);
-        -webkit-filter: grayscale(15%) sepia(20%) blur(1px) brightness(87%) saturate(102%) contrast(127%) invert(19%);
-        -moz-filter: grayscale(15%) sepia(20%) blur(1px) brightness(87%) saturate(102%) contrast(127%) invert(19%);
+        h1,p{
+            color: $blanco;
+        }
+        img{
+            margin-top: 12px;
+        }
+        @media screen and (min-width: 576px) {
+            &{padding-top: 82px;}
+        }
     }
     @media screen and (min-width: 600px) {
         &{
-            height: 380px;
+            min-height: 320px;
         }
-        img.filtro{
-            height: 380px;
+    }
+}
+
+.anuncio{
+    margin: 0 auto;
+    background-color: #FBDA61;
+    background-image: linear-gradient(45deg, #FBDA61 0%, #FF5ACD 100%);
+    min-width: 250px;
+    width: auto;
+    min-height: 120px;
+    height: auto;
+    padding: 10px 8px;
+    h3,h2{
+        text-shadow: black 0.1em 0.1em 0.2em;
+        color: $blanco;
+    }
+    ul{
+        list-style: none;
+        a,li{
+            text-decoration: none;
+            color: $blanco;
+            text-shadow: black 0.1em 0.1em 0.2em;
         }
-        .encima{
-            margin-top: -300px;
+    }
+    img{
+        margin: 12px 8px;
+        width: 162px;
+        height: 90px;
+    }
+    @media screen and (min-width: 600px) {
+        &{
+            margin-top: -21px;
+            width: 96%;
+            border-radius: 12px;
+        }
+        img{
+            width: 180px;
+            height: 100px;
         }
     }
     @media screen and (min-width: 800px) {
         &{
-            height: 400px;
+            margin-top: -26px;
+            width: 92%;
+            border-radius: 12px;
         }
-        img.filtro{
-            height: 400px;
-        }
-        .encima{
-            margin-top: -300px;
+        img{
+            width: 200px;
+            height: 110px;
         }
     }
 }
+
 .app_josstinger{
     min-width: 100%;
     min-height: 12px;
     height: auto;
-    background-position: center;
-    background-repeat: no-repeat;
     background-image: url("../img/josstinger%20degradado/cover.png");
     background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
     .app_josstinger_info{
         margin: 12px 8px;
         text-align: justify;

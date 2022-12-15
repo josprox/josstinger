@@ -16,7 +16,6 @@ include (__DIR__ . "/../jossecurity.php");
     <?php navbar(); ?>
 
     <section class="home">
-        <img src="../resourses/images/bg_1.jpg" class="filtro" alt="">
 
         <div class="encima">
             <div class="contenedor">
@@ -33,6 +32,21 @@ include (__DIR__ . "/../jossecurity.php");
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    <section class="anuncio grid_2_auto">
+        <main class="contenedor">
+            <h3>Web hosting</h3>
+            <h2>El hosting que tú necesitas</h2>
+            <ul>
+                <li><i class="fa-regular fa-circle-check"></i> Rápido y seguro.</li>
+                <li><i class="fa-regular fa-circle-check"></i> Compila cualquier versión php desde la versión 5.8 hasta la versión más actual 8.2.</li>
+                <li><i class="fa-regular fa-circle-check"></i> Hostea de manera gratuita cualquier dominio.</li>
+            </ul>
+        </main>
+        <div class="flex_center">
+            <img src="../resourses/img/PHP-logo.png" alt="">
         </div>
     </section>
 
