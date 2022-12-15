@@ -22,13 +22,13 @@ include (__DIR__ . "/../jossecurity.php");
                 <div class="grid_2_auto">
                     <div class="contenido">
                         <h1 class="text-shadow-black text-center titulo_encima">El hosting ideal para ti</h1>
-                        <p class="text-shadow-black text-justify">Puedes elegir el plan de acuerdo a tus necesidades, Nuestro servidor protegrá tus sitios web en una plataforma 100% confiable.</p>
+                        <p class="text-shadow-black text-justify">Puedes elegir el plan de acuerdo a tus necesidades, nuestro servidor protegrá tus sitios web en una plataforma 100% confiable.</p>
                         <div class="flex_center">
                             <a name="" id="" class="btn btn-primary" href="hosting" role="button">Conocer más</a>
                         </div>
                     </div>
                     <div class="contenido">
-                        <img class="img_pequeña" src="../resourses/img/josstinger degradado/vector/default.svg" alt="">
+                        <img class="img_pequeña" src="../resourses/img/logo_hestia/vector/default.svg" alt="">
                     </div>
                 </div>
             </div>
@@ -53,7 +53,7 @@ include (__DIR__ . "/../jossecurity.php");
     <section class="flex_center">
         <div class="contenedor">
             <div class="tarjeta-blanca">
-                <h2 class="text-center titulo_card">La Garantía <?php echo $nombre_app; ?></h2>
+                <h2 class="text-center titulo_card">La Garantía de <?php echo $nombre_app; ?></h2>
                 <p class="text-center">Obten el mejor servicio de hosting, <?php echo $nombre_app; ?> asegura tus sitios web, no te preocupes de nada.</p>
             </div>
             <div class="grid_3_auto">

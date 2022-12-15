@@ -1,11 +1,11 @@
 <!-- JQUERY -->
   <script src="../node_modules/jquery/dist/jquery.min.js"></script>
   
-  <link rel="shortcut icon" href="../resourses/img/josstinger degradado/vector/default.svg" type="image/x-icon">
+  <link rel="shortcut icon" href="../resourses/img/logo_hestia/vector/default.svg" type="image/x-icon">
   <!-- Bootstrap -->
   <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
   <!-- hestia -->
-  <link rel="stylesheet" href="../resourses/scss/home_page.min.css">
+  <link rel="stylesheet" href="../resourses/scss/home_page.css">
   <!-- Fontawesome -->
   <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css" defer>
   <!-- SweetAlert2 -->

@@ -108,7 +108,7 @@ include (__DIR__ . "/../jossecurity.php");
               <h2>Antes de continuar</h2>
               <div class="grid_2_auto">
                 <div>
-                  <img src="./../resourses/img/josstinger degradado/default.png" alt="Josstinger">
+                  <img src="./../resourses/img/logo_hestia/vector/default.svg" alt="<? echo $_ENV['NAME_APP']; ?>">
                 </div>
                 <div>
                   <p align="justify">Para poder continuar deberás crear una cuenta o acceder para enviar un correo, recuerda que, si haces spam serás baneado.</p>

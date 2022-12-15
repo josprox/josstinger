@@ -3,7 +3,7 @@
                     <div class="grid_4_auto">
             
                         <div class="footer_section">
-                            <img src="../resourses/img/josstinger degradado/vector/default.svg" alt="">
+                            <img src="../resourses/img/logo_hestia/vector/default.svg" alt="">
                             <h3><?php echo $_ENV['NAME_APP']; ?></h3>
                             <p>El hosting que tú necesitas.</p>
                             <div class="grid_3">

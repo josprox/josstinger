@@ -1,0 +1,14 @@
+
+Hope you enjoy your new logo, here are the people that
+made your beautiful logo happen :)
+font name: Galada-Regular
+font link: https://fonts.google.com/specimen/Galada
+font author: Black Foundry
+font author site: https://black-foundry.com/
+
+
+icon designer: Julien Deveaux
+icon designer link: /Julihan
+        
+{"bg":"#FFE9E6","icon-gradient-0":"#FF5A20","icon-gradient-1":"#FFACC7","font":"#3A1C18","slogan":"#4e302c"}
+      

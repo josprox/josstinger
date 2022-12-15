@@ -37,14 +37,14 @@ include (__DIR__ . "/../jossecurity.php");
             <div class="tarjeta-blanca">
                 <h2>¿Quienes somos?</h2>
                 <h3>Un servicio de Hosting</h3>
-                <p>Estamos ofreciendo un increible servicio de hosting para que tú puedas montar tu sitio web de una manera fácil y sencilla.</p>
+                <p align="justify">Estamos ofreciendo un increible servicio de hosting para que tú puedas montar tu sitio web de una manera fácil y sencilla, el sistema funciona gracias al panel de control de "Hestia CP".</p>
             </div>
         </div>
         <div class="grid_2_auto">
             <div class="tarjeta-blanca">
                 <h2>Misión</h2>
                 <h3>Satisfacer tus necesidades</h3>
-                <p>Nosotros queremos que, el usuario tenga lo que él necesita, ni más ni menos, mientras nuestros clientes estén satisfechos nosotros nos damos por bien servidos.</p>
+                <p align="justify">Nosotros queremos que, el usuario tenga lo que él necesita, ni más ni menos, mientras nuestros clientes estén satisfechos nosotros nos damos por bien servidos.</p>
             </div>
             <div>
                 <img class="img_mediana" src="../resourses/images/image_2.webp" alt="">
@@ -57,7 +57,7 @@ include (__DIR__ . "/../jossecurity.php");
             <div class="tarjeta-blanca">
                 <h2>Creador</h2>
                 <h3>El Diamante</h3>
-                <p>Este servicio es proporcionado por JOSPROX MX | Internacional y cumple con todas las regularidades de hosting, nosotros ocupamos nuestros mismos servicios para poderte mostrar nuestros productos de "El Diamante".</p>
+                <p align="justify">Este sistema es proporcionado por JOSPROX MX | Internacional y cumple con todas las regularidades de hosting, nosotros ocupamos nuestros mismos servicios para poderte mostrar nuestros productos de "El Diamante Soluciones TI".</p>
             </div>
         </div>
     </section>    

@@ -136,7 +136,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
 
     </section>
 
-    <?php footer_users(); ?>
+    <?php include ("../../routes/hestia/preguntas.php"); footer_users(); ?>
     
 </body>
 </html>

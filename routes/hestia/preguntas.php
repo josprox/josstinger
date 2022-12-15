@@ -3,7 +3,7 @@
 
             <div class="tarjeta-blanca">
                 <h2 class="text-center titulo_card">Preguntas frecuentes</h2>
-                <p class="text-center">Lo siguiente son preguntas frecuentes que hacen los clientes..</p>
+                <p class="text-center">Lo siguiente son preguntas frecuentes que hacen los clientes.</p>
             </div>
 
             <div class="grid_2_auto">

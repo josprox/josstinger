@@ -3,7 +3,7 @@
             <div class="contenedor">
                 <div class="grid_2_auto">
                     <div class="app_josstinger_info">
-                        <h2>Conoce Josstinger</h2>
+                        <h2>Conoce <?php echo $_ENV['NAME_APP']; ?></h2>
                         <h3>El hosting que tú necesitas</h3>
                         <p align="justify">Aloja tu sitio web o aplicación web de manera segura, Josstinger es el mejor proveedor de hosting de México, consulta nuestros precios.</p>
                         <div class="app_josstinger_appgallery">
