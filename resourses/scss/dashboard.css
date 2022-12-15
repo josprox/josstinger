@@ -392,6 +392,19 @@ button {
   text-decoration: none;
 }
 
+.btn_transparente {
+  margin: 12px auto;
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: 1px #fff;
+}
+.btn_transparente:hover {
+  background-color: #e35473;
+  color: #fff;
+  border: 2px #fff;
+}
+
 .tarjeta_contenido {
   min-width: 150px;
   width: 100%;
@@ -460,4 +473,103 @@ button {
 
 #renovar, #agregar, #esconder {
   display: none;
+}
+
+.app_josstinger {
+  min-width: 100%;
+  min-height: 12px;
+  height: auto;
+  background-image: url("../img/josstinger%20degradado/cover.png");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-attachment: fixed;
+}
+.app_josstinger .app_josstinger_info {
+  margin: 12px 8px;
+  text-align: justify;
+  text-shadow: black 0.1em 0.1em 0.2em;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 10px;
+  border-radius: 12px;
+}
+.app_josstinger .app_josstinger_info h2, .app_josstinger .app_josstinger_info h3 {
+  text-align: center;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+  grid-template-areas: "img" "text";
+}
+@media screen and (min-width: 600px) {
+  .app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "img text";
+  }
+}
+@media screen and (min-width: 800px) {
+  .app_josstinger .app_josstinger_info .app_josstinger_appgallery {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "img text text";
+  }
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .img_appgallery {
+  grid-area: img;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .img_appgallery img {
+  min-width: 30px;
+  min-height: 30px;
+  width: 100px;
+  height: 100px;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .text_appgallery {
+  grid-area: text;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_appgallery .text_appgallery p {
+  text-align: justify;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_youtube {
+  margin: 12px 8px;
+  position: relative;
+  overflow: hidden;
+  padding-top: 56.25%;
+}
+.app_josstinger .app_josstinger_info .app_josstinger_youtube .app_josstinger_youtube_video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.footer {
+  background-color: #282b3a;
+  margin: 0;
+}
+.footer .footer_section {
+  margin: 12px 8px;
+  padding: 6px;
+}
+.footer .footer_section img {
+  width: 150px;
+  height: 150px;
+  border-radius: 18px;
+  margin: 0 auto;
+}
+.footer .footer_section a, .footer .footer_section p, .footer .footer_section h1, .footer .footer_section h2, .footer .footer_section h3 {
+  text-align: center;
+  color: #fff;
+  text-shadow: black 0.1em 0.1em 0.2em;
+  text-decoration: none;
+}
+.footer .footer_section ul > li {
+  list-style: none;
+  text-decoration: none;
+  font-size: 1.2em;
+  margin: 8px 6px;
+  padding: 6px;
 }/*# sourceMappingURL=dashboard.css.map */

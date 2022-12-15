@@ -71,7 +71,7 @@ function footer_users(){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer admin está activo.');</script>";
     }
-    return include (__DIR__ . "/config/general_rutes/footer/footer_admin.php");
+    return include (__DIR__ . "/config/general_rutes/footer/footer_users.php");
 }
 
 function footer_admin(){
