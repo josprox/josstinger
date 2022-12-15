@@ -5,7 +5,7 @@
   <!-- Bootstrap -->
   <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
   <!-- hestia -->
-  <link rel="stylesheet" href="../resourses/scss/home_page.css">
+  <link rel="stylesheet" href="../resourses/scss/home_page.min.css">
   <!-- Fontawesome -->
   <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css" defer>
   <!-- SweetAlert2 -->

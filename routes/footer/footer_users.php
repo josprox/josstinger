@@ -59,18 +59,18 @@
                         <div class="footer_section">
                             <h3>Links internos</h3>
                             <ul>
-                                <li><a href="./">Inicio</a></li>
-                                <li><a href="about">Acerca de</a></li>
-                                <li><a href="hosting">Hosting</a></li>
-                                <li><a href="contact">Contacto</a></li>
+                                <li><a href="../">Inicio</a></li>
+                                <li><a href="../about">Acerca de</a></li>
+                                <li><a href="../hosting">Hosting</a></li>
+                                <li><a href="../contact">Contacto</a></li>
                             </ul>
                         </div>
             
                         <div class="footer_section">
                             <h3>Legalidad</h3>
                             <ul>
-                                <li><a href="politica">Privacidad</a></li>
-                                <li><a href="terminos">Términos y condiciones</a></li>
+                                <li><a href="../politica">Privacidad</a></li>
+                                <li><a href="../terminos">Términos y condiciones</a></li>
                             </ul>
                         </div>
             

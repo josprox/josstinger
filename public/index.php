@@ -28,7 +28,7 @@ include (__DIR__ . "/../jossecurity.php");
                         </div>
                     </div>
                     <div class="contenido">
-                        <img class="img_pequeña" src="../resourses/img/josstinger degradado/default.png" alt="">
+                        <img class="img_pequeña" src="../resourses/img/josstinger degradado/vector/default.svg" alt="">
                     </div>
                 </div>
             </div>
