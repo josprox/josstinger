@@ -483,7 +483,6 @@ button {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
-  background-attachment: fixed;
 }
 .app_josstinger .app_josstinger_info {
   margin: 12px 8px;

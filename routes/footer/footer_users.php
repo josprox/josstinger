@@ -5,7 +5,7 @@
                     <div class="app_josstinger_info">
                         <h2>Conoce <?php echo $_ENV['NAME_APP']; ?></h2>
                         <h3>El hosting que tú necesitas</h3>
-                        <p align="justify">Aloja tu sitio web o aplicación web de manera segura, Josstinger es el mejor proveedor de hosting de México, consulta nuestros precios.</p>
+                        <p align="justify">Aloja tu sitio web o aplicación web de manera segura, <?php echo $_ENV['NAME_APP']; ?> es el mejor proveedor de hosting de México, consulta nuestros precios.</p>
                         <div class="app_josstinger_appgallery">
                             <div class="img_appgallery">
                                 <img src="../../resourses/img/Huawei_AppGallery.svg.png" alt="">
