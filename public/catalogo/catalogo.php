@@ -24,7 +24,7 @@ header('Content-Type: text/xml');
                 <g:availability>in stock</g:availability>
                 <g:condition>New</g:condition>
                 <g:description><?php echo $row['descripcion_text']; ?></g:description>
-                <g:image_link>https://<?php echo $dir.$salto; ?>resourses/img/josstinger degradado/default.png</g:image_link>
+                <g:image_link>https://<?php echo $dir.$salto; ?>resourses/img/logo_hestia/default-round.png</g:image_link>
                 <g:link>https://<?php echo $dir; ?>hosting#<?php echo $row['nombre']; ?></g:link>
                 <g:title>Paquete de hosting: <?php echo $row['nombre']; ?></g:title>
                 <g:product_type>Hosting plan</g:product_type>
