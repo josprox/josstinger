@@ -25,7 +25,10 @@ function allinone_backup(){
 ## Ahora creamos el script que nos permitirá hacer el backup sql.
 
 function allinone_sql(){
-    global $host, $user, $pass, $DB;
+    $host = (string)$_ENV['HOST'];
+    $user = (string)$_ENV['USUARIO'];
+    $pass = (string)$_ENV['CONTRA'];
+    $DB = (string)$_ENV['BASE_DE_DATOS'];
     set_time_limit(3000);
     $tablasARespaldar = [];
     $mysqli = new mysqli($host, $user, $pass, $DB);
@@ -103,26 +106,36 @@ function allinone_zip_all($option){
   
     if($option == 1){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "plugins";
-        $config_rest -> carpeta = "/../../plugins";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        $config_rest -> nombre_del_archivo = "config";
-        $config_rest -> carpeta = "/../../config";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        $config_rest -> nombre_del_archivo = "public";
-        $config_rest -> carpeta = "/../../public";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        $config_rest -> nombre_del_archivo = "resourses";
-        $config_rest -> carpeta = "/../../resourses";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        $config_rest -> nombre_del_archivo = "routes";
-        $config_rest -> carpeta = "/../../routes";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../plugins/") == TRUE){
+            $config_rest -> nombre_del_archivo = "plugins";
+            $config_rest -> carpeta = "/../../plugins";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+        }
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../config/") == TRUE){
+            $config_rest -> nombre_del_archivo = "config";
+            $config_rest -> carpeta = "/../../config";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+        }
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../public/") == TRUE){
+            $config_rest -> nombre_del_archivo = "public";
+            $config_rest -> carpeta = "/../../public";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+        }
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../resourses/") == TRUE){
+            $config_rest -> nombre_del_archivo = "resourses";
+            $config_rest -> carpeta = "/../../resourses";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+        }
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../routes/") == TRUE){
+            $config_rest -> nombre_del_archivo = "routes";
+            $config_rest -> carpeta = "/../../routes";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+        }
         if($config_rest == TRUE){
             return TRUE;
         }
@@ -130,56 +143,70 @@ function allinone_zip_all($option){
 
     if($option == 2){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "plugins";
-        $config_rest -> carpeta = "/../../plugins";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        if($config_rest == TRUE){
-            return TRUE;
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../plugins/") == TRUE){
+            $config_rest -> nombre_del_archivo = "plugins";
+            $config_rest -> carpeta = "/../../plugins";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+            if($config_rest == TRUE){
+                return TRUE;
+            }
+        }else{
+            return FALSE;
         }
     }
 
     if($option == 3){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "config";
-        $config_rest -> carpeta = "/../../config";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        if($config_rest == TRUE){
-            return TRUE;
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../config/") == TRUE){
+            $config_rest -> nombre_del_archivo = "config";
+            $config_rest -> carpeta = "/../../config";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+            if($config_rest == TRUE){
+                return TRUE;
+            }
+        }else{
+            return FALSE;
         }
     }
 
     if($option == 4){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "public";
-        $config_rest -> carpeta = "/../../public";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        if($config_rest == TRUE){
-            return TRUE;
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../public/") == TRUE){
+            $config_rest -> nombre_del_archivo = "public";
+            $config_rest -> carpeta = "/../../public";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+            if($config_rest == TRUE){
+                return TRUE;
+            }
         }
     }
 
     if($option == 5){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "resourses";
-        $config_rest -> carpeta = "/../../resourses";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        if($config_rest == TRUE){
-            return TRUE;
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../resourses/") == TRUE){
+            $config_rest -> nombre_del_archivo = "resourses";
+            $config_rest -> carpeta = "/../../resourses";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+            if($config_rest == TRUE){
+                return TRUE;
+            }
         }
     }
 
     if($option == 6){
         $config_rest = new zip_select;
-        $config_rest -> nombre_del_archivo = "routes";
-        $config_rest -> carpeta = "/../../routes";
-        $config_rest -> ubicacion = "/respaldos";
-        $config_rest -> zip();
-        if($config_rest == TRUE){
-            return TRUE;
+        if(is_dir(__DIR__ . DIRECTORY_SEPARATOR . "../../routes/") == TRUE){
+            $config_rest -> nombre_del_archivo = "routes";
+            $config_rest -> carpeta = "/../../routes";
+            $config_rest -> ubicacion = "/respaldos";
+            $config_rest -> zip();
+            if($config_rest == TRUE){
+                return TRUE;
+            }
         }
     }
 

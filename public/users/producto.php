@@ -229,7 +229,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
 
                 <div class="tarjeta_contenido">
                     <h4 class="text-center">Tu producto</h4>
-                    <p class="text-justify">A continuación te daremos información del producto contratado, si tiene algún error contáctanos al correo joss@int.josprox.com.</p>
+                    <p class="text-justify">A continuación te daremos información del producto contratado, si tiene algún error contáctanos al correo <?php echo $_ENV['SMTP_USERNAME']; ?>.</p>
                     <ul>
                         <li>Producto: <?php echo $consulta['nombre']; ?></li>
                         <li>ID del pedido: <?php echo $consulta['id_pedido']; ?></li>

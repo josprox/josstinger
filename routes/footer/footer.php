@@ -4,7 +4,7 @@
             
                         <div class="footer_section">
                             <img src="../resourses/img/logo_hestia/vector/default.svg" alt="">
-                            <h3><?php echo $_ENV['NAME_APP']; ?></h3>
+                            <h3><?php echo nombre_app; ?></h3>
                             <p>El hosting que tú necesitas.</p>
                             <div class="grid_3">
                                 <a href="https://twitter.com/josprox">
@@ -46,7 +46,6 @@
                         <div class="footer_section">
                             <h3>Contactos</h3>
                             <ul>
-                                <li><a href="tel:+525540373610"><i class="fa-solid fa-phone"></i> +52 5540373610</a></li>
                                 <li><a href="mailto:<?php echo $_ENV['SMTP_USERNAME']; ?>"><i class="fa-regular fa-envelope"></i> <?php echo $_ENV['SMTP_USERNAME']; ?></a></li>
                             </ul>
                         </div>

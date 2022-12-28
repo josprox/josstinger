@@ -35,7 +35,7 @@
             
                         <div class="footer_section">
                             <img src="../../resourses/img/logo_hestia/vector/default.svg" alt="">
-                            <h3><?php echo $_ENV['NAME_APP']; ?></h3>
+                            <h3><?php echo nombre_app; ?></h3>
                             <p>El hosting que tú necesitas.</p>
                             <div class="grid_3">
                                 <a href="https://twitter.com/josprox">

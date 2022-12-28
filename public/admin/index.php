@@ -37,9 +37,9 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   <div class="container">
   <?php
   if(isset($_POST['eliminar'])){
-    unlink(__DIR__ . '/../../installer.php');
+    unlink('./../../installer.php');
   }
-  if (file_exists(__DIR__ . "/../../installer.php")){?>
+  if (file_exists("./../../installer.php")){?>
   <div class="alert alert-warning" role="alert">
     <strong>Advertencia</strong> Se recomienda que elimines el fichero installer.
   </div>

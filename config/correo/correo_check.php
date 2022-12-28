@@ -3,9 +3,9 @@ use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
-require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/Exception.php';
-require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
-require __DIR__ . '/../../vendor/phpmailer/phpmailer/src/SMTP.php';
+require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/Exception.php';
+require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
+require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/SMTP.php';
 
 // Load .env
 require __DIR__ . '/../../vendor/autoload.php';

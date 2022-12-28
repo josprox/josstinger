@@ -3,16 +3,20 @@
 // JosSecurity, la mejor seguridad al alcance de tus manos.
 
 // NO ELIMINES las lineas 6 a 9 por seguridad, si tu borras estas linea dejará de funcionar JosSecurity.
-require_once (__DIR__ . '/vendor/autoload.php');
+require_once (__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php');
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 session_start();
-
-//Configuración por defecto de JosSecurity
 date_default_timezone_set($_ENV['ZONA_HORARIA']);
-$fecha = date("Y-m-d H:i:s");
-$nombre_app = (string)$_ENV['NAME_APP'];
-$version_app = (string)$_ENV['VERSION'];
+
+// Definiciones dentro de JosSecurity
+define("nombre_app",(string)$_ENV['NAME_APP']);
+define("version",(float)$_ENV['VERSION']);
+define("fecha",date("Y-m-d H:i:s"));
+//Configuración por defecto de JosSecurity
+$fecha = fecha;
+$nombre_app = nombre_app;
+$version_app = version;
 
 if ($_ENV['DEBUG'] == 1) {
     echo "<script>console.log('".$nombre_app." está funcionando.');</script>";
@@ -612,6 +616,15 @@ function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
     }
 }
 
+function mail_WP( $to, $subject, $message, $headers = '', $attachments  = [] ){
+    if($_ENV['SMTP_ACTIVE'] != 1 OR !isset($_ENV['SMTP_ACTIVE'])){
+        return false;
+    }elseif($_ENV['SMTP_ACTIVE'] == 1){
+        include (__DIR__ . DIRECTORY_SEPARATOR ."config/correo/correo_wp.php");
+        return mi_mail($to, $subject, $message, $headers, $attachments);
+    }
+}
+
 function mail_smtp_v1_3_recibir($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . "/config/correo/correo_recibir.php");
@@ -874,6 +887,16 @@ function crear_archivo($directorio,$contenido_C){
     fclose($create);
     return TRUE;
 }
+function copiar_archivo($archivo_original,$archivo_copiado){
+    if(!@copy(__DIR__ . DIRECTORY_SEPARATOR . $archivo_original,__DIR__ . DIRECTORY_SEPARATOR . $archivo_copiado))
+        {
+            $errors= error_get_last();
+            echo "COPY ERROR: ".$errors['type'];
+            echo "<br />\n".$errors['message'];
+        } else {
+            return TRUE;
+        }
+}
 function borrar_directorio($dirname) {
          //si es un directorio lo abro
          if (is_dir($dirname))
@@ -895,6 +918,13 @@ function borrar_directorio($dirname) {
 	//elimino el directorio que ya he vaciado
 	 rmdir($dirname);
 	 return true;
+}
+function check_http(){
+    if($_ENV['DOMINIO'] != "localhost"){
+        return "https://";
+    }elseif($_ENV['DOMINIO'] == "localhost" OR $_ENV['DOMINIO'] == "127.0.0.1"){
+        return "http://";
+    }
 }
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";

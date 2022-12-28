@@ -9,10 +9,11 @@
 */
 
 function mercado_pago($titulo_del_producto,$cantidad,$precio,$moneda,$ruta_pago_completado,$ruta_pago_fallido,$ruta_pago_pendiente){
+    $ssl = check_http();
     $access_token=$_ENV['MERCADO_PAGO_ACCESS_TOKEN'];
     MercadoPago\SDK::setAccessToken($access_token);
     $preferencia = new MercadoPago\Preference();
-    $preferencia->back_urls=["success" => $_ENV['DOMINIO'].$_ENV['HOMEDIR'].$ruta_pago_completado, "failure" => $_ENV['DOMINIO'].$_ENV['HOMEDIR']. $ruta_pago_fallido, "pending" => $_ENV['DOMINIO'] .$_ENV['HOMEDIR']. $ruta_pago_pendiente];
+    $preferencia->back_urls=["success" => $ssl.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$ruta_pago_completado, "failure" => $ssl.$_ENV['DOMINIO'].$_ENV['HOMEDIR']. $ruta_pago_fallido, "pending" => $ssl.$_ENV['DOMINIO'] .$_ENV['HOMEDIR']. $ruta_pago_pendiente];
     $preferencia -> auto_return = "approved";
     $productos = [];
     $item = new MercadoPago\Item();

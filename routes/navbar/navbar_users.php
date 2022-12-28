@@ -1,7 +1,12 @@
 <?php $pagina = nombre_de_pagina(); ?>
 <nav class="navbar navbar-expand-sm fixed-top navbar_dashboard">
           <div class="container">
-            <a class="navbar-brand" href="./"><?php echo $_ENV['NAME_APP']; ?></a>
+          <a class="navbar-brand" href="./"><?php if(file_exists(__DIR__ . "/../../resourses/img/logo_hestia/vector/default-monochrome.svg")){?>
+                <img src="../../resourses/img/logo_hestia/vector/default-monochrome.svg" width="auto" height="24">
+                <?php }else{
+                    echo $_ENV['NAME_APP'];
+                } ?>
+            </a>
             <button class="navbar-toggler-custom  d-lg-none" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavId" aria-controls="collapsibleNavId"
                     aria-expanded="false" aria-label="Toggle navigation">
                 <i class="fa-solid fa-bars"></i>

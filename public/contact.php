@@ -54,11 +54,23 @@ include (__DIR__ . "/../jossecurity.php");
       <div class="contacto_form">
         <div class="contacto_form_text">
           <h2>Formas de contacto</h2>
+          <?php
+          $contacto = new VisibilityLogic();
+          $contacto -> accion = "mostrar";
+          $contacto -> iduser_tabla = "users";
+          if($contacto -> rol_usuario() == 6 OR $contacto -> rol_usuario() == 1){
+            ?>
           <ul>
-            <li><a href="tel:+52 5540373610"><i class="fa-solid fa-phone"></i> +52 5540373610</a></li>
-            <li><a href="mailto:joss@int.josprox.com"><i class="fa-regular fa-envelope"></i> joss@int.josprox.com</a></li>
-            <li><a href="http://josprox.ovh/contact"> Sitio web: josprox.ovh/contact</a></li>
+            <li><a href="mailto:<?php echo (string)$_ENV['SMTP_USERNAME']; ?>"><i class="fa-regular fa-envelope"></i> <?php echo (string)$_ENV['SMTP_USERNAME']; ?></a></li>
+            <li><a href="<?php echo check_http() . $_ENV['DOMINIO']; ?>/contact"> Sitio web: <?php echo check_http() . $_ENV['DOMINIO']; ?>/contact</a></li>
           </ul>
+            <?php
+          }else{
+            ?>
+            <p>Para poder saber los métodos de contacto, favor de crear una cuenta y mantener el inicio de sesión dentro de <?php echo $_ENV['NAME_APP']; ?>.</p>
+            <?php
+          }
+          ?>
         </div>
         <div class="contacto_form_form">
           <?php

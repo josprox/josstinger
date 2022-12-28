@@ -107,7 +107,7 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
 
     </section>
 
-    <?php footer_users(); ?>
+    <?php include ("../../routes/hestia/preguntas.php"); footer_users(); ?>
     
 </body>
 </html>

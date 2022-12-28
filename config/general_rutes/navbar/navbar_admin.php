@@ -65,9 +65,16 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="dropdownId" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-code"></i> Avanzado</a>
           <div class="dropdown-menu" aria-labelledby="dropdownId">
-            <a class="dropdown-item" href="directorio_admin"><i class="fa-solid fa-folder-tree"></i> Directorios</a>
+          <a class="dropdown-item" href="directorio_admin"><i class="fa-solid fa-folder-tree"></i> Directorios</a>
             <a class="dropdown-item" href="crear_jossito"><i class="fa-solid fa-plus"></i> Crear un jossito</a>
             <a class="dropdown-item" href="edit_jossecurity"><i class="fa-solid fa-signs-post"></i> Editar funciones</a>
+            <?php
+            if(isset($_ENV['PWA']) && $_ENV['PWA'] == 1){
+              ?>
+            <a class="dropdown-item" href="PWA_para_modificar"><i class="fa-solid fa-mobile-screen"></i> Modificar archivo PWA</a>
+              <?php
+            }
+            ?>
           </div>
         </li>
         <?php

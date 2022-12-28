@@ -7,7 +7,7 @@ if($_ENV['CONECT_POSTGRESQL'] == 1){
         $pass_psg = (string)$_ENV['CONTRA_PSG'];
         $DB_psg = (string)$_ENV['BASE_DE_DATOS_PSG'];
         $puerto_psg = (string)$_ENV['PUERTO_PSG'];
-        $conexion = pg_connect("host=$host_psg dbname=$DB_psg user=$user_psg password=$pass_psg");
+        $conexion = pg_connect("host=$host_psg port=$puerto_psg dbname=$DB_psg user=$user_psg password=$pass_psg");
 
         if($conexion == TRUE){
             if ($_ENV['DEBUG'] == 1){

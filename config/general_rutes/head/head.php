@@ -31,7 +31,7 @@ if ($pagina  == "panel.php"){
   }
 }
 
-if($_ENV['PWA'] == 1){
+if(isset($_ENV['PWA']) && $_ENV['PWA'] == 1){
   ?>
   <!-- PWA -->
   <meta name="theme-color" content="#99eb91">
@@ -41,12 +41,22 @@ if($_ENV['PWA'] == 1){
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="apple-touch-icon" href="../resourses/img/logo transparente/default.png">
   <link rel="apple-touch-startup-image" href="../resourses/img/logo transparente/default.png">
+  <?php
+  if(!file_exists(__DIR__ . DIRECTORY_SEPARATOR . "../../../public/PWA/manifest_custom.php")){
+    ?>
   <link rel="manifest" href="./PWA/manifest.php">
+  <?php
+  }else{
+    ?>
+    <link rel="manifest" href="./PWA/manifest_custom.php">
+    <?php
+  }
+  ?>
 
   <?php
 }
 
-if($_ENV['RECAPTCHA'] == 1){?>
+if(isset($_ENV['RECAPTCHA']) && $_ENV['RECAPTCHA'] == 1){?>
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
 
