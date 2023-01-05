@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "1.8";
+$version_app_default = "2.0";
 
 if(isset($_POST['instalar'])){
 
@@ -45,6 +45,15 @@ if(isset($_POST['instalar'])){
   //Recaptcha
   $RCP = $_POST['RCP'];
   $RCS = $_POST['RCS'];
+  //twilio
+  if(isset($_POST['twilio'])){
+    $twilio = "1";
+  }else{
+    $twilio = "0";
+  }
+  $twilio_tel = $_POST['twilio_tel'];
+  $twilio_sid = $_POST['twilio_sid'];
+  $twilio_auth = $_POST['twilio_auth'];
   //Mercado Pago
   $MPPK = $_POST['MPPK'];
   $MPAT = $_POST['MPAT'];
@@ -155,7 +164,7 @@ if(isset($_POST['instalar'])){
     
   }elseif($name_app_default != $name_app){
 
-    fwrite($env_create, "NAME_APP=".$name_app_default."\n");
+    fwrite($env_create, "NAME_APP=".$name_app."\n");
 
   }
   if($version_app_default == $version_app){
@@ -200,6 +209,12 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "RECAPTCHA=1\n");
   fwrite($env_create, "RECAPTCHA_CODE_PUBLIC=".$RCP."\n");
   fwrite($env_create, "RECAPTCHA_CODE_SECRET=".$RCS."\n\n");
+
+  fwrite($env_create, "# Llaves de Twilio.\n");
+  fwrite($env_create, "TWILIO=".$twilio."\n");
+  fwrite($env_create, "TWILIO_PHONE=".$twilio_tel."\n");
+  fwrite($env_create, "TWILIO_SID=".$twilio_sid."\n");
+  fwrite($env_create, "TWILIO_AUTH=".$twilio_auth."\n\n");
 
   fwrite($env_create, "# Activador de Mercado Pago.\n");
   fwrite($env_create, "MERCADO_PAGO=1\n");
@@ -571,6 +586,46 @@ if(isset($_POST['instalar'])){
                     <input type="text"
                       class="form-control" name="MPAT" id="MPAT" aria-describedby="MPAT" placeholder="pon el access token" required>
                     <small id="MPAT" class="form-text text-muted">Para poder conectarnos necesitamos el Access Token.</small>
+                  </div>
+                </div>
+
+              </div>
+
+              <p align="justify">Ahora dentro del sistema podrás integrar Twilio para mandar SMS, de esta manera podrás mandar mensajes facilmente.</p>
+
+              <div class="row justify-content-center">
+
+                <div class="col-10">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="twilio" name="twilio">
+                    <label class="form-check-label" for="twilio">¿Deseas activar este plugin?</label>
+                  </div>
+                </div>
+
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="twilio_tel" class="form-label">Número creado</label>
+                    <input type="tel"
+                      class="form-control" name="twilio_tel" id="twilio_tel" aria-describedby="twilio_tel" placeholder="Pon el número que compraste">
+                    <small id="twilio_tel" class="form-text text-muted">Aquí deberás poner el número de prueba o comprado dentro de Twilio.</small>
+                  </div>
+                </div>
+
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="twilio_sid" class="form-label">SID</label>
+                    <input type="text"
+                      class="form-control" name="twilio_sid" id="twilio_sid" aria-describedby="twilio_sid" placeholder="Pon el SID">
+                    <small id="twilio_sid" class="form-text text-muted">Pon el SID que te dieron en Twilio.</small>
+                  </div>
+                </div>
+
+                <div class="col-10">
+                  <div class="mb-3">
+                    <label for="twilio_auth" class="form-label">Codigo Auth</label>
+                    <input type="text"
+                      class="form-control" name="twilio_auth" id="twilio_auth" aria-describedby="twilio_auth" placeholder="Pon tu Auth">
+                    <small id="twilio_auth" class="form-text text-muted">Pon tu llave Auth que te dió twilio.</small>
                   </div>
                 </div>
 

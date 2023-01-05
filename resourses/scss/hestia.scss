@@ -69,6 +69,10 @@ button{
 .fa-trowel-bricks{
     color: #F761A1;
 }
+.fa-message{
+    color: #0e6e08;
+    text-shadow: white 0.1em 0.1em 0.2em;
+}
 // Código clasic.
 .contenedor{
     display: block;
@@ -98,6 +102,17 @@ button{
             width: 90%;
         }
     }
+}
+.contenedor_blanco{
+    width: 100%;
+    min-height: 46px;
+    height: auto;
+    padding: 12px;
+    margin: 12px auto;
+    background-color: $blanco;
+    border-radius: 12px;
+    border: 1px solid $negro;
+    text-align: justify;
 }
 .text-justify{
     text-align: justify;

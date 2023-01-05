@@ -40,10 +40,11 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
       $name = mysqli_real_escape_string($conexion, (string) $_POST['name']);
       $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
       $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
+      $phone = mysqli_real_escape_string($conexion, (string) $_POST['phone']);
       mysqli_close($conexion);
       $consulta = consulta_mysqli_where("password","users","id",$iduser);
       if(password_verify($password,(string) $consulta['password']) == TRUE){
-        actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email'","id",$iduser);
+        actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email', `phone` = '$phone'","id",$iduser);
         echo "
         <script>
             Swal.fire(
@@ -121,70 +122,86 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
     <h2 align="center">Modifica tu información</h2>
     <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
-      <div class="mb-3">
-        <label for="id" class="form-label"><i class="fa fa-id-badge" aria-hidden="true"></i></label>
-        <input type="text"
-          class="form-control" name="id" id="id" aria-describedby="id" disabled placeholder="ID" value="<?php echo $row['id']; ?>">
-        <small id="id" class="form-text text-muted">Mi ID</small>
-      </div>
+      <div class="grid_2_auto">
 
-      <div class="mb-3">
-        <label for="name" class="form-label">Nombre</label>
-        <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>">
-        <small id="name" class="form-text text-muted">Nombre registrado</small>
-      </div>
-
-      <div class="mb-3">
-        <label for="correo" class="form-label">Correo</label>
-        <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>">
-        <small id="correo" class="form-text text-muted">Correo Registrado</small>
-      </div>
-
-      <div class="mb-3">
-        <div class="mb-3">
-          <label for="contra" class="form-label">Contraseña</label>
+        <div class="mb-3 contenedor">
+          <label for="id" class="form-label"><i class="fa fa-id-badge" aria-hidden="true"></i></label>
           <input type="text"
-            class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
-          <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
+            class="form-control" name="id" id="id" aria-describedby="id" disabled placeholder="ID" value="<?php echo $row['id']; ?>">
+          <small id="id" class="form-text text-muted">Mi ID</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="name" class="form-label">Nombre</label>
+          <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>">
+          <small id="name" class="form-text text-muted">Nombre registrado</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="correo" class="form-label">Correo</label>
+          <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>">
+          <small id="correo" class="form-text text-muted">Correo Registrado</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="phone" class="form-label">Número de telefono</label>
+          <input type="tel" class="form-control" name="phone" id="phone" aria-describedby="phone" placeholder="+5255XXXXXXXX" value="<?php echo $row['phone']; ?>">
+        </div>
+        
+      </div>
+      
+      <div class="flex_center">
+        <div class="mb-3 contenedor">
+          <div class="mb-3">
+            <label for="contra" class="form-label">Contraseña</label>
+            <input type="text"
+              class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
+            <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
+          </div>
         </div>
       </div>
 
-      <div class="mb-3 row">
-        <div class="offset-sm-4 col-sm-8">
-          <button type="submit" name="actualizar_info" class="btn btn-primary">Actualizar información personal</button>
-        </div>
+      <div class="flex_center">
+        <button type="submit" name="actualizar_info" class="btn btn-primary">Actualizar información personal</button>
       </div>
     </form>
+
+    <br>
 
     <h2 align="center">Modificar contraseña</h2>
 
     <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
 
-      <div class="mb-3 row">
-        <label for="password" class="form-label">Pon tu contraseña actual</label>
-        <input type="password" class="form-control" name="password" id="password" aria-describedby="password" placeholder="contraseña">
-        <small id="password" class="form-text text-muted">Pon tu contraseña</small>
-      </div>
+      <div class="grid_3_auto">
 
-      <div class="mb-3 row">
-        <label for="password_new" class="form-label">Pon la nueva contraseña</label>
-        <input type="password"
-          class="form-control" name="password_new" id="password_new" aria-describedby="password_new" placeholder="nueva contraseña">
-        <small id="password_new" class="form-text text-muted">Escribe la nueva contraseña</small>
-      </div>
-
-      <div class="mb-3 row">
-        <label for="password_repeat" class="form-label">Repite la nueva contraseña</label>
-        <input type="password"
-          class="form-control" name="password_repeat" id="password_repeat" aria-describedby="password_repeat" placeholder="repite la contraseña">
-        <small id="password_repeat" class="form-text text-muted">Escribe la nueva contraseña</small>
-      </div>
-
-      <div class="mb-3 row">
-        <div class="offset-sm-4 col-sm-8">
-          <button type="submit" name="update_password" class="btn btn-primary">Actualizar contraseña</button>
+        <div class="mb-3 contenedor">
+          <label for="password" class="form-label">Pon tu contraseña actual</label>
+          <input type="password" class="form-control" name="password" id="password" aria-describedby="password" placeholder="contraseña">
+          <small id="password" class="form-text text-muted">Pon tu contraseña</small>
         </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="password_new" class="form-label">Pon la nueva contraseña</label>
+          <input type="password"
+            class="form-control" name="password_new" id="password_new" aria-describedby="password_new" placeholder="nueva contraseña">
+          <small id="password_new" class="form-text text-muted">Escribe la nueva contraseña</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="password_repeat" class="form-label">Repite la nueva contraseña</label>
+          <input type="password"
+            class="form-control" name="password_repeat" id="password_repeat" aria-describedby="password_repeat" placeholder="repite la contraseña">
+          <small id="password_repeat" class="form-text text-muted">Escribe la nueva contraseña</small>
+        </div>
+
       </div>
+
+
+      <div class="flex_center">
+        <button type="submit" name="update_password" class="btn btn-primary">Actualizar contraseña</button>
+      </div>
+
+      <br>
 
     </form>
 

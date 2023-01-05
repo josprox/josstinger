@@ -215,9 +215,15 @@ function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users,$
         $consulta = consulta_mysqli_where("id_rol","$tabla","email","'$correo'");
         $resultado = $consulta['id_rol'];
         if($resultado == 1 OR $resultado == 2 OR $resultado == 4){
-            login_admin($correo,$contra,"$tabla","$localizacion_admin",$check_user);
+            $check = login_admin($correo,$contra,"$tabla","$localizacion_admin",$check_user);
+            if($check == false){
+                return false;
+            }
         }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
-            login($correo,$contra,$tabla,$localizacion_users,$check_user);
+            $check = login($correo,$contra,$tabla,$localizacion_users,$check_user);
+            if($check == false){
+                return false;
+            }
         }
     }
 }
@@ -278,17 +284,14 @@ function login($login_email,$login_password,$table_DB,$location,$check_user = "p
     
                     }else{
                         mysqli_close($conexion);
+                        return FALSE;
                     }
             }else{
-                if($_ENV['DOMINIO'] != "localhost"){
-                    $ssl_tls = "https://";
-                }else{
-                    $ssl_tls = "http://";
-                }
+                $ssl_tls = check_http();
                 $key = generar_llave_alteratorio(16);
                 $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
                 $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
-                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id,'$key', '$fecha_1_day'");
+                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
                 $conexion -> close();
                 if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
                 ?>
@@ -300,6 +303,7 @@ function login($login_email,$login_password,$table_DB,$location,$check_user = "p
                     )
                 </script>
                 <?php
+                header("refresh:1;");
                 }
             }
             }
@@ -366,18 +370,15 @@ function login_admin($login_email,$login_password,$table_DB,$location,$check_use
         
                         }else{
                             mysqli_close($conexion);
+                            return FALSE;
                         }
                 }
             }else{
-                if($_ENV['DOMINIO'] != "localhost"){
-                    $ssl_tls = "https://";
-                }else{
-                    $ssl_tls = "http://";
-                }
+                $ssl_tls = check_http();
                 $key = generar_llave_alteratorio(16);
                 $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
                 $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
-                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id,'$key', '$fecha_1_day'");
+                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
                 $conexion -> close();
                 if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
                 ?>
@@ -389,6 +390,7 @@ function login_admin($login_email,$login_password,$table_DB,$location,$check_use
                     )
                 </script>
                 <?php
+                header("refresh:1;");
                 }
             }
         }else{
@@ -463,7 +465,7 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
             if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
                 $consulta_id_new = consulta_mysqli_where("id",$table_db,"email","'$email'");
                 $id_new = $consulta_id_new['id'];
-                insertar_datos_clasic_mysqli("check_users","id_user, url, expiracion","$id_new, '$key', '$fecha_1_day'");
+                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id_new, '$key', 'check_user', '$fecha_1_day'");
             }
         }
         $success = "
@@ -508,27 +510,39 @@ function generar_llave($caracteres, $patron){
 }
 
 function resetear_contra($correo){
-    global $fecha;
-    $conexion = conect_mysqli();
     $key = generar_llave_alteratorio(16);
-    $password_encriptada = password_hash((string) $key,PASSWORD_BCRYPT,["cost"=>10]);
-    $insert = "UPDATE `users` SET `password` = '$password_encriptada', `updated_at` = '$fecha' WHERE `users`.`email` = '$correo'";
-    $conexion -> query($insert);
+    $consulta = consulta_mysqli_where("id","users","email","'$correo'");
+    $id_correo = $consulta['id'];
+    $fecha_1_day = date("Y-m-d H:i:s", strtotime(fecha . "+ 1 days"));
 
-    $row = consulta_mysqli_where("name","users","email","'$correo'");
-
-    $name = $row['name'];
-
-    if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo/correo_reset_password.php");
-        mysqli_close($conexion);
-        return TRUE;
+    if(insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
+        $row = consulta_mysqli_where("name","users","email","'$correo'");
+    
+        $name = $row['name'];
+    
+        if($_ENV['SMTP_ACTIVE'] == 1){
+            include (__DIR__ . "/config/correo/correo_reset_password.php");
+            return TRUE;
+        }
+        if($_ENV['SMTP_ACTIVE'] != 1){
+            ?>
+            <p>No puedes enviar correos porque no está activado en el sistema.</p>
+            <?php
+            return FALSE;
+        }
     }
-    if($_ENV['SMTP_ACTIVE'] != 1){
-        ?>
-        <p>No puedes enviar correos porque no está activado en el sistema.</p>
-        <?php
-        mysqli_close($conexion);
+}
+
+
+function actualizar_contra($id, $nueva_contra){
+    $conexion = conect_mysqli();
+    $id_check = mysqli_real_escape_string($conexion, (string) $id);
+    $contra = mysqli_real_escape_string($conexion, (string) $nueva_contra);
+    $password_encriptada = password_hash((string) $contra,PASSWORD_BCRYPT,["cost"=>10]);
+    $conexion -> close();
+    if(actualizar_datos_mysqli("users","`password` = '$password_encriptada'","id",$id_check) == TRUE){
+        return TRUE;
+    }else{
         return FALSE;
     }
 }
@@ -880,6 +894,7 @@ function nombre_de_pagina(){
     $url = $url[0];
     return $url;
 }
+
 function crear_archivo($directorio,$contenido_C){
     $dirname = __DIR__ . DIRECTORY_SEPARATOR . $directorio;
     $create = fopen($dirname, 'w');
@@ -887,6 +902,7 @@ function crear_archivo($directorio,$contenido_C){
     fclose($create);
     return TRUE;
 }
+
 function copiar_archivo($archivo_original,$archivo_copiado){
     if(!@copy(__DIR__ . DIRECTORY_SEPARATOR . $archivo_original,__DIR__ . DIRECTORY_SEPARATOR . $archivo_copiado))
         {
@@ -897,6 +913,7 @@ function copiar_archivo($archivo_original,$archivo_copiado){
             return TRUE;
         }
 }
+
 function borrar_directorio($dirname) {
          //si es un directorio lo abro
          if (is_dir($dirname))
@@ -919,6 +936,7 @@ function borrar_directorio($dirname) {
 	 rmdir($dirname);
 	 return true;
 }
+
 function check_http(){
     if($_ENV['DOMINIO'] != "localhost"){
         return "https://";
@@ -926,6 +944,7 @@ function check_http(){
         return "http://";
     }
 }
+
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
 }elseif($_ENV['RECAPTCHA'] == 1){
@@ -978,6 +997,11 @@ if ($_ENV['PLUGINS'] != 1 OR !isset($_ENV['PLUGINS'])){
     }
     if(file_exists(__DIR__ . "/plugins/granmysql/gran_mysql.php")){
         include (__DIR__ . "/plugins/granmysql/gran_mysql.php");
+    }
+    if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
+        if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php")){
+            include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php");
+        }
     }
 }
 

@@ -57,6 +57,13 @@
             <a class="dropdown-item" href="navbar_admin"><i class="fa-solid fa-file-arrow-up"></i> Navbar del administrador</a>
             <a class="dropdown-item" href="correo_recibir"><i class="fa-solid fa-envelope"></i> Probar recibir correos</a>
             <a class="dropdown-item" href="sitemap"><i class="fa-solid fa-signs-post"></i> Generar un sitemap</a>
+            <?php
+            if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
+              ?>
+            <a class="dropdown-item" href="prueba_celular"><i class="fa-solid fa-message"></i> Enviar un mensaje</a>
+              <?php
+            }
+            ?>
           </div>
         </li>
         <?php

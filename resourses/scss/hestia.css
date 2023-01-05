@@ -454,6 +454,11 @@ button {
   color: #F761A1;
 }
 
+.fa-message {
+  color: #0e6e08;
+  text-shadow: white 0.1em 0.1em 0.2em;
+}
+
 .contenedor {
   display: block;
   margin: 8px auto;
@@ -481,6 +486,18 @@ button {
   .contenedor {
     width: 90%;
   }
+}
+
+.contenedor_blanco {
+  width: 100%;
+  min-height: 46px;
+  height: auto;
+  padding: 12px;
+  margin: 12px auto;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 1px solid #212529;
+  text-align: justify;
 }
 
 .text-justify {

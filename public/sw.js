@@ -1,56 +1,40 @@
-;
-//asignar un nombre y versión al cache
-const CACHE_NAME = 'v1_JosSecurity',
-  urlsToCache = [
-    './../node_modules/bootstrap/dist/css/bootstrap.min.css',
-    './../node_modules/bootstrap/dist/js/bootstrap.min.js'
-  ]
+<?php
+include (__DIR__ . "/../../jossecurity.php");
 
-//durante la fase de instalación, generalmente se almacena en caché los activos estáticos
-self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        return cache.addAll(urlsToCache)
-          .then(() => self.skipWaiting())
-      })
-      .catch(err => console.log('Falló registro de cache', err))
-  )
-})
-
-//una vez que se instala el SW, se activa y busca los recursos para hacer que funcione sin conexión
-self.addEventListener('activate', e => {
-  const cacheWhitelist = [CACHE_NAME]
-
-  e.waitUntil(
-    caches.keys()
-      .then(cacheNames => {
-        return Promise.all(
-          cacheNames.map(cacheName => {
-            //Eliminamos lo que ya no se necesita en cache
-            if (cacheWhitelist.indexOf(cacheName) === -1) {
-              return caches.delete(cacheName)
-            }
-          })
-        )
-      })
-      // Le indica al SW activar el cache actual
-      .then(() => self.clients.claim())
-  )
-})
-
-//cuando el navegador recupera una url
-self.addEventListener('fetch', e => {
-  //Responder ya sea con el objeto en caché o continuar y buscar la url real
-  e.respondWith(
-    caches.match(e.request)
-      .then(res => {
-        if (res) {
-          //recuperar del cache
-          return res
-        }
-        //recuperar de la petición a la url
-        return fetch(e.request)
-      })
-  )
-})
+$arr = ["name" => $_ENV['NAME_APP'] . " APP V" . $_ENV['VERSION'], "short_name" => $_ENV['NAME_APP'], "description"=> "Aloja tu sitio web o aplicación web de manera segura, Mi Hosting Tech es el mejor proveedor de hosting de México, consulta nuestros precios.", "background_color"=> "#fff", "theme_color"=> "#99eb91", "orientation"=> "portrait", "display" => "standalone", "start_url" => "./../panel?utm_source=web_app_manifest", "scope" => "./../panel", "lang" => "es-MX", "icons" => [
+    [
+        "src" => "../../resourses/img/app/default_1000.png",
+        "sizes" => "1000x1000",
+        "type" => "image/png"],
+    [
+        "src" => "../../resourses/img/app/default_512.png",
+        "sizes" => "512x512",
+        "type" => "image/png"],
+    [
+        "src" => "../../resourses/img/app/default_384.png",
+        "sizes" => "384x384",
+        "type" => "image/png"
+    ],
+    [
+        "src" => "../../resourses/img/app/default_256.png",
+        "sizes" => "256x256",
+        "type" => "image/png"
+    ],
+    [
+        "src" => "../../resourses/img/app/default_128.png",
+        "sizes" => "128x128",
+        "type" => "image/png"
+    ],
+    [
+        "src" => "../../resourses/img/app/default_64.png",
+    "sizes" => "64x64",
+    "type" => "image/png"
+    ],
+    [
+        "src" => "../../resourses/img/app/default_32.png",
+    "sizes" => "32x32",
+    "type" => "image/png"
+    ]
+]];
+print_r(json_encode($arr, JSON_THROW_ON_ERROR));
+?>

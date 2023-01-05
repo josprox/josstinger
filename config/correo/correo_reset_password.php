@@ -14,7 +14,7 @@ $dotenv->load();
 
 //Create an instance; passing `true` enables exceptions
 $mail = new PHPMailer(true);
-
+$ssl = check_http();
 $cuerpo = '
 <!DOCTYPE html>
 <html lang="en" >
@@ -98,7 +98,7 @@ a, a:hover {
 			<!-- LOGO -->
 			<!-- Image text color should be opposite to background color. Set your url, image src, alt and title. Alt text should fit the image size. Real image size should be x2. URL format: http://domain.com/?utm_source={{Campaign-Source}}&utm_medium=email&utm_content=logo&utm_campaign={{Campaign-Name}} -->
 		<!--	<a target="_blank" style="text-decoration: none;"
-				href="https://'.$_ENV['DOMINIO'].'"><img border="0" vspace="0" hspace="0"
+				href="'.$ssl.$_ENV['DOMINIO'].'"><img border="0" vspace="0" hspace="0"
 				src="https://github.com/josprox/JosSecurity/raw/main/resourses/img/logo%20transparente/cover.png"
 				width="300" 
 				alt="Logo" title="Logo" style="
@@ -173,8 +173,7 @@ a, a:hover {
 			padding-top: 25px; 
 			color: #000000;
 			font-family: sans-serif;" class="paragraph">
-      Recientemente has solicitado restablecer tu contraseña es por eso que, le hemos mandado su nueva contraseña, podrá modificarla dentro del sistema.<br><br>Su nueva contraseña es: '.$key.'
-		</td>
+      Recientemente has solicitado restablecer tu contraseña es por eso que, le hemos mandado un link para poder restaurar su contraseña, podrá modificarla dentro del sistema.<br><br>Su link es: <a href="'.$ssl.$_ENV['DOMINIO'].$_ENV['HOMEDIR']."panel?cambiar_contra=".$key.'">'.$ssl.$_ENV['DOMINIO'].$_ENV['HOMEDIR']."panel?cambiar_contra=".$key.'</a></td>
 	</tr>
 
 	<!-- BUTTON -->
@@ -203,7 +202,7 @@ a, a:hover {
 					color: #000000;
 					font-family: sans-serif;" class="paragraph">
 						El mensaje se ha mandado desde el siguiente dominio: <span style="font-size:11px;">
-                                                                 '.'https://'.$_ENV['DOMINIO'].' </span>
+                                                                 '.$ssl.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].' </span>
 						
 				</td>
 

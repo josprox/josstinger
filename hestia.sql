@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 11-12-2022 a las 03:39:44
+-- Tiempo de generación: 04-01-2023 a las 00:49:43
 -- Versión del servidor: 10.4.25-MariaDB
 -- Versión de PHP: 8.2.0
 
@@ -28,6 +28,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `check_users` (
   `id` bigint(21) NOT NULL,
   `id_user` bigint(21) NOT NULL,
+  `accion` varchar(60) DEFAULT NULL,
   `url` varchar(16) DEFAULT NULL,
   `expiracion` TIMESTAMP NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -182,7 +183,7 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `id_rol` bigint(21) NOT NULL,
-  `phone` int(21) DEFAULT NULL,
+  `phone` varchar(21) DEFAULT NULL,
   `checked_status` varchar(5) DEFAULT NULL,
   `last_ip` varchar(255) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
