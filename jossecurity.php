@@ -945,6 +945,16 @@ function check_http(){
     }
 }
 
+function generar_codigo_unico($nombre = ""){
+    if($nombre == ""){
+        $nombre = generar_llave_alteratorio(16);
+    }
+    $id = uniqid();
+    $fecha = date("Y-m-d");
+    $nombre_archivo = sprintf("%s_%s_%s","$nombre",$id,"$fecha");
+    return $nombre_archivo;
+}
+
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
 }elseif($_ENV['RECAPTCHA'] == 1){

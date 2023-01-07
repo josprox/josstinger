@@ -92,7 +92,7 @@ secure_auth_admin($iduser,"../");
     $first_name = mysqli_real_escape_string($conexion, (string) $_POST['nombre']);
     $last_name = mysqli_real_escape_string($conexion, (string) $_POST['apellidos']);
     $estado = mysqli_real_escape_string($conexion, (string) $_POST['estado']);
-    $usuario = mysqli_real_escape_string($conexion, (string) $_POST['usuario']);
+    $usuario = mysqli_real_escape_string($conexion, (string) generar_llave_alteratorio(8));
     $correo = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
     $contra = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
     $expiracion = mysqli_real_escape_string($conexion, (string) $_POST['expiracion']);
@@ -211,8 +211,8 @@ secure_auth_admin($iduser,"../");
             <div class="mb-3 contenedor">
               <label for="usuario" class="form-label">Usuario</label>
               <input type="text"
-                class="form-control" name="usuario" id="usuario" aria-describedby="usuario" placeholder="Pon el usuario a registrar" required>
-              <small id="usuario" class="form-text text-muted">Pon el usuario de hestia.</small>
+                class="form-control" name="usuario" id="usuario" aria-describedby="usuario" placeholder="Pon el usuario a registrar" value="Desactivado" disabled required>
+              <small id="usuario" class="form-text text-muted">Desde la última versión, el sistema genera el nombre de usuario.</small>
             </div>
             <div class="mb-3 contenedor">
               <label for="correo" class="form-label">Correo</label>

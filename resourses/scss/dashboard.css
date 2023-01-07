@@ -134,6 +134,7 @@ button {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 
 .grid_1 {
@@ -141,6 +142,7 @@ button {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 
 .grid_2_auto {
@@ -148,6 +150,7 @@ button {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 @media screen and (min-width: 600px) {
   .grid_2_auto {
@@ -160,6 +163,7 @@ button {
   grid-template-columns: repeat(2, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 
 .grid_3_auto {
@@ -167,6 +171,7 @@ button {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 @media screen and (min-width: 600px) {
   .grid_3_auto {
@@ -184,6 +189,7 @@ button {
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 
 .grid_4_auto {
@@ -191,6 +197,7 @@ button {
   grid-template-columns: repeat(1, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 @media screen and (min-width: 600px) {
   .grid_4_auto {
@@ -213,6 +220,7 @@ button {
   grid-template-columns: repeat(4, 1fr);
   grid-template-rows: minmax(50px, auto);
   padding: 8px;
+  align-items: start;
 }
 
 .navbar_dashboard {
@@ -473,6 +481,66 @@ button {
 
 #renovar, #agregar, #esconder {
   display: none;
+}
+
+.grid_opciones {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+  grid-template-areas: "principal" "secundario" "terciario";
+}
+.grid_opciones .principal {
+  min-height: 160px;
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  background-color: #e35473;
+  border-radius: 12px;
+  margin-right: 12px;
+  grid-area: principal;
+  font-size: 1.2em;
+  color: #fff;
+  text-decoration: none;
+}
+.grid_opciones .secundario {
+  min-height: 80px;
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  background-color: #0d6efd;
+  border-radius: 12px;
+  margin-left: 12px;
+  margin-bottom: 6px;
+  grid-area: secundario;
+  font-size: 1.2em;
+  color: #fff;
+  text-decoration: none;
+}
+.grid_opciones .terciario {
+  min-height: 80px;
+  width: 100%;
+  height: auto;
+  padding: 10px;
+  background-color: #6f42c1;
+  border-radius: 12px;
+  margin-left: 12px;
+  margin-top: 6px;
+  grid-area: terciario;
+  font-size: 1.2em;
+  color: #fff;
+  text-decoration: none;
+}
+.grid_opciones .principal:hover, .grid_opciones .secundario:hover, .grid_opciones .terciario:hover {
+  border-radius: 21px;
+  border: 12px rgba(0, 0, 0, 0.5) solid;
+  text-shadow: black 0.1em 0.1em 0.2em;
+}
+@media screen and (min-width: 170px) {
+  .grid_opciones {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-areas: "principal secundario" "principal terciario";
+  }
 }
 
 .app_josstinger {

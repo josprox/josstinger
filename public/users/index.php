@@ -130,10 +130,31 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                     </div>
                 </div>
 
+
             </div>
 
         </div>
 
+    </section>
+
+    <section class="contenedor">
+        <div class="grid_opciones">
+            <a href="https://www.freenom.com/es/index.html?lang=es" class="principal flex_center" target="_blank" rel="noopener noreferrer">
+                <div class="">
+                    <p><i class="fa-solid fa-globe"></i> Conseguir un dominio gratis</p>
+                </div>
+            </a>
+            <a href="https://josprox.com/que-es-wordpress-cual-es-la-diferencia-entre-wordpress-com-y-wordpress-org/" class="secundario flex_center" target="_blank" rel="noopener noreferrer">
+                <div class="">
+                    <p><i class="fa-brands fa-wordpress"></i> ¿Qué es WordPress?</p>
+                </div>
+            </a>
+            <a href="https://josprox.com/importancia-de-ui-ux/" class="terciario flex_center" target="_blank" rel="noopener noreferrer">
+                <div class="">
+                    <p><i class="fa-solid fa-palette"></i> Importancia del diseño UI | UX</p>
+                </div>
+            </a>
+        </div>
     </section>
 
     <?php include ("../../routes/hestia/preguntas.php"); footer_users(); ?>

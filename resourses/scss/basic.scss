@@ -97,6 +97,7 @@ $i:1;
     grid-template-columns: repeat(1, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
 }
 
 .grid_1{
@@ -104,6 +105,7 @@ $i:1;
     grid-template-columns: repeat(1, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
 }
 
 .grid_2_auto{
@@ -111,6 +113,7 @@ $i:1;
     grid-template-columns: repeat(1, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
     @media screen and (min-width: 600px) {
         &{
             grid-template-columns: repeat(2, 1fr);
@@ -122,6 +125,7 @@ $i:1;
     grid-template-columns: repeat(2, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
 }
 
 .grid_3_auto{
@@ -129,6 +133,7 @@ $i:1;
     grid-template-columns: repeat(1, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
     @media screen and (min-width: 600px) {
         &{
             grid-template-columns: repeat(2, 1fr);
@@ -146,6 +151,7 @@ $i:1;
     grid-template-columns: repeat(3, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
 }
 
 .grid_4_auto{
@@ -153,6 +159,7 @@ $i:1;
     grid-template-columns: repeat(1, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
     @media screen and (min-width: 600px) {
         &{
             grid-template-columns: repeat(2, 1fr);
@@ -175,6 +182,7 @@ $i:1;
     grid-template-columns: repeat(4, 1fr);
     grid-template-rows: minmax(50px, auto);
     padding: 8px;
+    align-items: start;
 }
 
 .navbar_dashboard{

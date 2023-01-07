@@ -250,6 +250,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                     <?php
                     $pedido = $consulta['id_pedido'];
                     $consulta_dns = consulta_mysqli_custom_all("SELECT nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE request_dns.id_pedido = $pedido;");
+                    $consulta_panel = consulta_mysqli_custom_all("SELECT hestia_accounts.host, hestia_accounts.port FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido;");
                     ?>
                     <ul>
                         <li>Namerserver 1: <?php echo $consulta_dns['dns1']; ?></li>
@@ -260,7 +261,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                         <div class="grid_4_auto">
 
                             <div class="capsula">
-                                <a class="btn btn-success" href="https://gran.josprox.ovh:2053/" role="button">Ingresar al panel</a>
+                                <a class="btn btn-success" target="_blank" rel="noopener noreferrer" href="https://<?php echo $consulta_panel['host'] . ":" . $consulta_panel['port']; ?>/" role="button">Ingresar al panel</a>
                             </div>
     
                             <div class="capsula">

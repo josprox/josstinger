@@ -93,6 +93,67 @@
 #renovar, #agregar, #esconder{
     display: none;
 }
+
+.grid_opciones{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+    grid-template-areas: "principal""secundario""terciario";
+    .principal{
+        min-height: 160px;
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        background-color: #e35473;
+        border-radius: 12px;
+        margin-right: 12px;
+        grid-area: principal;
+        font-size: 1.2em;
+        color: $blanco;
+        text-decoration: none;
+    }
+    .secundario{
+        min-height: 80px;
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        background-color: $primario;
+        border-radius: 12px;
+        margin-left: 12px;
+        margin-bottom: 6px;
+        grid-area: secundario;
+        font-size: 1.2em;
+        color: $blanco;
+        text-decoration: none;
+    }
+    .terciario{
+        min-height: 80px;
+        width: 100%;
+        height: auto;
+        padding: 10px;
+        background-color: $morado;
+        border-radius: 12px;
+        margin-left: 12px;
+        margin-top: 6px;
+        grid-area: terciario;
+        font-size: 1.2em;
+        color: $blanco;
+        text-decoration: none;
+    }
+    .principal:hover,.secundario:hover, .terciario:hover{
+        border-radius: 21px;
+        border: 12px rgba(0, 0, 0, 0.5) solid;
+        text-shadow: black 0.1em 0.1em 0.2em;
+    }
+    @media screen and (min-width:170px) {
+        &{
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-areas: "principal secundario""principal terciario";
+        }
+    }
+}
+
 .app_josstinger{
     min-width: 100%;
     min-height: 12px;

@@ -10,7 +10,7 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name, email","users","id",$iduser);
 
 if(!isset($_GET['payment_id']) && !isset($_GET['status']) && !isset($_GET['payment_type']) && !isset($_GET['merchant_order_id'])){
     header("Location: ./");
@@ -122,7 +122,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                     <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="POST">
                         <div class="form-group">
                             <label for="username">Usuario:</label>
-                            <input type="text" class="form-control" id="username" placeholder="Usuario" name="usuario" required>
+                            <input type="text" class="form-control" id="username" placeholder="Usuario" name="usuario" disabled value="Desde ahora, los usuarios se generan de manera automática." required>
                         </div>
                         <div class="form-group">
                             <label for="password">Contraseña:</label>
@@ -130,7 +130,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         </div>
                         <div class="form-group">
                             <label for="email">Correo Electrónico:</label>
-                            <input type="email" class="form-control" id="email" placeholder="Correo Electrónico" name="correo" required>
+                            <input type="email" class="form-control" id="email" placeholder="Correo Electrónico" name="correo" value="<?php echo $row['email']; ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="nombre">Nombre del Usuario:</label>
@@ -180,7 +180,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $hst_id = $consulta_hestia['id'];
                         // New Account
                         $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_product;");
-                        $username = mysqli_real_escape_string($conexion, (string) $_POST['usuario']);
+                        $username = mysqli_real_escape_string($conexion, (string) generar_llave_alteratorio(8));
                         $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
                         $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
                         $package = (string)$consulta_paquetes['nombre'];
