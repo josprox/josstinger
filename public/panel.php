@@ -97,6 +97,17 @@ login_cookie("users");
                 <?php
                 header("refresh:1;");
             }
+        }else{
+            ?>
+            <script>
+                Swal.fire(
+                'Falló',
+                'No ingresaste el recaptcha.',
+                'error'
+                )
+            </script>
+            <?php
+            header("refresh:1;");
         }
     }elseif(isset($_POST['reset'])){
         $correo = $_POST['txtCorreo'];
@@ -170,6 +181,17 @@ login_cookie("users");
                 <?php
                 header("refresh:1;");
             }
+        }else{
+            ?>
+            <script>
+                Swal.fire(
+                'Falló',
+                'No ingresaste el recaptcha.',
+                'error'
+                )
+            </script>
+            <?php
+            header("refresh:1;");
         }
     }elseif(isset($_POST['contra_update'])){
         $conexion = conect_mysqli();
@@ -258,7 +280,35 @@ login_cookie("users");
         }
     }elseif(isset($_POST['registrar'])){
         if(recaptcha() == TRUE){
-            echo registro("users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6);
+            $conexion = conect_mysqli();
+            $contra = mysqli_real_escape_string($conexion, (string) $_POST['txtPassword']);
+            $contra_repeat = mysqli_real_escape_string($conexion, (string) $_POST['txtPassword_repeat']);
+            $conexion -> close();
+            if($contra == $contra_repeat){
+                echo registro("users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6);
+                header("refresh:1;");
+            }else{
+                ?>
+                <script>
+                    Swal.fire(
+                    'Falló',
+                    'Las contraseñas no se parecen, favor de volverlo a intentar.',
+                    'error'
+                    )
+                </script>
+                <?php
+                header("refresh:1;");
+            }
+        }else{
+            ?>
+            <script>
+                Swal.fire(
+                'Falló',
+                'No ingresaste el recaptcha.',
+                'error'
+                )
+            </script>
+            <?php
             header("refresh:1;");
         }
     }elseif(isset($_GET['cambiar_contra'])){
@@ -410,6 +460,10 @@ login_cookie("users");
                                 <div class="grid_1_auto">
                                     <label for="">Crea una contraseña</label>
                                     <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
+                                </div>
+                                <div class="grid_1_auto">
+                                    <label for="">Repite la contraseña</label>
+                                    <input type="password" name="txtPassword_repeat" placeholder="Por favor pon tu contraseña" required>
                                 </div>
                                 <div class="flex_center">
                                     <div class="mb-3">

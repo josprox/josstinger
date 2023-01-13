@@ -138,6 +138,21 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
     </section>
 
     <section class="contenedor">
+        <h3 align="center" class="text-shadow-white">Recomendaciones</h3>
+        <div class="media-scroller">
+            <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
+            <?php
+            $ssl = check_http();
+            $json_string = file_get_contents("https://josprox.com/entradas.json");
+            // Convierte la cadena de texto en un array
+            $array = json_decode($json_string, true);
+            foreach($array as $row){
+                ?>
+                <a class="anuncio_scroller" href="<?php echo $row['guid']; ?>"><?php echo $row['post_title']; ?></a>
+                <?php
+            }
+            ?>
+        </div>
         <div class="grid_opciones">
             <a href="https://www.freenom.com/es/index.html?lang=es" class="principal flex_center" target="_blank" rel="noopener noreferrer">
                 <div class="">

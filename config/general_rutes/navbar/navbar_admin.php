@@ -63,6 +63,11 @@
             <a class="dropdown-item" href="prueba_celular"><i class="fa-solid fa-message"></i> Enviar un mensaje</a>
               <?php
             }
+            if(isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1){
+              ?>
+            <a class="dropdown-item" href="enviar_onesignal"><i class="fa-solid fa-earth-americas"></i> Enviar notificación push</a>
+              <?php
+            }
             ?>
           </div>
         </li>

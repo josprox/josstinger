@@ -15,7 +15,8 @@
         "phpmailer/phpmailer": "^6.6",
         "mercadopago/dx-php": "^2.5",
         "evert/sitemap-php": "^1.2",
-        "twilio/sdk": "^6.44"
+        "twilio/sdk": "^6.44",
+        "guzzlehttp/guzzle": "^7.5"
     },
     "require-dev": {
         "rector/rector": "^0.14.8"

@@ -945,16 +945,6 @@ function check_http(){
     }
 }
 
-function generar_codigo_unico($nombre = ""){
-    if($nombre == ""){
-        $nombre = generar_llave_alteratorio(16);
-    }
-    $id = uniqid();
-    $fecha = date("Y-m-d");
-    $nombre_archivo = sprintf("%s_%s_%s","$nombre",$id,"$fecha");
-    return $nombre_archivo;
-}
-
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
 }elseif($_ENV['RECAPTCHA'] == 1){
@@ -1011,6 +1001,10 @@ if ($_ENV['PLUGINS'] != 1 OR !isset($_ENV['PLUGINS'])){
     if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
         if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php")){
             include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php");
+        }
+    }if(isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1){
+        if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/onesignal/SDK.php")){
+            include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/onesignal/SDK.php");
         }
     }
 }

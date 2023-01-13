@@ -7,7 +7,7 @@
     <!-- Bootstrap -->
     <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
     <!-- Dashboard -->
-    <link rel="stylesheet" href="../../resourses/scss/dashboard.min.css">
+    <link rel="stylesheet" href="../../resourses/scss/dashboard.css">
     <!-- Fontawesome -->
     <link rel="stylesheet" href="../../node_modules/@fortawesome/fontawesome-free/css/all.min.css" defer>
     <!-- SweetAlert2 -->

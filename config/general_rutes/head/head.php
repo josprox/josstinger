@@ -56,6 +56,12 @@ if(isset($_ENV['PWA']) && $_ENV['PWA'] == 1){
   <?php
 }
 
+if(isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1){
+  if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "../../../plugins/onesignal/head.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "../../../plugins/onesignal/head.php");
+  }
+}
+
 if(isset($_ENV['RECAPTCHA']) && $_ENV['RECAPTCHA'] == 1){?>
 
 <script src="https://www.google.com/recaptcha/api.js"></script>

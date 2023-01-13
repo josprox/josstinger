@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "2.0";
+$version_app_default = "2.1";
 
 if(isset($_POST['instalar'])){
 
@@ -45,6 +45,14 @@ if(isset($_POST['instalar'])){
   //Recaptcha
   $RCP = $_POST['RCP'];
   $RCS = $_POST['RCS'];
+  //OneSignal
+  if(isset($_POST['ONESIGNAL'])){
+    $ONESIGNAL = "1";
+  }else{
+    $ONESIGNAL = "0";
+  }
+  $ONESIGNAL_APP_ID = $_POST['ONESIGNAL_APP_ID'];
+  $ONESIGNAL_API_KEY = $_POST['ONESIGNAL_API_KEY'];
   //twilio
   if(isset($_POST['twilio'])){
     $twilio = "1";
@@ -209,6 +217,11 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "RECAPTCHA=1\n");
   fwrite($env_create, "RECAPTCHA_CODE_PUBLIC=".$RCP."\n");
   fwrite($env_create, "RECAPTCHA_CODE_SECRET=".$RCS."\n\n");
+
+  fwrite($env_create, "# Onesignal.\n");
+  fwrite($env_create, "ONESIGNAL=".$ONESIGNAL."\n");
+  fwrite($env_create, "ONESIGNAL_APP_ID=".$ONESIGNAL_APP_ID."\n");
+  fwrite($env_create, "ONESIGNAL_API_KEY=".$ONESIGNAL_API_KEY."\n\n");
 
   fwrite($env_create, "# Llaves de Twilio.\n");
   fwrite($env_create, "TWILIO=".$twilio."\n");
@@ -626,6 +639,37 @@ if(isset($_POST['instalar'])){
                     <input type="text"
                       class="form-control" name="twilio_auth" id="twilio_auth" aria-describedby="twilio_auth" placeholder="Pon tu Auth">
                     <small id="twilio_auth" class="form-text text-muted">Pon tu llave Auth que te dió twilio.</small>
+                  </div>
+                </div>
+
+              </div>
+
+              <p align="justify">También dentro del sistema podrás integrar onesignal para mandar notificaciones push, de esta manera podrás mandar las notificaciones desde el panel facilmente.</p>
+
+              <div class="row justify-content-center">
+
+                <div class="col-10">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" name="ONESIGNAL" type="checkbox" id="ONESIGNAL">
+                    <label class="form-check-label" for="ONESIGNAL">¿Deseas activar OneSignal?</label>
+                  </div>
+                </div>
+
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="ONESIGNAL_APP_ID" class="form-label">App ID</label>
+                    <input type="text"
+                      class="form-control" name="ONESIGNAL_APP_ID" id="ONESIGNAL_APP_ID" aria-describedby="ONESIGNAL_APP_ID" placeholder="Pon el App ID de OneSignal">
+                    <small id="ONESIGNAL_APP_ID" class="form-text text-muted">Aquí va el App ID</small>
+                  </div>
+                </div>
+
+                <div class="col-5">
+                  <div class="mb-3">
+                    <label for="ONESIGNAL_API_KEY" class="form-label">API Key</label>
+                    <input type="text"
+                      class="form-control" name="ONESIGNAL_API_KEY" id="ONESIGNAL_API_KEY" aria-describedby="ONESIGNAL_API_KEY" placeholder="Pon la API KEY de OneSignal">
+                    <small id="ONESIGNAL_API_KEY" class="form-text text-muted">Aquí va la API KEY</small>
                   </div>
                 </div>
 

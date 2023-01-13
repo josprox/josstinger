@@ -392,6 +392,26 @@ button {
   color: #627bed;
 }
 
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+*::-webkit-scrollbar {
+  width: 12px;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+@media screen and (max-width: 500px) {
+  *::-webkit-scrollbar {
+    display: none;
+  }
+}
+*::-webkit-scrollbar-thumb {
+  background: rgb(240, 137, 103);
+  background: linear-gradient(0deg, rgb(240, 137, 103) 0%, rgb(247, 205, 107) 50%, rgb(221, 228, 110) 100%);
+  border-radius: 8px;
+}
+
 .btn-link {
   color: #fff;
 }
@@ -481,6 +501,30 @@ button {
 
 #renovar, #agregar, #esconder {
   display: none;
+}
+
+.media-scroller {
+  display: grid;
+  grid-auto-flow: column;
+  width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+}
+
+.anuncio_scroller {
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 12px;
+  border-radius: 12px;
+  color: #fff;
+  text-decoration: none;
+  align-items: center;
+  text-align: center;
+  margin: 6px 12px;
+  min-width: 240px;
+}
+.anuncio_scroller:hover {
+  background-color: #0d6efd;
+  color: #fff;
 }
 
 .grid_opciones {
