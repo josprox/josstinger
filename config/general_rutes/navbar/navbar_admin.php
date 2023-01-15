@@ -79,6 +79,7 @@
           <div class="dropdown-menu" aria-labelledby="dropdownId">
           <a class="dropdown-item" href="directorio_admin"><i class="fa-solid fa-folder-tree"></i> Directorios</a>
             <a class="dropdown-item" href="crear_jossito"><i class="fa-solid fa-plus"></i> Crear un jossito</a>
+            <a class="dropdown-item" href="crear_tarea"><i class="fa-solid fa-plus"></i> Crear una tarea</a>
             <a class="dropdown-item" href="edit_jossecurity"><i class="fa-solid fa-signs-post"></i> Editar funciones</a>
             <?php
             if(isset($_ENV['PWA']) && $_ENV['PWA'] == 1){

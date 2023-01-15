@@ -6,6 +6,14 @@ class Nuevo_Push{
   public $mensaje_ing = "";
   public $url_personalizado = "";
 
+  function __construct(){
+    $this->titulo_esp = "";
+    $this->titulo_ing = "";
+    $this->mensaje_esp = "";
+    $this->mensaje_ing = "";
+    $this->url_personalizado = "";
+  }
+
   function enviar(){
     $client = new \GuzzleHttp\Client();
     $APP_ID = $_ENV['ONESIGNAL_APP_ID'];
@@ -29,10 +37,9 @@ class Nuevo_Push{
           'es' => $this->titulo_esp
       ],
       'url' => $url
-  ];
+    ];
   
-  $contenido_body = json_encode($array);
-    
+    $contenido_body = json_encode($array);
     $response = $client->request('POST', 'https://onesignal.com/api/v1/notifications', [
       'body' => $contenido_body,
       'headers' => [
@@ -44,12 +51,25 @@ class Nuevo_Push{
             
     $statusCode = $response->getStatusCode();
     if ($statusCode === 200) {
+      $this->limpiar();
       return true;
     } else {
+      $this->limpiar();
       return false;
     }
   }
+  
+  function limpiar(){
+    $this->titulo_esp = "";
+    $this->titulo_ing = "";
+    $this->mensaje_esp = "";
+    $this->mensaje_ing = "";
+    $this->url_personalizado = "";
+  }
+  
   function cerrar(){
+    $this->limpiar();
     return NULL;
   }
 }
+?>

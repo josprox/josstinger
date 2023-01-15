@@ -1,5 +1,5 @@
 <?php
-include (__DIR__ . "/../jossecurity.php");
+include (__DIR__ . DIRECTORY_SEPARATOR . "../jossecurity.php");
 if(!isset($_ENV['API']) OR $_ENV['API'] != 1){
     echo "El sistema de API está desactivado, no podrás usar conexiones API.";
 }elseif(!isset($_GET['email']) && !isset($_GET['password']) && !isset($_GET['cmd'])){
@@ -64,9 +64,38 @@ if(!isset($_ENV['API']) OR $_ENV['API'] != 1){
         }elseif($_GET['cmd'] == "v-delete-directory"){
             borrar_directorio($_GET['arg1']);
             echo "\n\tCodigo insertado.";
-        }elseif($_GET['cmd'] == "cron"){
-            include (__DIR__ . DIRECTORY_SEPARATOR . "../config/cron.php");
-            echo "\n\tCron ejecutado.";
+        }elseif($_GET['cmd'] == "sms"){
+            if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
+                $sms = new Nuevo_Mensaje();
+                $sms -> numero = "+" . (string)$_GET['arg1'];
+                $sms -> mensaje = (string)$_GET['arg2'];
+                if($sms -> enviar() == TRUE){
+                    $sms -> cerrar();
+                    echo "\n\tSe ha enviado el mensaje.";
+                }else{
+                    echo "\n\tNo se ha enviado el mensaje.";
+                }
+            }else{
+                echo "\n\tEl plugin no se encuentra activado dentro del archivo del sistema.";
+            }
+        }elseif($_GET['cmd'] == "push"){
+            if(isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1){
+                $push = new Nuevo_Push();
+                $push -> titulo_esp = $_GET['arg1'];
+                $push -> titulo_ing = $_GET['arg2'];
+                $push -> mensaje_esp = $_GET['arg3'];
+                $push -> mensaje_ing = $_GET['arg4'];
+                $push -> url_personalizado = $_GET['arg5'];
+                if($push -> enviar() == TRUE){
+                    $push -> cerrar();
+                    echo "\n\tSe ha completado la tarea push.";
+                }else{
+                    $push -> cerrar();
+                    echo "\n\tHa fallado la tarea push.";
+                }
+            }else{
+                echo "\n\tEl plugin no se encuentra activado dentro del archivo del sistema.";
+            }
         }else{
             echo "\n\tEl codigo insertado no existe.";
         }

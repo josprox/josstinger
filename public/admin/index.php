@@ -11,7 +11,13 @@ if (!isset($_SESSION['id_usuario'])) {
 $iduser = $_SESSION['id_usuario'];
 secure_auth_admin($iduser,"../");
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+//$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = new GranMySQL();
+$row -> seleccion = "name";
+$row -> tabla = "users";
+$row -> comparar = "id";
+$row -> comparable = $iduser;
+$consulta = $row -> where();
 
 ?>
 
@@ -55,7 +61,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   ?>
 
   <h1 align="center">Bienvenido a <?php echo $nombre_app; ?></h1>
-  <p align="center">Un gusto volver a verte <?php echo $row['name']; ?></p>
+  <p align="center">Un gusto volver a verte <?php echo $consulta['name']; ?></p>
   <p align="center">Versión: <?php echo $version_app; ?></p>
   
   <?php 
@@ -80,7 +86,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
   $control -> cerrar();
   ?>
   <br>
-  <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentacion</a> para saber cómo usar el sistema de JosSecurity.</p>
+  <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentación</a> para saber cómo usar el sistema de JosSecurity.</p>
 
 
   </div>

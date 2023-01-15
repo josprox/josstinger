@@ -636,12 +636,12 @@
 			"response": []
 		},
 		{
-			"name": "JosSecurity API cron",
+			"name": "JosSecurity API OneSignal",
 			"request": {
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=cron",
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=push&arg1=Titulo en español&arg2=Titulo en inglés&arg3=Mensaje en español&arg4=Mensaje en inglés&arg5",
 					"protocol": "http",
 					"host": [
 						"localhost"
@@ -664,8 +664,81 @@
 						},
 						{
 							"key": "cmd",
-							"value": "cron",
+							"value": "push",
 							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "Titulo en español",
+							"description": "Aquí debes poner el título en español del mensaje"
+						},
+						{
+							"key": "arg2",
+							"value": "Titulo en inglés",
+							"description": "Aquí debes poner el título en inglés del mensaje"
+						},
+						{
+							"key": "arg3",
+							"value": "Mensaje en español",
+							"description": "Aquí debes poner el mensaje en español del mensaje"
+						},
+						{
+							"key": "arg4",
+							"value": "Mensaje en inglés",
+							"description": "Aquí debes poner el mensaje en ingles del mensaje"
+						},
+						{
+							"key": "arg5",
+							"value": null,
+							"description": "Aquí pones la url si deseas modificarla"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
+			"name": "JosSecurity API Twilio",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=sms&arg1=52&arg2=Este es un mensaje de prueba dentro de JosSecurity API, puedes modificarlo a tu gusto o mandar tal cual este mensaje.",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "sms",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "52",
+							"description": "Aquí debes poner el número telefónico no hace falta poner un \"+\", solo pon la lada y el número al cuál se enviará el mensaje"
+						},
+						{
+							"key": "arg2",
+							"value": "Este es un mensaje de prueba dentro de JosSecurity API, puedes modificarlo a tu gusto o mandar tal cual este mensaje.",
+							"description": "Aquí debes poner el texto"
 						}
 					]
 				},

@@ -710,6 +710,21 @@ function consulta_mysqli_custom_all($code){
     return $fetch;
 }
 
+function consulta_mysqli_custom_all_JSON($code){
+    $conexion = conect_mysqli();
+    $resultado = $conexion->query((string)$code);
+    $json = [];
+    while($row = mysqli_fetch_assoc($resultado)){
+        $json[] = $row;
+    }
+    $conexion ->close();
+    if($json_resultado = json_encode($json, JSON_UNESCAPED_UNICODE)){
+        return $json_resultado;
+    }else{
+        return false;
+    }
+}
+
 function leer_tablas_mysql_custom($code){
     $conexion = conect_mysqli();
     $sql = "$code";
@@ -945,6 +960,27 @@ function check_http(){
     }
 }
 
+function evento_programado($task_name, $schedule, $interval) {
+    $fecha = fecha;
+    $timestamp = strtotime($schedule); 
+    $next_run = date("Y-m-d H:i:s", $timestamp);
+    if(leer_tablas_mysql_custom("SELECT * FROM tareas WHERE funcion = '$task_name'") >=1){
+        $consulta = consulta_mysqli_where("sig_fecha","tareas","funcion","'$task_name'");
+        if(fecha >= $consulta['sig_fecha']){
+            $task_name();
+            // actualiza el siguiente tiempo de ejecución
+            $fecha_creacion = new DateTime();
+            $fecha_creacion->modify('+'.$interval);
+            $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
+            // actualizar el programa de tareas en la base de datos
+            actualizar_datos_mysqli("tareas","`sig_fecha` = '$fecha_final'","funcion","'$task_name'");
+        }
+    }else{
+        $task_name();
+        insertar_datos_custom_mysqli("INSERT INTO tareas (funcion, sig_fecha, created_at) VALUES ('$task_name', '$next_run','$fecha')");
+    }
+}
+
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
 }elseif($_ENV['RECAPTCHA'] == 1){
@@ -1010,13 +1046,16 @@ if ($_ENV['PLUGINS'] != 1 OR !isset($_ENV['PLUGINS'])){
 }
 
 // Podrás crear tus propios Jossitos en el achivo mis_jossitos.php en la carpeta config.
-if(file_exists(__DIR__ . "/config/mis_jossitos.php")){
-    include (__DIR__ . "/config/mis_jossitos.php");
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/mis_jossitos.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "config/mis_jossitos.php");
 }
 
 // Uso de la configuración plugins internos cuando el sistema de plugins no funcione o se encuentre desactivado.
-if(file_exists(__DIR__ . "/config/not_paid.php")){
-    include (__DIR__ . "/config/not_paid.php");
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/not_paid.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "config/not_paid.php");
 }
 
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/extension/task.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "config/extension/task.php");
+}
 ?>

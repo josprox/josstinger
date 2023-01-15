@@ -127,6 +127,20 @@ INSERT INTO `roles` (`id`, `rol`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `tareas`
+--
+
+CREATE TABLE `tareas` (
+  `id` bigint(21) NOT NULL,
+  `funcion` text NOT NULL,
+  `sig_fecha` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NULL DEFAULT NULL,
+  `updated_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `servicios`
 --
 
@@ -238,6 +252,12 @@ ALTER TABLE `roles`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indices de la tabla `tareas`
+--
+ALTER TABLE `tareas`
+  ADD PRIMARY KEY (`id`);
+
+--
 -- Indices de la tabla `servicios`
 --
 ALTER TABLE `servicios`
@@ -296,6 +316,12 @@ ALTER TABLE `request_dns`
 --
 ALTER TABLE `roles`
   MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT de la tabla `tareas`
+--
+ALTER TABLE `tareas`
+  MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `servicios`
