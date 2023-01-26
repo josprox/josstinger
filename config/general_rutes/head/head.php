@@ -65,7 +65,6 @@ if(isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1){
 if(isset($_ENV['RECAPTCHA']) && $_ENV['RECAPTCHA'] == 1){?>
 
 <script src="https://www.google.com/recaptcha/api.js"></script>
-
 <?php
   }
 ?>

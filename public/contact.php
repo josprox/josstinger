@@ -137,7 +137,7 @@ include (__DIR__ . "/../jossecurity.php");
       </div>
     </section>
 
-    <?php footer(); ?>
+    <?php cookie(); footer(); ?>
     
 </body>
 </html>

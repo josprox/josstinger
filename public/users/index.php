@@ -45,6 +45,64 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
 
     <?php include (__DIR__ . "../../../routes/hestia/bienvenida.php") ?>
 
+    <main class="flex_center">
+        <?php
+        $consulta_fecha_del_usuario = new fecha_cliente();
+        ?>
+        <div class="tarjeta_del_momento <?php if($consulta_fecha_del_usuario -> hora_24() >= "18:01" && $consulta_fecha_del_usuario -> hora_24() <= "24:00"){
+            echo "fondo_oscuro";
+        }else{
+            echo "fondo_blanco";
+        } ?>">
+            <?php
+            if($consulta_fecha_del_usuario -> hora_24() >= "00:00" && $consulta_fecha_del_usuario -> hora_24() <= "12:00"){
+                ?>
+                <div class="contenido_momento">Buenos días, espero que cada día sea increible para ti.</div>
+                <div class="contenido_icono"><i class="fa-solid fa-cloud-sun"></i></div>
+                <?php
+            }elseif($consulta_fecha_del_usuario -> hora_24() >= "12:01" && $consulta_fecha_del_usuario -> hora_24() <= "18:00"){
+                ?>
+                <div class="contenido_momento">Buenas tardes, ya falta poco para terminar el día, échale ganas.</div>
+                <div class="contenido_icono"><i class="fa-solid fa-sun"></i></div>
+                <?php
+            }elseif($consulta_fecha_del_usuario -> hora_24() >= "18:01"){
+                ?>
+                <div class="contenido_momento">Buenas Noches, ojalá hayas disfrutado tu día.</div>
+                <div class="contenido_icono"><i class="fa-solid fa-moon"></i></div>
+                <?php
+            }
+            ?>
+        </div>
+    </main>
+
+    <h2 class="subtitulos">Recomentaciones</h2>
+
+    <div class="media-scroller">
+        <a class="anuncio_scroller" href="https://josprox.com/">¿Necesitas ayuda para crear tu sitio web? conoce El Diamante Soluciones TI</a>
+        <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
+        <?php
+        $ssl = check_http();
+        $json_string = file_get_contents("https://josprox.com/entradas.json");
+        // Convierte la cadena de texto en un array
+        $array = json_decode($json_string, true);
+        $count = 0;
+        foreach($array as $row){
+            ?>
+            <a class="anuncio_scroller" href="<?php echo $row['guid']; ?>"><?php echo $row['post_title']; ?></a>
+            <?php
+            $count ++;
+            if($count == 15){
+                ?>
+                <div class="flex_center">
+                    <a name="" id="" class="btn btn-primary" href="#" role="button">Ver más</a>
+                </div>
+                <?php
+                break;
+            }
+        }
+        ?>
+    </div>
+
     <section class="contenedor">
 
         <div class="flex_center">
@@ -120,9 +178,11 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
     
                                 </tbody>
                             </table>
-                            <?php if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>3){
+                            <?php if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>=3){
                                 ?>
-                             <a class="btn btn-primary" href="suscripciones">Ver todos mis productos</a>
+                                <div class="flex_center">
+                                    <a class="btn btn-primary" href="suscripciones">Ver todos mis productos</a>
+                                </div>
                                 <?php
                              } ?>
                         </div>
@@ -135,41 +195,6 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
 
         </div>
 
-    </section>
-
-    <section class="contenedor">
-        <h3 align="center" class="text-shadow-white">Recomendaciones</h3>
-        <div class="media-scroller">
-            <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
-            <?php
-            $ssl = check_http();
-            $json_string = file_get_contents("https://josprox.com/entradas.json");
-            // Convierte la cadena de texto en un array
-            $array = json_decode($json_string, true);
-            foreach($array as $row){
-                ?>
-                <a class="anuncio_scroller" href="<?php echo $row['guid']; ?>"><?php echo $row['post_title']; ?></a>
-                <?php
-            }
-            ?>
-        </div>
-        <div class="grid_opciones">
-            <a href="https://www.freenom.com/es/index.html?lang=es" class="principal flex_center" target="_blank" rel="noopener noreferrer">
-                <div class="">
-                    <p><i class="fa-solid fa-globe"></i> Conseguir un dominio gratis</p>
-                </div>
-            </a>
-            <a href="https://josprox.com/que-es-wordpress-cual-es-la-diferencia-entre-wordpress-com-y-wordpress-org/" class="secundario flex_center" target="_blank" rel="noopener noreferrer">
-                <div class="">
-                    <p><i class="fa-brands fa-wordpress"></i> ¿Qué es WordPress?</p>
-                </div>
-            </a>
-            <a href="https://josprox.com/importancia-de-ui-ux/" class="terciario flex_center" target="_blank" rel="noopener noreferrer">
-                <div class="">
-                    <p><i class="fa-solid fa-palette"></i> Importancia del diseño UI | UX</p>
-                </div>
-            </a>
-        </div>
     </section>
 
     <?php include ("../../routes/hestia/preguntas.php"); footer_users(); ?>

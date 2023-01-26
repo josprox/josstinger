@@ -61,7 +61,16 @@ $consulta = $row -> where();
   ?>
 
   <h1 align="center">Bienvenido a <?php echo $nombre_app; ?></h1>
-  <p align="center">Un gusto volver a verte <?php echo $consulta['name']; ?></p>
+  <p align="center"><?php
+  $fecha_cliente = new fecha_cliente();
+  if($fecha_cliente -> hora_24() >= "00:00" && $fecha_cliente -> hora_24() <= "12:00"){
+    echo "Buenos días";
+  }elseif($fecha_cliente -> hora_24() >= "12:01" && $fecha_cliente -> hora_24() <= "18:00"){
+    echo "Buenas tardes";
+  }elseif($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
+    echo "buenas noches";
+  }
+  ?> <?php echo $consulta['name']; ?></p>
   <p align="center">Versión: <?php echo $version_app; ?></p>
   
   <?php 

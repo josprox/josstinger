@@ -15,6 +15,10 @@ if($pagina == "panel.php"){
     }
     correr_not_pay();
 }
+?>
+<!-- Cookies aviso -->
+<script src="./../resourses/js/aviso-cookies.js"></script>
+<?php
 if($_ENV['PWA'] == 1){
     ?>
     <script src="./PWA/service.js"></script>

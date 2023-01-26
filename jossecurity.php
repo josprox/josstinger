@@ -13,6 +13,7 @@ date_default_timezone_set($_ENV['ZONA_HORARIA']);
 define("nombre_app",(string)$_ENV['NAME_APP']);
 define("version",(float)$_ENV['VERSION']);
 define("fecha",date("Y-m-d H:i:s"));
+define("zona_horaria_cliente", date_default_timezone_get());
 //Configuración por defecto de JosSecurity
 $fecha = fecha;
 $nombre_app = nombre_app;
@@ -549,6 +550,11 @@ function actualizar_contra($id, $nueva_contra){
 
 function logout($id,$table_DB){
 
+    if($id == ""){
+        global $iduser;
+        $id = $iduser;
+    }
+
     $conexion = conect_mysqli();
     $table = mysqli_real_escape_string($conexion, (string) $table_DB);
     $sql = "SELECT email,password FROM $table WHERE id = '$id'";
@@ -893,6 +899,18 @@ function reproductor_video($url){
     </video>
     <?php
 }
+function cookie(){
+    ?>
+    <div class="aviso-cookies" id="aviso-cookies">
+		<img class="galleta" src="https://freesvg.org/img/1464300474.png" alt="Galleta">
+		<h3 class="titulo">Cookies</h3>
+		<p class="parrafo">Utilizamos cookies propias y de terceros para mejorar nuestros servicios.</p>
+		<button class="boton" id="btn-aceptar-cookies">De acuerdo</button>
+		<a class="enlace" target="_blank" rel="noopener noreferrer" href="https://josprox.com/que-son-las-cookies-son-necesarias-como-desactivarlo/">¿Qué es una cookie?</a>
+	</div>
+	<div class="fondo-aviso-cookies" id="fondo-aviso-cookies"></div>
+    <?php
+}
 
 function secure_auth_admin($iduser,$location){
     $rol = consulta_mysqli_where("id_rol","users","id",$iduser);
@@ -981,7 +999,37 @@ function evento_programado($task_name, $schedule, $interval) {
     }
 }
 
+class fecha_cliente{
+    private $zona;
+    function __construct(){
+        $this->zona = zona_horaria_cliente;
+        date_default_timezone_set($this->zona);
+    }
+    function fecha_hora(){
+        return date("Y-m-d H:i:s");
+    }
+    function fecha(){
+        return date("Y-m-d");
+    }
+    function hora_24(){
+        return date('H:i');
+    }
+    function hora_12(){
+        return date('h:i A');
+    }
+    function modificar($fecha){
+        return date($fecha);
+    }
+    function __destruct(){
+        $this->zona = $_ENV['ZONA_HORARIA'];
+        date_default_timezone_set($_ENV['ZONA_HORARIA']);
+    }
+}
+
 if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
+    function recaptcha(){
+        return true;
+    }
     echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de recaptcha.');</script>";
 }elseif($_ENV['RECAPTCHA'] == 1){
 
@@ -1007,7 +1055,7 @@ if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
 }
 
 if(isset($_POST['salir'])){
-    logout($iduser,"users");
+    logout("","users");
     header("Location: ./../panel");
 }
 

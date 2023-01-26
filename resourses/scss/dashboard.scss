@@ -2,6 +2,7 @@
 @import "color";
 @import "mapa";
 @import "basic";
+@import "efectos";
 
 * {
     margin: 0;
@@ -9,7 +10,7 @@
     box-sizing: border-box;
     &::-webkit-scrollbar {
       width: 12px;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0);
       @media screen and (max-width: 500px) {
         &{
           display: none;
@@ -24,13 +25,26 @@
       border-radius: 8px;
     }
   }
-
+.fa-cloud-sun{
+    color: #58cad6;
+}
+.fa-sun{
+    color: #edbb2f;
+}
+.fa-moon{
+    color: $blanco;
+}
 .btn-link{
     color: $blanco;
     &:hover{
         color: $blanco;
         text-decoration: none;
     }
+}
+
+.subtitulos{
+    font-family: "Dancing";
+    text-align: center;
 }
 
 .btn_transparente{
@@ -139,63 +153,61 @@
     }
 }
 
-.grid_opciones{
+.links_circulos{
+
+    min-width: 20px;
+    min-height: 20px;
+    width: 50px;
+    height: 50px;
+    text-align: center;
+    border-radius: 50%;
+    background-color: #85FFBD;
+    background-image: linear-gradient(45deg, #85FFBD 0%, #FFFB7D 100%);
+    margin: 5px auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: $blanco;
+    text-shadow: black 0.1em 0.1em 0.2em;
+    i{
+        font-size: 1.4em;
+    }
+
+}
+
+.tarjeta_del_momento{
+    margin: 12px 8px;
+    padding: 12px;
+    width: 96%;
+    height: 100%;
+    border-radius: 12px;
     display: grid;
     grid-template-columns: repeat(1, 1fr);
-    grid-template-rows: minmax(50px, auto);
-    padding: 8px;
-    grid-template-areas: "principal""secundario""terciario";
-    .principal{
-        min-height: 160px;
-        width: 100%;
-        height: auto;
-        padding: 10px;
-        background-color: #e35473;
-        border-radius: 12px;
-        margin-right: 12px;
-        grid-area: principal;
-        font-size: 1.2em;
-        color: $blanco;
-        text-decoration: none;
-    }
-    .secundario{
-        min-height: 80px;
-        width: 100%;
-        height: auto;
-        padding: 10px;
-        background-color: $primario;
-        border-radius: 12px;
-        margin-left: 12px;
-        margin-bottom: 6px;
-        grid-area: secundario;
-        font-size: 1.2em;
-        color: $blanco;
-        text-decoration: none;
-    }
-    .terciario{
-        min-height: 80px;
-        width: 100%;
-        height: auto;
-        padding: 10px;
-        background-color: $morado;
-        border-radius: 12px;
-        margin-left: 12px;
-        margin-top: 6px;
-        grid-area: terciario;
-        font-size: 1.2em;
-        color: $blanco;
-        text-decoration: none;
-    }
-    .principal:hover,.secundario:hover, .terciario:hover{
-        border-radius: 21px;
-        border: 12px rgba(0, 0, 0, 0.5) solid;
-        text-shadow: black 0.1em 0.1em 0.2em;
-    }
-    @media screen and (min-width:170px) {
+    grid-template-rows: minmax(25px, auto);
+    grid-template-areas: "momento" "icono";
+    @media screen and (min-width:420px) {
         &{
+            width: 60%;
             grid-template-columns: repeat(2, 1fr);
-            grid-template-areas: "principal secundario""principal terciario";
+            grid-template-areas: "momento icono";
         }
+    }
+    @media screen and (min-width:600px) {
+        &{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-areas: "momento momento icono";
+        }
+    }
+    .contenido_momento{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        grid-area: momento;
+        text-align: justify;
+    }
+    .contenido_icono{
+        font-size: 1.7em;
+        text-align: center;
     }
 }
 

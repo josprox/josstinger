@@ -1,5 +1,6 @@
 @charset "UTF-8";
 @import "color";
+@import "cookies";
 *{
     transition: .2s all !important;
 }
@@ -290,6 +291,15 @@ $i:1;
             width: 88%;
         }
     }
+}
+
+.fondo_blanco{
+    background-color: $blanco;
+    color: $negro;
+}
+.fondo_oscuro{
+    background-color: #393942;
+    color: $blanco;
 }
 
 .block-7 {

@@ -529,7 +529,7 @@ login_cookie("users");
         
     </div>
 
-    <?php footer(); ?>
+    <?php cookie(); footer(); ?>
 
     <script>
         var alertList = document.querySelectorAll('.alert');

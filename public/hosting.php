@@ -64,7 +64,7 @@ include (__DIR__ . "/../jossecurity.php");
 
     <?php include "../routes/planes/planes.php"; include "../routes/hestia/preguntas.php";  ?>
 
-    <?php footer(); ?>
+    <?php cookie(); footer(); ?>
     
 </body>
 </html>

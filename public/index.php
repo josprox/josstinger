@@ -123,7 +123,7 @@ include (__DIR__ . "/../jossecurity.php");
         </div>
     </section>
 
-    <?php include "../routes/hestia/preguntas.php"; footer(); ?>
+    <?php include "../routes/hestia/preguntas.php"; cookie(); footer(); ?>
     
 </body>
 </html>

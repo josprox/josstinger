@@ -59,7 +59,7 @@ secure_auth_admin($iduser,"../");
     $email = mysqli_real_escape_string($conexion, (string) $_POST['email']);
     $password = mysqli_real_escape_string($conexion, (string) $_POST['password']);
     $rol = mysqli_real_escape_string($conexion, (int) $_POST['rol']);
-    mysqli_close($conexion);
+    $conexion -> close();
     registro("users",$name,$email,$password,$rol);
     ?>
         <script>
