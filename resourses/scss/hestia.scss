@@ -339,3 +339,82 @@ button{
         }
     }
 }
+
+.dashboard_index{
+    min-width: 120px;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    padding: 10px;
+    margin-top: 12px;
+    margin-bottom: 8px;
+
+    .fondo_oscuro{
+        background-color: $negro;
+        color: $blanco;
+    }
+    .fondo_blanco{
+        background-color: $blanco;
+        color: $negro;
+    }
+    .bienvenida{
+        border-radius: 12px;
+        margin: 0;
+        padding: 8px;
+        width: auto;
+        height: auto;
+        text-align: center;
+        p{
+            font-size: 1.5em;
+        }
+    }
+    .tabla{
+        margin: 12px 8px;
+        display: grid;
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-rows: minmax(50px, auto);
+        .tarjeta{
+            padding: 10px;
+            margin: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            i{
+                font-size: 2em;
+                display: block;
+            }
+            p{
+                font-size: 1em;
+                display: block;
+            }
+            b{
+                color: $rosa;
+            }
+            .correcto{
+                color: $completado;
+            }
+            .advertencia{
+                color: $advertencia;
+            }
+        }
+    }
+    @media screen and (min-width: 500px) {
+        &{
+            height: 98%;
+        }
+        .tabla{
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media screen and (min-width: 620px) {
+        &{
+            height: 96%;
+        }
+        .tabla{
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+}

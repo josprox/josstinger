@@ -1,5 +1,7 @@
 <?php
 
+use SysJosSecurity\SysNAND;
+
 include (__DIR__ . "/../../jossecurity.php");
 
 login_cookie("users");
@@ -18,6 +20,7 @@ $row -> tabla = "users";
 $row -> comparar = "id";
 $row -> comparable = $iduser;
 $consulta = $row -> where();
+$sistema = new SysJosSecurity\SysNAND();
 
 ?>
 
@@ -42,6 +45,55 @@ $consulta = $row -> where();
 
   <div class="container">
   <?php
+  if(isset($_POST['limpiar'])){
+    $sistema -> condicion = ['png', "jpg", "webp", "svg"];
+    $sistema -> directorio = "resourses/img/";
+    if($sistema -> organizar() == TRUE){
+      $sistema -> condicion = ["htm", "html"];
+      $sistema -> directorio = "public/";
+      if($sistema -> organizar() == TRUE){
+        $sistema -> condicion = ["css", "scss"];
+        $sistema -> directorio = "resourses/scss/";
+        if($sistema -> organizar() == TRUE){
+          $sistema -> condicion = ["js", "ts"];
+          $sistema -> directorio = "resourses/js/";
+          if($sistema -> organizar() == TRUE){
+            $ruta_respaldo_all = __DIR__ . DIRECTORY_SEPARATOR . "../../plugins/all in one/respaldo_all";
+            $ruta_respaldo = __DIR__ . DIRECTORY_SEPARATOR . "../../plugins/all in one/respaldos";
+            if(is_dir($ruta_respaldo_all)){
+              borrar_directorio($ruta_respaldo_all);
+            }
+            if(is_dir($ruta_respaldo)){
+              borrar_directorio($ruta_respaldo);
+            }
+            ?>
+            <script>
+                Swal.fire(
+                'Ya está',
+                'Se ha organizado todo de manera correcta.',
+                'success'
+                )
+            </script>
+            <?php
+          }
+        }
+      }
+    }
+  }
+  if(isset($_POST['optimizar'])){
+    $sistema -> directorio = "resourses/img/";
+    if($sistema -> comprimir_img() == TRUE){
+      ?>
+      <script>
+          Swal.fire(
+          'Ya está',
+          'Se han optimizado las imágenes de manera correcta, para verlas ve a la carpta de JosSecurity y accede a resourses, ahí encontrarás una carpeta llamada "img_optimizacion".',
+          'success'
+          )
+      </script>
+      <?php
+    }
+  }
   if(isset($_POST['eliminar'])){
     unlink('./../../installer.php');
   }
@@ -58,44 +110,64 @@ $consulta = $row -> where();
   
   <?php
   }
+  $fecha_cliente = new fecha_cliente();
+  if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
+    $fondo = "fondo_oscuro";
+  }else{
+    $fondo = "fondo_blanco";
+  }
   ?>
 
   <h1 align="center">Bienvenido a <?php echo $nombre_app; ?></h1>
-  <p align="center"><?php
-  $fecha_cliente = new fecha_cliente();
+
+  <section class="dashboard_index">
+        <div class="bienvenida <?php echo $fondo; ?>">
+            <p><?php
   if($fecha_cliente -> hora_24() >= "00:00" && $fecha_cliente -> hora_24() <= "12:00"){
     echo "Buenos días";
   }elseif($fecha_cliente -> hora_24() >= "12:01" && $fecha_cliente -> hora_24() <= "18:00"){
     echo "Buenas tardes";
   }elseif($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
-    echo "buenas noches";
+    echo "Buenas noches";
   }
-  ?> <?php echo $consulta['name']; ?></p>
-  <p align="center">Versión: <?php echo $version_app; ?></p>
-  
-  <?php 
-  // Le hablamos a Visibility Logic
-  $control = new VisibilityLogic();
-  // Le pedimos que muestre el contenido.
-  $control -> accion = "mostrar";
-  // Ahora condicionamos que solo muestre a esta dirección IP.
-  $control -> ip = "::1";
-  if($control -> ip() == TRUE){
-    echo reproductor_video("../../resourses/video/Josstinger.mp4");
-  }
-  //En el caso que el usuario no usa esta IP, mostrará lo siguiente.
-  elseif($control -> ip() == FALSE){
-    ?>
-    <div class="card">
-      <img class="card-img-top" src="./../../resourses/img/logo azul/cover.png" alt="Title">
-    </div>
-    <?php
-  }
-  // Cerramos la clase.
-  $control -> cerrar();
-  ?>
+  ?> <?php echo $consulta['name']; ?>, un gusto volver a verte. 👌</p>
+        </div>
+        <main class="tabla">
+            <div class="tarjeta <?php echo $fondo; ?>">
+                <i class="fa-solid fa-trash"></i>
+                <p>Organiza los archivos con un clic.</p>
+                <form action="" method="post">
+                    <button name="limpiar" type="submit" class="btn btn-primary">Limpiar</button>
+                </form>
+            </div>
+            <div class="tarjeta <?php echo $fondo; ?>">
+                <i class="fa-solid fa-image"></i>
+                <p>Optimizar imágenes.</p>
+                <form action="" method="post">
+                    <button name="optimizar" type="submit" class="btn btn-secondary">Optimizar</button>
+                </form>
+            </div>
+            <div class="tarjeta <?php echo $fondo; ?>">
+                <?php 
+                if(check_http() == "https://"){
+                  $ssl = "Conectado con seguridad";
+                  ?>
+                  <i class="fa-solid fa-lock"></i>
+                  <?php
+                }elseif(check_http() == "http://" || check_http() == ""){
+                  ?>
+                  <i class="fa-solid fa-unlock"></i>
+                  <?php
+                  $ssl = "Conectado sin seguridad, probablemente en un entorno de pruebas (localhost).";
+                }
+                ?>
+                <p><?php echo $ssl; ?></p>
+            </div>
+        </main>
+    </section>
+
   <br>
-  <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentación</a> para saber cómo usar el sistema de JosSecurity.</p>
+  <p align="center">Este sistema fue creado por JOSPROX MX | Internacional, visita nuestra <a href="https://jossecurity.josprox.com/" role="button">documentación</a> para saber cómo usar el sistema de JosSecurity. Versión: <?php echo $version_app; ?></p>
 
 
   </div>

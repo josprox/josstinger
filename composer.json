@@ -16,7 +16,8 @@
         "mercadopago/dx-php": "^2.5",
         "evert/sitemap-php": "^1.2",
         "twilio/sdk": "^6.44",
-        "guzzlehttp/guzzle": "^7.5"
+        "guzzlehttp/guzzle": "^7.5",
+        "intervention/image": "^2.7"
     },
     "require-dev": {
         "rector/rector": "^0.14.8"

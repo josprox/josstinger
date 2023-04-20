@@ -82,20 +82,75 @@ login_cookie("users");
             <?php
             header("location: panel");
         }
-    }elseif (isset($_POST["ingresar"])){
-        if(recaptcha() == TRUE){
-            $check = logins($_POST['txtCorreo'],$_POST['txtPassword'],"users","./admin/","./users/");
+    }elseif(isset($_GET['login_auth'])){
+        $llave = $_GET['login_auth'];
+        if(!isset($_GET['cookies']) || $_GET['cookies'] == "no"){
+            $cookies = "no";
+        }else{
+            $cookies = "si";
+        }
+        $checking = consulta_mysqli_where("id_user", "check_users","url", "'$llave'");
+        $checker = consulta_mysqli_where("email", "users", "id", $checking['id_user']);
+        if($checker["email"] == $_GET['correo']){
+            eliminar_datos_con_where("check_users","id_user",$checking['id_user']);
+            $check = logins($_GET['correo'],$_GET['contra'],"users",$cookies);
             if($check == false){
                 ?>
                 <script>
                     Swal.fire(
                     'Falló',
-                    'La contraseña es incorrecta.',
+                    'La contraseña que usó en su momento es incorrecta.',
                     'error'
                     )
                 </script>
                 <?php
                 header("refresh:1;");
+            }
+        }else{
+            ?>
+            <script>
+                Swal.fire(
+                    'Falló',
+                    'Probablemente el token se encuentre mal escrito o haya caducado, favor de volver a intentar iniciar sesión',
+                    'error'
+                )
+            </script>
+            <?php
+            header("refresh:1;");
+        }
+
+    }elseif (isset($_POST["ingresar"])){
+        if(recaptcha() == TRUE){
+            if(!isset($_POST['cookies'])){
+                $cookies = "no";
+            }else{
+                $cookies = "si";
+            }
+            if(FA($_POST['txtCorreo'],$_POST['txtPassword'],$cookies) == "2fa"){
+                ?>
+                <script>
+                    Swal.fire(
+                    'Listo',
+                    'Hemos detectado que tiene activado el acceso por alta seguridad, favor de usar tu método de acceso.',
+                    'success'
+                    )
+                </script>
+                <?php header("refresh:1;"); ?>
+                <?php
+            }else{
+                $check = FA($_POST['txtCorreo'],$_POST['txtPassword'],$cookies);
+                if($check == false){
+                    ?>
+                    <script>
+                        Swal.fire(
+                        'Falló',
+                        'La contraseña es incorrecta.',
+                        'error'
+                        )
+                    </script>
+                    <?php
+                    header("refresh:1;");
+                }
             }
         }else{
             ?>
@@ -283,9 +338,14 @@ login_cookie("users");
             $conexion = conect_mysqli();
             $contra = mysqli_real_escape_string($conexion, (string) $_POST['txtPassword']);
             $contra_repeat = mysqli_real_escape_string($conexion, (string) $_POST['txtPassword_repeat']);
+            if(isset($_POST['factor'])){
+                $factor = "A";
+            }else{
+                $factor = "D";
+            }
             $conexion -> close();
             if($contra == $contra_repeat){
-                echo registro("users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6);
+                echo registro("users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6, $factor);
                 header("refresh:1;");
             }else{
                 ?>
@@ -424,7 +484,7 @@ login_cookie("users");
                             </div>
                             <div class="grid_1_auto">
                                 <div class="form-check form-switch">
-                                    <input class="form-check-input" name="cookie" type="checkbox" id="flexSwitchCheckDefault">
+                                    <input class="form-check-input" name="cookies" type="checkbox" id="flexSwitchCheckDefault">
                                     <label class="form-check-label" for="flexSwitchCheckDefault">Desea tener la sesión abierta</label>
                                   </div>
                             </div>
@@ -464,6 +524,12 @@ login_cookie("users");
                                 <div class="grid_1_auto">
                                     <label for="">Repite la contraseña</label>
                                     <input type="password" name="txtPassword_repeat" placeholder="Por favor pon tu contraseña" required>
+                                </div>
+                                <div class="grid_1_auto">
+                                    <div class="form-check form-switch">
+                                        <input class="form-check-input" name="factor" type="checkbox" id="factor" checked>
+                                        <label class="form-check-label" for="factor">¿Deseas activar mayor seguridad?</label>
+                                    </div>
                                 </div>
                                 <div class="flex_center">
                                     <div class="mb-3">
@@ -517,7 +583,7 @@ login_cookie("users");
                         <h1 class="text-shadow-black" style="color: #fff;text-align:center;">Seguridad a tu alcance</h1>
                     </center>
                     <p class="text-justify text-shadow-black" style="color: #fff;">
-                    Este sitio ha sido creado con la tecnología de JosSecurity, seguridad a tu alcance. <br> Un proyecto de JOSPROX.
+                    Este sitio ha sido creado con la tecnología de JosSecurity, seguridad a tu alcance, cumple nativamente con las Leyes de Privacidad y Protección de Datos (GDPR y CCPA), la modificación de estas leyes por otra persona exime al creador de alguna consecuencia legal.<br>Un proyecto de El Diamante Soluciones TI.
                     </p>
                 </div>
             </div>

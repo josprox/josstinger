@@ -75,5 +75,4 @@ if($_ENV['PLUGINS'] != 1){
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
 </body>
-
 </html>

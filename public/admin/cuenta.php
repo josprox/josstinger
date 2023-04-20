@@ -19,10 +19,16 @@ if(isset($_POST['actualizar_info'])){
   $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
   $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
   $phone = mysqli_real_escape_string($conexion, (string) $_POST['phone']);
+  if(isset($_POST['factor'])){
+    $fa= "A";
+  }else{
+    $fa = "D";
+  }
+  $type_fa = mysqli_real_escape_string($conexion, (string) $_POST['type_fa']);
   mysqli_close($conexion);
   $consulta = consulta_mysqli_where("password","users","id",$iduser);
   if(password_verify($password,(string) $consulta['password']) == TRUE){
-    actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email', `phone` = '$phone'","id",$iduser);
+    actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email', `phone` = '$phone', `fa` = '$fa', `type_fa` = '$type_fa'","id",$iduser);
   }
 
 }
@@ -94,6 +100,32 @@ $row = consulta_mysqli_where("*","users","id",$iduser);
         </div>
   
         <div class="mb-3 contenedor">
+          <label for="phone" class="form-label">Número de telefono</label>
+          <input type="tel" class="form-control" name="phone" id="phone" aria-describedby="phone" placeholder="+5255XXXXXXXX" value="<?php echo $row['phone']; ?>">
+        </div>
+
+        <div class="mb-3 contenedor">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" <?php if($row['fa'] == "A"){echo "checked";} ?> name="factor" id="factor">
+            <label class="form-check-label" for="factor">¿Desea Activar la seguridad extrema?</label>
+          </div>
+          <div class="mb-3">
+            <label for="type_fa" class="form-label">Seleccione el metodo de seguridad</label>
+            <select class="form-select form-select-sm" name="type_fa" id="type_fa">
+              <option selected value="correo">Correo</option>
+              <?php
+              if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1 && $row['phone'] != ""){
+                ?>
+                <option value="sms">SMS</option>
+                <?php
+              }
+              ?>
+              <option value="GG">Google Auth (proximamente)</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="mb-3 contenedor">
           <div class="mb-3">
             <label for="contra" class="form-label">Contraseña</label>
             <input type="text"
@@ -102,18 +134,13 @@ $row = consulta_mysqli_where("*","users","id",$iduser);
           </div>
         </div>
 
-        <div class="mb-3 contenedor">
-          <label for="phone" class="form-label">Número de telefono</label>
-          <input type="tel" class="form-control" name="phone" id="phone" aria-describedby="phone" placeholder="+5255XXXXXXXX" value="<?php echo $row['phone']; ?>">
-        </div>
-  
       </div>
 
-      <center>
+      <div class="flex_center">
         <div class="mb-3">
             <button type="submit" name="actualizar_info" class="btn btn-primary">Actualizar información personal</button>
         </div>
-      </center>
+      </div>
 
     </form>
 
@@ -121,29 +148,33 @@ $row = consulta_mysqli_where("*","users","id",$iduser);
 
     <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
-      <div class="mb-3 row">
-        <label for="password" class="form-label">Pon tu contraseña actual</label>
-        <input type="password" class="form-control" name="password" id="password" aria-describedby="password" placeholder="contraseña">
-        <small id="password" class="form-text text-muted">Pon tu contraseña</small>
+      <div class="grid_3_auto">
+        <div class="mb-3 contenedor">
+          <label for="password" class="form-label">Pon tu contraseña actual</label>
+          <input type="password" class="form-control" name="password" id="password" aria-describedby="password" placeholder="contraseña">
+          <small id="password" class="form-text text-muted">Pon tu contraseña</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="password_new" class="form-label">Pon la nueva contraseña</label>
+          <input type="password"
+            class="form-control" name="password_new" id="password_new" aria-describedby="password_new" placeholder="nueva contraseña">
+          <small id="password_new" class="form-text text-muted">Escribe la nueva contraseña</small>
+        </div>
+  
+        <div class="mb-3 contenedor">
+          <label for="password_repeat" class="form-label">Repite la nueva contraseña</label>
+          <input type="password"
+            class="form-control" name="password_repeat" id="password_repeat" aria-describedby="password_repeat" placeholder="repite la contraseña">
+          <small id="password_repeat" class="form-text text-muted">Escribe la nueva contraseña</small>
+        </div>
       </div>
 
-      <div class="mb-3 row">
-        <label for="password_new" class="form-label">Pon la nueva contraseña</label>
-        <input type="password"
-          class="form-control" name="password_new" id="password_new" aria-describedby="password_new" placeholder="nueva contraseña">
-        <small id="password_new" class="form-text text-muted">Escribe la nueva contraseña</small>
-      </div>
-
-      <div class="mb-3 row">
-        <label for="password_repeat" class="form-label">Repite la nueva contraseña</label>
-        <input type="password"
-          class="form-control" name="password_repeat" id="password_repeat" aria-describedby="password_repeat" placeholder="repite la contraseña">
-        <small id="password_repeat" class="form-text text-muted">Escribe la nueva contraseña</small>
-      </div>
-
-      <div class="mb-3 row">
-        <div class="offset-sm-4 col-sm-8">
-          <button type="submit" name="update_password" class="btn btn-primary">Actualizar contraseña</button>
+      <div class="flex_center">
+        <div class="mb-3">
+          <div class="offset-sm-4 col-sm-8">
+            <button type="submit" name="update_password" class="btn btn-primary">Actualizar contraseña</button>
+          </div>
         </div>
       </div>
 

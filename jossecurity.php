@@ -13,7 +13,9 @@ date_default_timezone_set($_ENV['ZONA_HORARIA']);
 define("nombre_app",(string)$_ENV['NAME_APP']);
 define("version",(float)$_ENV['VERSION']);
 define("fecha",date("Y-m-d H:i:s"));
+define("fecha_1_day",date("Y-m-d H:i:s", strtotime(fecha . "+ 1 days")));
 define("zona_horaria_cliente", date_default_timezone_get());
+define("ruta", check_http() . $_ENV['DOMINIO'] . $_ENV['HOMEDIR']);
 //Configuración por defecto de JosSecurity
 $fecha = fecha;
 $nombre_app = nombre_app;
@@ -197,7 +199,7 @@ if ($_ENV['CONECT_DATABASE'] == 1){
         }
     }
 
-    if ($_ENV['CONECT_POSTGRESQL'] == 1 OR $_ENV['CONECT_POSTGRESQL_PDO'] == 1){
+    if ($_ENV['CONECT_POSTGRESQL'] == 1 || $_ENV['CONECT_POSTGRESQL_PDO'] == 1){
         include (__DIR__ . "/config/extension/postgresql.php");
     }
 
@@ -207,7 +209,48 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     }
 }
 
-function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users,$check_user = "panel"){
+function FA($correo, $contra, $cookies="si", $redireccion = "panel"){
+    $conexion = conect_mysqli();
+    $correo = mysqli_real_escape_string($conexion, (string) $correo);
+    $contra = mysqli_real_escape_string($conexion, (string) $contra);
+    $cookies = mysqli_real_escape_string($conexion, $cookies);
+    $conexion -> close();
+    $consulta = consulta_mysqli_where("id, name, phone, fa, type_fa, last_ip","users", "email", "'$correo'");
+    if($consulta['fa'] != "A" || $consulta['last_ip'] == $_SERVER['REMOTE_ADDR']){
+        return logins($correo,$contra,"users",$cookies);
+    }elseif($consulta['fa'] == "GG"){
+        //Proximamente acceso por 2FA
+    }else{
+        $generador = generar_llave_alteratorio(16);
+        $fecha = fecha_1_day;
+        $id_user = $consulta['id'];
+        $nombre_user = $consulta['name'];
+        $nombre_app = nombre_app;
+        $web = ruta . "panel?login_auth=" . $generador . "&correo=" . $correo . "&contra=" . $contra . "&cookies=" . $cookies;
+        switch($consulta['type_fa']){
+            case "correo":
+                insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
+                $mensaje = "<div><p>Hola de nuevo $nombre_user</p></div><div><p>Si deseas entrar en $nombre_app podrás hacerlo <a href='$web'>dando clic aquí</a>.</p></div>";
+                mail_WP($correo,"Inicia sesión",$mensaje);
+            break;
+            case "sms":
+                insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
+                if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
+                    $enviar = new Nuevo_Mensaje();
+                    $enviar -> numero = $consulta['phone'];
+                    $enviar -> mensaje = "Se ha detectado una solicitud para iniciar sesión, para continuar acceda al siguiente link: $web";
+                    $enviar -> enviar();
+                }else{
+                    $mensaje = "<div><p>Hola de nuevo $nombre_user</p></div><div><p>Si deseas entrar en $nombre_app podrás hacerlo <a href='$web'>dando clic aquí</a>.</p><p>Haz recibido por este método tu acceso ya que tenemos dificultades en poder enviarle un sms.</p></div>";
+                    mail_WP($correo,"Inicia sesión",$mensaje);
+                }
+
+        }
+        return "2fa";
+    }
+}
+
+function logins($correo,$contra,$tabla = "users",$cookies = "si"){
     $conexion = conect_mysqli();
     $tabla = mysqli_real_escape_string($conexion, (string) $tabla);
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
@@ -215,13 +258,21 @@ function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users,$
     if(leer_tablas_mysql_custom("SELECT id FROM $tabla WHERE email = '$correo'")>= 1){
         $consulta = consulta_mysqli_where("id_rol","$tabla","email","'$correo'");
         $resultado = $consulta['id_rol'];
-        if($resultado == 1 OR $resultado == 2 OR $resultado == 4){
-            $check = login_admin($correo,$contra,"$tabla","$localizacion_admin",$check_user);
+        $check = new login;
+        $check -> correo = $correo;
+        $check -> contra = $contra;
+        $check -> cookies = $cookies;
+        if($resultado == 1 || $resultado == 2 || $resultado == 4){
+            $check -> compilar();
+            $check -> ejecutar();
             if($check == false){
                 return false;
             }
         }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
-            $check = login($correo,$contra,$tabla,$localizacion_users,$check_user);
+            $check -> redireccion = "users";
+            $check -> modo_admin = FALSE;
+            $check -> compilar();
+            $check -> ejecutar();
             if($check == false){
                 return false;
             }
@@ -229,158 +280,94 @@ function logins($correo,$contra,$tabla,$localizacion_admin,$localizacion_users,$
     }
 }
 
-function login($login_email,$login_password,$table_DB,$location,$check_user = "panel"){
-
-    global $nombre_app, $fecha;
-
-    $conexion = conect_mysqli();
-        $table = mysqli_real_escape_string($conexion, (string) $table_DB);
-        $usuario = mysqli_real_escape_string($conexion, (string) $login_email);
-        $password = mysqli_real_escape_string($conexion, (string) $login_password);
-        $ip = $_SERVER['REMOTE_ADDR'];
-        if(isset($_POST['cookie'])){
-            $cookies = TRUE;
-        }else{
-            $cookies = FALSE;
+class login{
+    public $correo;
+    public $contra;
+    public $tabla = "users";
+    public $redireccion ="admin";
+    public $check_user = "panel";
+    public $cookies = TRUE;
+    public $modo_admin = TRUE;
+    private $conexion;
+    private $nombre_app;
+    private $fecha;
+    private $ip;
+    public function __construct(){
+        $this->conexion = conect_mysqli();
+        $this->ip = $_SERVER['REMOTE_ADDR'];
+        $this->fecha = fecha;
+        $this->nombre_app = nombre_app;
+    }
+    // Comprueba y retorna los datos si se ha activado o desactivado el modo admin
+    function compilar(){
+        $table = mysqli_real_escape_string($this->conexion, (string) $this->tabla);
+        $usuario = mysqli_real_escape_string($this->conexion, (string) $this->correo);
+        $consulta = consulta_mysqli_where("id_rol",$table,"email", "'$usuario'");
+        $rol = $consulta['id_rol'];
+        switch ($this->modo_admin){
+            case FALSE:
+                return "desactivado" == "desactivado";
+            break;
+            case TRUE:
+                return $rol == 1 || $rol == 2 || $rol == 4;
+            break;
         }
-        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+    }
+    // Ejecuta el inicio de sesión
+    public function ejecutar(){
+        $table = mysqli_real_escape_string($this->conexion, (string) $this->tabla);
+        $usuario = mysqli_real_escape_string($this->conexion, (string) $this->correo);
+        $password = mysqli_real_escape_string($this->conexion, (string) $this->contra);
+        $ip = $this->ip;
+        $location = $this->redireccion;
+        if(!isset($_ENV['CHECK_USER']) || $_ENV['CHECK_USER'] != 1){
             $sql = "SELECT id, name, password FROM $table WHERE email = '$usuario'";
         }else{
             $sql = "SELECT id, name, password, checked_status FROM $table WHERE email = '$usuario'";
         }
-        $resultado = $conexion->query($sql);
+        $resultado = $this->conexion->query($sql);
         $rows = $resultado->num_rows;
+        
         if ($rows > 0) {
             $row = $resultado->fetch_assoc();
             $password_encriptada = $row['password'];
             $id = $row['id'];
-            if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+            if(!isset($_ENV['CHECK_USER']) || $_ENV['CHECK_USER'] != 1){
                 $check = TRUE;
             }else{
                 $check = $row['checked_status'];
             }
             if($check == TRUE){
-                if(password_verify($password,(string) $password_encriptada) == TRUE){
-    
-                    $_SESSION['id_usuario'] = $row['id'];
-    
-                    if ($cookies == TRUE){
-                        //Cookie de usuario y contraseña
-                        setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                        setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                    }
-                    
-    
-                    actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
-    
-                    mysqli_close($conexion);
-    
-                    $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
-    
-                    if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
-                        header("Location: $location");
-                    }
-    
-    
-                    }else{
-                        mysqli_close($conexion);
-                        return FALSE;
-                    }
-            }else{
-                $ssl_tls = check_http();
-                $key = generar_llave_alteratorio(16);
-                $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
-                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
-                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
-                $conexion -> close();
-                if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
-                ?>
-                <script>
-                    Swal.fire(
-                    'Falló',
-                    'El usuario no ha sido verificado, favor de checar su correo para activarlo.',
-                    'error'
-                    )
-                </script>
-                <?php
-                header("refresh:1;");
-                }
-            }
-            }
-        else{
-        mysqli_close($conexion);
-        }
-            
-}
-
-function login_admin($login_email,$login_password,$table_DB,$location,$check_user = "panel"){
-
-    $conexion = conect_mysqli();
-    global $nombre_app ,$fecha;
-        $table = mysqli_real_escape_string($conexion, (string) $table_DB);
-        $usuario = mysqli_real_escape_string($conexion, (string) $login_email);
-        $password = mysqli_real_escape_string($conexion, (string) $login_password);
-        $ip = $_SERVER['REMOTE_ADDR'];
-        if(isset($_POST['cookie'])){
-            $cookies = TRUE;
-        }else{
-            $cookies = FALSE;
-        }
-    
-        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
-            $sql = "SELECT id, name, password, id_rol FROM $table WHERE email = '$usuario'";
-        }else{
-            $sql = "SELECT id, name, password, id_rol,checked_status FROM $table WHERE email = '$usuario'";
-        }
-        $resultado = $conexion->query($sql);
-        $rows = $resultado->num_rows;
-        if ($rows > 0) {
-            $row = $resultado->fetch_assoc();
-            $password_encriptada = (string)$row['password'];
-            $rol = $row['id_rol'];
-            $id = $row['id'];
-            if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
-                $check = TRUE;
-            }else{
-                $check = $row['checked_status'];
-            }
-            if($check == TRUE){
-                if($rol == 1 OR $rol == 2 OR $rol == 4){
-    
-                    if(password_verify($password,$password_encriptada) == TRUE){
+                if(self::compilar()){
+                    if(password_verify($password,(string) $password_encriptada) == TRUE){
         
                         $_SESSION['id_usuario'] = $row['id'];
-                        
-                        if ($cookies == TRUE){
+        
+                        if ($this->cookies == "si"){
                             //Cookie de usuario y contraseña
                             setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                             setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                             setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                         }
-    
+        
                         actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
         
-                        mysqli_close($conexion);
-    
-                        $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$ip."</p><p>Accedió el día: ".$fecha."</p></div>";
-    
+                        $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $this->nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$this->ip."</p><p>Accedió el día: ".$this->fecha ."</p></div>";
+        
                         if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
                             header("Location: $location");
                         }
         
-                        }else{
-                            mysqli_close($conexion);
-                            return FALSE;
-                        }
+                    }else{
+                        return FALSE;
+                    }
                 }
             }else{
                 $ssl_tls = check_http();
                 $key = generar_llave_alteratorio(16);
-                $fecha_1_day = date("Y-m-d H:i:s", strtotime($fecha . "+ 1 days"));
-                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
+                $fecha_1_day = fecha_1_day;
+                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$this->check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
                 insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
-                $conexion -> close();
                 if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
                 ?>
                 <script>
@@ -394,16 +381,27 @@ function login_admin($login_email,$login_password,$table_DB,$location,$check_use
                 header("refresh:1;");
                 }
             }
-        }else{
-        mysqli_close($conexion);
         }
-            
+    }
+    // Destructor
+    public function __destruct() {
+        // Borrar los datos sensibles antes de que el objeto sea destruido
+        $this->correo = null;
+        $this->contra = null;
+        $this->conexion->close(); // Cerrar la conexión a la base de datos
+        // También puedes borrar otros datos sensibles que puedan estar almacenados en el objeto
+        unset($this->tabla);
+        unset($this->redireccion);
+        unset($this->check_user);
+        unset($this->cookies);
+        unset($this->modo_admin);
+    }
 }
 
 function cookie_session($sesion,$localizacion_admin,$localizacion_users){
     $consulta = consulta_mysqli_where("id_rol","users","id",$sesion);
     $resultado = $consulta["id_rol"];
-    if ($resultado == 1 OR $resultado == 2 OR $resultado == 4){
+    if ($resultado == 1 || $resultado == 2 || $resultado == 4){
         header("Location: $localizacion_admin");
     }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
         header("Location: $localizacion_users");
@@ -432,7 +430,7 @@ function login_cookie($table_DB){
     }
 }
 
-function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
+function registro($table_db,$name_user,$email_user,$contra_user,$rol_user,$factor = "D", $factor_type = "correo"){
     global $fecha;
     $conexion = conect_mysqli();
     $nombre = mysqli_real_escape_string($conexion, (string) $name_user);
@@ -441,6 +439,7 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
 	$password_encriptada = password_hash($password,PASSWORD_BCRYPT,["cost"=>10]);
 	$rol = mysqli_real_escape_string($conexion,(string) $rol_user);
     $rol = (int)$rol;
+	$fa_status = mysqli_real_escape_string($conexion,(string) $factor);
 
 
     $sql_check = "SELECT id FROM $table_db WHERE email = '$email'";
@@ -451,8 +450,8 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user){
     if ($filas <= 0) {
         global $nombre_app;
         $key = generar_llave_alteratorio(16);
-        insertar_datos_clasic_mysqli($table_db,"name, email, password, id_rol, created_at, updated_at","'$nombre', '$email', '$password_encriptada', '$rol', '$fecha', NULL");
-        if(!isset($_ENV['CHECK_USER']) OR $_ENV['CHECK_USER'] != 1){
+        insertar_datos_clasic_mysqli($table_db,"name, email, password, id_rol, fa, type_fa, created_at, updated_at","'$nombre', '$email', '$password_encriptada', '$rol', '$fa_status', '$factor_type', '$fecha', NULL");
+        if(!isset($_ENV['CHECK_USER']) || $_ENV['CHECK_USER'] != 1){
             $cuerpo_de_correo = "<div><p align='justify'>Te has registrado de manera correcta en ". $nombre_app .", esperamos sea de tu agrado.😊</p></div><div><p>Bienvenido $nombre.</p></div>";
             mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email);
         }else{
@@ -637,7 +636,7 @@ function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
 }
 
 function mail_WP( $to, $subject, $message, $headers = '', $attachments  = [] ){
-    if($_ENV['SMTP_ACTIVE'] != 1 OR !isset($_ENV['SMTP_ACTIVE'])){
+    if($_ENV['SMTP_ACTIVE'] != 1 || !isset($_ENV['SMTP_ACTIVE'])){
         return false;
     }elseif($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . DIRECTORY_SEPARATOR ."config/correo/correo_wp.php");
@@ -971,10 +970,13 @@ function borrar_directorio($dirname) {
 }
 
 function check_http(){
-    if($_ENV['DOMINIO'] != "localhost"){
-        return "https://";
-    }elseif($_ENV['DOMINIO'] == "localhost" OR $_ENV['DOMINIO'] == "127.0.0.1"){
-        return "http://";
+    $domain = $_ENV['DOMINIO'];
+    if (isset($domain) && $domain !== 'localhost' && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
+        return 'https://';
+    } elseif (!isset($domain) || $domain === 'localhost' || !isset($_SERVER['HTTPS']) || $_SERVER['HTTPS'] !== 'on') {
+        return 'http://';
+    } else {
+        return '';
     }
 }
 
@@ -1026,7 +1028,7 @@ class fecha_cliente{
     }
 }
 
-if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
+if($_ENV['RECAPTCHA'] != 1 || !isset($_ENV['RECAPTCHA'])){
     function recaptcha(){
         return true;
     }
@@ -1051,7 +1053,7 @@ if($_ENV['RECAPTCHA'] != 1 OR !isset($_ENV['RECAPTCHA'])){
             return TRUE;
         }
     }
-
+    
 }
 
 if(isset($_POST['salir'])){
@@ -1059,15 +1061,19 @@ if(isset($_POST['salir'])){
     header("Location: ./../panel");
 }
 
-if ($_ENV['PLUGINS'] != 1 OR !isset($_ENV['PLUGINS'])){
+if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
     if($_ENV['DEBUG']){
         echo "<script>console.log('".$_ENV['NAME_APP']." tiene desactivado el sistema de plugins.');</script>";
     }
 }elseif($_ENV['PLUGINS'] == 1){
     function all_in_one($select){
         $select = (int)$select;
-        include (__DIR__ . "/plugins/all in one/allinone.php");
-        return allinone_zip_finish($select);
+        if(!file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/all in one/allinone.php")){
+            return FALSE;
+        }else{
+            include_once (__DIR__ . DIRECTORY_SEPARATOR . "plugins/all in one/allinone.php");
+            return allinone_zip_finish($select);
+        }
     }
     function not_pay(){
         include (__DIR__ . "/plugins/dont_pay/index.php");
@@ -1103,7 +1109,13 @@ if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/not_paid.php")){
     include (__DIR__ . DIRECTORY_SEPARATOR . "config/not_paid.php");
 }
 
+// Tareas programadas.
 if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/extension/task.php")){
     include (__DIR__ . DIRECTORY_SEPARATOR . "config/extension/task.php");
+}
+
+// SysNAND
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/sistema/system_JosSecurity_config.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "config/sistema/system_JosSecurity_config.php");
 }
 ?>

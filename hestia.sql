@@ -200,6 +200,8 @@ CREATE TABLE `users` (
   `phone` varchar(21) DEFAULT NULL,
   `checked_status` varchar(5) DEFAULT NULL,
   `last_ip` varchar(255) DEFAULT NULL,
+  `fa` varchar(1) NOT NULL,
+  `type_fa` varchar(15) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -208,8 +210,8 @@ CREATE TABLE `users` (
 -- Volcado de datos para la tabla `users`
 --
 
-INSERT INTO `users` (`id`, `name`, `email`, `password`, `id_rol`, `phone`, `checked_status`, `last_ip`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, NULL, "TRUE", '::1', '2022-10-04 00:39:35', '2022-10-04 01:08:27');
+INSERT INTO `users` (`id`, `name`, `email`, `password`, `id_rol`, `phone`, `checked_status`, `last_ip`, `fa`, `type_fa`, `created_at`, `updated_at`) VALUES
+(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, NULL, 'TRUE', '::1', 'D', 'correo','2022-10-04 00:39:35', '2022-10-04 01:08:27');
 
 --
 -- Índices para tablas volcadas

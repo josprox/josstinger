@@ -821,4 +821,82 @@ button {
 }
 .directorios li i {
   color: #f2b16f;
+}
+
+.dashboard_index {
+  min-width: 120px;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+  padding: 10px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+.dashboard_index .fondo_oscuro {
+  background-color: #212529;
+  color: #fff;
+}
+.dashboard_index .fondo_blanco {
+  background-color: #fff;
+  color: #212529;
+}
+.dashboard_index .bienvenida {
+  border-radius: 12px;
+  margin: 0;
+  padding: 8px;
+  width: auto;
+  height: auto;
+  text-align: center;
+}
+.dashboard_index .bienvenida p {
+  font-size: 1.5em;
+}
+.dashboard_index .tabla {
+  margin: 12px 8px;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+}
+.dashboard_index .tabla .tarjeta {
+  padding: 10px;
+  margin: 12px 8px;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.dashboard_index .tabla .tarjeta i {
+  font-size: 2em;
+  display: block;
+}
+.dashboard_index .tabla .tarjeta p {
+  font-size: 1em;
+  display: block;
+}
+.dashboard_index .tabla .tarjeta b {
+  color: #d63384;
+}
+.dashboard_index .tabla .tarjeta .correcto {
+  color: #198754;
+}
+.dashboard_index .tabla .tarjeta .advertencia {
+  color: #ffc107;
+}
+@media screen and (min-width: 500px) {
+  .dashboard_index {
+    height: 98%;
+  }
+  .dashboard_index .tabla {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media screen and (min-width: 620px) {
+  .dashboard_index {
+    height: 96%;
+  }
+  .dashboard_index .tabla {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }/*# sourceMappingURL=hestia.css.map */

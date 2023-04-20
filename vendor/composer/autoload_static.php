@@ -41,6 +41,10 @@ class ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c
         array (
             'MercadoPago\\' => 12,
         ),
+        'I' => 
+        array (
+            'Intervention\\Image\\' => 19,
+        ),
         'G' => 
         array (
             'GuzzleHttp\\Psr7\\' => 16,
@@ -104,6 +108,10 @@ class ComposerStaticInit694aead9715d7a7d5b52b3d663222d7c
             2 => __DIR__ . '/..' . '/mercadopago/dx-php/src/MercadoPago/Generic',
             3 => __DIR__ . '/..' . '/mercadopago/dx-php/src/MercadoPago/Entities',
             4 => __DIR__ . '/..' . '/mercadopago/dx-php/src/MercadoPago/Entities/Shared',
+        ),
+        'Intervention\\Image\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/intervention/image/src/Intervention/Image',
         ),
         'GuzzleHttp\\Psr7\\' => 
         array (
