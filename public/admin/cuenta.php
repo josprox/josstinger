@@ -9,7 +9,14 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $iduser = $_SESSION['id_usuario'];
+
 secure_auth_admin($iduser,"../");
+$cst = new GranMySQL();
+$cst -> seleccion = "*";
+$cst -> tabla = "users";
+$cst -> comparar = "id";
+$cst -> comparable = $iduser;
+$row = $cst -> where();
 
 if(isset($_POST['actualizar_info'])){
 
@@ -30,7 +37,7 @@ if(isset($_POST['actualizar_info'])){
   if(password_verify($password,(string) $consulta['password']) == TRUE){
     actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email', `phone` = '$phone', `fa` = '$fa', `type_fa` = '$type_fa'","id",$iduser);
   }
-
+  header("refresh:1;");
 }
 
 if(isset($_POST['update_password'])){
@@ -48,10 +55,27 @@ if(isset($_POST['update_password'])){
       actualizar_datos_mysqli('users',"`password` = '$password_encriptada'",'id',$iduser);
     }
   }
-
-  mysqli_close($conexion);
+  $conexion-> close();
 }
-$row = consulta_mysqli_where("*","users","id",$iduser);
+if(isset($_POST['2FAGA'])){
+  $conexion = conect_mysqli();
+  //llave
+  $llave = mysqli_real_escape_string($conexion, (string) $_POST['llave']);
+  //codigo
+  $codigo = mysqli_real_escape_string($conexion, (string) $_POST['codigo']);
+  //checker
+  validarToken($iduser,$llave,$codigo);
+}
+if(isset($_POST['2fadesactivar'])){
+  $cst->seleccion = "fa";
+  $info = $cst -> where();
+  if($info['fa'] == "A"){
+    actualizar_datos_mysqli("users","`fa` = 'A', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
+  }else{
+    actualizar_datos_mysqli("users","`fa` = 'D', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
+  }
+  header("refresh:1;");
+}
 
 ?>
 
@@ -76,73 +100,128 @@ $row = consulta_mysqli_where("*","users","id",$iduser);
 
   <div class="container">
     <h2 align="center">Modifica tu información</h2>
-    <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
-      <div class="grid_3_auto">
-
-        <div class="mb-3 contenedor">
-          <label for="id" class="form-label"><i class="fa fa-id-badge" aria-hidden="true"></i></label>
-          <input type="text"
-            class="form-control" name="id" id="id" aria-describedby="id" disabled placeholder="ID" value="<?php echo $row['id']; ?>">
-          <small id="id" class="form-text text-muted">Mi ID</small>
-        </div>
-  
-        <div class="mb-3 contenedor">
-          <label for="name" class="form-label">Nombre</label>
-          <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>" required>
-          <small id="name" class="form-text text-muted">Nombre registrado</small>
-        </div>
-  
-        <div class="mb-3 contenedor">
-          <label for="correo" class="form-label">Correo</label>
-          <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>" required>
-          <small id="correo" class="form-text text-muted">Correo Registrado</small>
-        </div>
-  
-        <div class="mb-3 contenedor">
-          <label for="phone" class="form-label">Número de telefono</label>
-          <input type="tel" class="form-control" name="phone" id="phone" aria-describedby="phone" placeholder="+5255XXXXXXXX" value="<?php echo $row['phone']; ?>">
-        </div>
-
-        <div class="mb-3 contenedor">
-          <div class="form-check form-switch">
-            <input class="form-check-input" type="checkbox" <?php if($row['fa'] == "A"){echo "checked";} ?> name="factor" id="factor">
-            <label class="form-check-label" for="factor">¿Desea Activar la seguridad extrema?</label>
+    <div class="auth_dashboard">
+      <div class="dash">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+    
+          <div class="grid_3_auto">
+    
+            <div class="mb-3 contenedor">
+              <label for="id" class="form-label"><i class="fa fa-id-badge" aria-hidden="true"></i></label>
+              <input type="text"
+                class="form-control" name="id" id="id" aria-describedby="id" disabled placeholder="ID" value="<?php echo $row['id']; ?>">
+              <small id="id" class="form-text text-muted">Mi ID</small>
+            </div>
+      
+            <div class="mb-3 contenedor">
+              <label for="name" class="form-label">Nombre</label>
+              <input type="text" class="form-control" name="name" id="name" aria-describedby="name" placeholder="Nombre" value="<?php echo $row['name']; ?>" required>
+              <small id="name" class="form-text text-muted">Nombre registrado</small>
+            </div>
+      
+            <div class="mb-3 contenedor">
+              <label for="correo" class="form-label">Correo</label>
+              <input type="text" class="form-control" name="correo" id="correo" aria-describedby="correo" placeholder="correo" value="<?php echo $row['email']; ?>" required>
+              <small id="correo" class="form-text text-muted">Correo Registrado</small>
+            </div>
+      
+            <div class="mb-3 contenedor">
+              <label for="phone" class="form-label">Número de telefono</label>
+              <input type="tel" class="form-control" name="phone" id="phone" aria-describedby="phone" placeholder="+5255XXXXXXXX" value="<?php echo $row['phone']; ?>">
+            </div>
+    
+            <div class="mb-3 contenedor">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" <?php if($row['fa'] == "A"){echo "checked";} ?> name="factor" id="factor">
+                <label class="form-check-label" for="factor">¿Desea Activar la seguridad extrema?</label>
+              </div>
+              <div class="mb-3">
+                <label for="type_fa" class="form-label">Seleccione el metodo de seguridad</label>
+                <select class="form-select form-select-sm" name="type_fa" id="type_fa">
+                  <option selected value="correo">Correo</option>
+                  <?php
+                  if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1 && $row['phone'] != ""){
+                    ?>
+                    <option value="sms">SMS</option>
+                    <?php
+                  }
+                  ?>
+                  <option value="GG">Google Auth</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="mb-3 contenedor">
+              <div class="mb-3">
+                <label for="contra" class="form-label">Contraseña</label>
+                <input type="text"
+                  class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
+                <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
+              </div>
+            </div>
+    
           </div>
-          <div class="mb-3">
-            <label for="type_fa" class="form-label">Seleccione el metodo de seguridad</label>
-            <select class="form-select form-select-sm" name="type_fa" id="type_fa">
-              <option selected value="correo">Correo</option>
-              <?php
-              if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1 && $row['phone'] != ""){
-                ?>
-                <option value="sms">SMS</option>
-                <?php
-              }
+    
+          <div class="flex_center">
+            <div class="mb-3">
+                <button type="submit" name="actualizar_info" class="btn btn-primary">Actualizar información personal</button>
+            </div>
+          </div>
+    
+        </form>
+      </div>
+      <div class="auth">
+        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+          <h3>Activa la seguridad 2FA</h3>
+          <?php
+            if($row['two_fa'] == NULL){
+              $datos = DatosGA($row['email']);
               ?>
-              <option value="GG">Google Auth (proximamente)</option>
-            </select>
-          </div>
-        </div>
-        
-        <div class="mb-3 contenedor">
-          <div class="mb-3">
-            <label for="contra" class="form-label">Contraseña</label>
-            <input type="text"
-              class="form-control" name="contra" id="contra" aria-describedby="contra" placeholder="Pon la contraseña" required>
-            <small id="contra" class="form-text text-muted">Para poder modificar tus datos favor de poner la contraseña.</small>
-          </div>
-        </div>
-
+              <div class="grid_2_auto">
+                <img src="../../resourses/img/Authenticator.webp" alt="">
+                <img src="<?php echo ruta . "qrcode?info=" . $datos['url'] ; ?>" alt="">
+              </div>
+              <p>Te recomendamos activar la seguridad 2FA, por favor escane el QR que ve a continuación (beta) o registre el siguiente código en su aplicación de 2FA, puede hacerlo con Google Authenticator, Authy, etc.</p>
+              <div class="mb-3">
+                <input type="hidden" name="llave" value="<?php echo $datos['secretKey']; ?>">
+                <input type="text"
+                  class="form-control" id="url" aria-describedby="url" placeholder="Aquí está la clave" value="<?php echo $datos['url']; ?>" disabled>
+                <small id="url" class="form-text text-muted">Registra la clave que se muestra a continuación en tu app.</small>
+              </div>
+              <div class="mb-3">
+                <input type="number"
+                  class="form-control" name="codigo" id="codigo" aria-describedby="codigo" placeholder="Pon el codigo que aparece en tu aplicación.">
+                <small id="codigo" class="form-text text-muted">Aquí deberás poner el código que aparece en tu app.</small>
+              </div>
+              <div class="flex_center">
+                <button type="submit" name="2FAGA" class="btn btn-info">Guardar</button>
+              </div>
+              <?php
+            }elseif($row['type_fa'] != "GG" && $row['two_fa'] != NULL){
+              ?>
+              <img src="../../resourses/img/Authenticator.webp" alt="">
+              <h3>Sistema 2FA</h3>
+              <p>Ya puede activar como metodo de seguridad Google 2FA.😉</p>
+              <div class="flex_center">
+                <button name="2fadesactivar" type="submit" class="btn btn-primary">Desactivar</button>
+              </div>
+              <?php
+            }elseif($row['type_fa'] == "GG" && $row['two_fa'] != NULL){
+              ?>
+              <img src="../../resourses/img/Authenticator.webp" alt="">
+              <h3>Sistema 2FA</h3>
+              <p>Actualmente ya tienes activado 2FA en tu cuenta.😉</p>
+              <div class="flex_center">
+                <button name="2fadesactivar" type="submit" class="btn btn-primary">Desactivar</button>
+              </div>
+              <?php
+            }
+          ?>
+        </form>
       </div>
+    </div>
 
-      <div class="flex_center">
-        <div class="mb-3">
-            <button type="submit" name="actualizar_info" class="btn btn-primary">Actualizar información personal</button>
-        </div>
-      </div>
-
-    </form>
 
     <h2 align="center">Modificar contraseña</h2>
 

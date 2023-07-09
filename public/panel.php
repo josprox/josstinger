@@ -126,13 +126,25 @@ login_cookie("users");
             }else{
                 $cookies = "si";
             }
-            if(FA($_POST['txtCorreo'],$_POST['txtPassword'],$cookies) == "2fa"){
+            $fa = FA($_POST['txtCorreo'],$_POST['txtPassword'],$_POST['2fa'],$cookies);
+            if($fa == "2fa"){
                 ?>
                 <script>
                     Swal.fire(
                     'Listo',
                     'Hemos detectado que tiene activado el acceso por alta seguridad, favor de usar tu método de acceso.',
                     'success'
+                    )
+                </script>
+                <?php header("refresh:1;"); ?>
+                <?php
+            }if($fa == "error"){
+                ?>
+                <script>
+                    Swal.fire(
+                    'Error',
+                    'No hemos podido verificar tu accceso por 2FA.',
+                    'error'
                     )
                 </script>
                 <?php header("refresh:1;"); ?>
@@ -481,6 +493,14 @@ login_cookie("users");
                             <div class="grid_1_auto">
                                 <label for="">contraseña</label>
                                 <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
+                            </div>
+                            <div class="grid_1_auto">
+                                <div class="mb-3">
+                                  <label for="2fa" class="form-label">Código 2FA</label>
+                                  <input type="number"
+                                    class="form-control" name="2fa" id="2fa" aria-describedby="2fa" placeholder="Pon el código 2FA si lo tienes activado.">
+                                  <small id="2fa" class="form-text text-muted">Si tienes configurado un acceso por 2FA de Google, por favor pon aquí tu número de acceso.</small>
+                                </div>
                             </div>
                             <div class="grid_1_auto">
                                 <div class="form-check form-switch">

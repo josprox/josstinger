@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "2.1";
+$version_app_default = "2.3";
 
 if(isset($_POST['instalar'])){
 
@@ -168,11 +168,11 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "# Datos de la aplicación.\n");
   if($name_app_default == $name_app){
     
-    fwrite($env_create, "NAME_APP=".$name_app_default."\n");
+    fwrite($env_create, "NAME_APP='".$name_app_default."'\n");
     
   }elseif($name_app_default != $name_app){
 
-    fwrite($env_create, "NAME_APP=".$name_app."\n");
+    fwrite($env_create, "NAME_APP='".$name_app."'\n");
 
   }
   if($version_app_default == $version_app){
@@ -238,7 +238,7 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "SMTP_ACTIVE=1\n");
   fwrite($env_create, "SMTP_SERVER=".$server_smtp."\n");
   fwrite($env_create, "SMTP_USERNAME=".$user_smtp."\n");
-  fwrite($env_create, "SMTP_PASSWORD=".$pass_smtp."\n");
+  fwrite($env_create, "SMTP_PASSWORD='".$pass_smtp."'\n");
   fwrite($env_create, "SMTP_PORT=".$smtp_port."\n\n");
 
   fwrite($env_create, "# Dominio registrado\n");

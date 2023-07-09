@@ -3,9 +3,15 @@
 // JosSecurity, la mejor seguridad al alcance de tus manos.
 
 // NO ELIMINES las lineas 6 a 9 por seguridad, si tu borras estas linea dejará de funcionar JosSecurity.
-require_once (__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php');
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php')){
+    require_once (__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php');
+}else{
+    echo "El sistema no puede detectar el autoload de vendor.";
+}
 $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+use PragmaRX\Google2FAQRCode\Google2FA;
+use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
 session_start();
 date_default_timezone_set($_ENV['ZONA_HORARIA']);
 
@@ -88,8 +94,46 @@ function footer_admin(){
     return include (__DIR__ . "/config/general_rutes/footer/footer_admin.php");
 }
 
-// JosSecurity
+// JosSecurity configuración del sistema.
 
+// Google 2FA
+// Genera una clave secreta aleatoria para el usuario
+function SecretKeyGA(){
+    $google2fa = new GoogleAuthenticator();
+    $secretKey = $google2fa->generateSecretKey();
+    return $secretKey;
+}
+
+// Muestra los datos de GoogleGenerate
+function DatosGA($correo){
+    $google2fa = new GoogleAuthenticator();
+    $secretKey = SecretKeyGA();
+
+    $url = $google2fa->getQRCodeUrl(
+        nombre_app,
+        $correo,
+        $secretKey
+    );
+
+    $datos = [
+        "secretKey" => $secretKey,
+        "url" => $url
+    ];
+
+    return $datos;
+}
+
+// Verifica si el token proporcionado por el usuario es válido
+function validarToken($id, $secretKey, $token){
+    $google2fa = new GoogleAuthenticator();
+    $valido = $google2fa->verifyKey($secretKey, $token);
+    if($valido == TRUE){
+        actualizar_datos_mysqli("users","`fa` = 'A', `type_fa` = 'GG', `two_fa` = '$secretKey'","id",$id);
+    }
+    return header("refresh:1;");
+}
+
+//Editor de archivos.
 function edit_file($titulo,$directorio){
     $archivo = strip_tags((string) $directorio);
     if(isset($_POST['enviar'])){
@@ -115,7 +159,7 @@ function edit_file($titulo,$directorio){
     </form>
     <?php
 }
-
+// Conexiones a la base de datos
 if ($_ENV['CONECT_DATABASE'] == 1){
 
     if ($_ENV['DEBUG'] == 1){
@@ -126,33 +170,39 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     if($_ENV['CONECT_MYSQLI'] == 1){
 
         function conect_mysqli(){
-            $host = (string)$_ENV['HOST'];
-            $user = (string)$_ENV['USUARIO'];
-            $pass = (string)$_ENV['CONTRA'];
-            $DB = (string)$_ENV['BASE_DE_DATOS'];
-            $puerto = (string)$_ENV['PUERTO'];
-            $conexion = new mysqli("$host","$user", "$pass","$DB", $puerto);
-            $conexion->set_charset("utf8");
-            
-            // AGREGANDO CHARSET UTF8
-            if (!$conexion->set_charset("utf8")) {
-                printf("Error código JSS_utf8, no se puede cargar el conjunto de caracteres utf8: %s\n.", $conexion->error);
-                exit();
-            }
-            
-            if($conexion == TRUE){
-                if ($_ENV['DEBUG'] == 1){
-                    echo "<script>console.log('La conexión mysqli ha funcionado.');</script>";
+            try {
+                $host = (string)$_ENV['HOST'];
+                $user = (string)$_ENV['USUARIO'];
+                $pass = (string)$_ENV['CONTRA'];
+                $DB = (string)$_ENV['BASE_DE_DATOS'];
+                $puerto = (string)$_ENV['PUERTO'];
+                $conexion = new mysqli("$host","$user", "$pass","$DB", $puerto);
+                $conexion->set_charset("utf8");
+                
+                // AGREGANDO CHARSET UTF8
+                if (!$conexion->set_charset("utf8")) {
+                    printf("Error código JSS_utf8, no se puede cargar el conjunto de caracteres utf8: %s\n.", $conexion->error);
+                    exit();
                 }
-            }else{
-                if ($_ENV['DEBUG'] == 1){
-                    echo "<script>console.log('La conexión mysqli ha fallado.');</script>";
+                
+                if($conexion == TRUE){
+                    if ($_ENV['DEBUG'] == 1){
+                        echo "<script>console.log('La conexión mysqli ha funcionado.');</script>";
+                    }
+                }else{
+                    if ($_ENV['DEBUG'] == 1){
+                        echo "<script>console.log('La conexión mysqli ha fallado.');</script>";
+                    }
                 }
+                return $conexion;
+            } catch (Exception $e) {
+                // Manejo del error
+                echo "Error al conectar a la base de datos.";
+                return null; // O cualquier otro manejo que desees darle al error
             }
-        
-            return $conexion;
-        
         }
+        
+        
 
     }
     if($_ENV['CONECT_MYSQLI'] != 1){
@@ -170,25 +220,24 @@ if ($_ENV['CONECT_DATABASE'] == 1){
             $pass = (string)$_ENV['CONTRA'];
             $DB = (string)$_ENV['BASE_DE_DATOS'];
             $puerto = (string)$_ENV['PUERTO'];
-        
+
             try {
                 $pdo = new PDO('mysql:host='.$host.';port='.$puerto.';dbname='.$DB.'', $user, $pass);
-                //echo "conectado";
             } catch (PDOException $e) {
-                print "¡Error!: " . $e->getMessage() . "<br/>";
-                die();
+                echo "¡Error al conectar a la base de datos!: " . $e->getMessage();
+                return null; // O cualquier otro manejo que desees darle al error
             }
-        
-            if($pdo == TRUE){
-                if ($_ENV['DEBUG'] == 1){
+
+            if ($pdo != null) {
+                if ($_ENV['DEBUG'] == 1) {
                     echo "<script>console.log('La conexión mysql ha funcionado.');</script>";
                 }
-            }else{
-                if ($_ENV['DEBUG'] == 1){
+            } else {
+                if ($_ENV['DEBUG'] == 1) {
                     echo "<script>console.log('La conexión mysql ha fallado.');</script>";
                 }
             }
-        
+
             return $pdo;
         }
 
@@ -209,13 +258,15 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     }
 }
 
-function FA($correo, $contra, $cookies="si", $redireccion = "panel"){
+//configuración de logins, registros y cookies
+
+function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
     $conexion = conect_mysqli();
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
     $contra = mysqli_real_escape_string($conexion, (string) $contra);
     $cookies = mysqli_real_escape_string($conexion, $cookies);
     $conexion -> close();
-    $consulta = consulta_mysqli_where("id, name, phone, fa, type_fa, last_ip","users", "email", "'$correo'");
+    $consulta = consulta_mysqli_where("id, name, phone, fa, type_fa, two_fa, last_ip","users", "email", "'$correo'");
     if($consulta['fa'] != "A" || $consulta['last_ip'] == $_SERVER['REMOTE_ADDR']){
         return logins($correo,$contra,"users",$cookies);
     }elseif($consulta['fa'] == "GG"){
@@ -233,6 +284,18 @@ function FA($correo, $contra, $cookies="si", $redireccion = "panel"){
                 $mensaje = "<div><p>Hola de nuevo $nombre_user</p></div><div><p>Si deseas entrar en $nombre_app podrás hacerlo <a href='$web'>dando clic aquí</a>.</p></div>";
                 mail_WP($correo,"Inicia sesión",$mensaje);
             break;
+            case "GG":
+                $llave =(string) $consulta['two_fa'];
+                $google2fa = new GoogleAuthenticator();
+                // Verifica si el código de la aplicación ingresado por el usuario coincide con el código generado a partir de la clave secreta
+                if ($google2fa->verifyKey($llave, $clave, 0)) {
+                    // El código de la aplicación es válido, realiza las acciones necesarias (por ejemplo, permitir el acceso al usuario)
+                    return logins($correo, $contra, "users", $cookies);
+                } else {
+                    // El código de la aplicación no es válido, muestra un mensaje de error o realiza alguna otra acción
+                    return "error";
+                }
+            break;
             case "sms":
                 insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
                 if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
@@ -244,7 +307,6 @@ function FA($correo, $contra, $cookies="si", $redireccion = "panel"){
                     $mensaje = "<div><p>Hola de nuevo $nombre_user</p></div><div><p>Si deseas entrar en $nombre_app podrás hacerlo <a href='$web'>dando clic aquí</a>.</p><p>Haz recibido por este método tu acceso ya que tenemos dificultades en poder enviarle un sms.</p></div>";
                     mail_WP($correo,"Inicia sesión",$mensaje);
                 }
-
         }
         return "2fa";
     }
@@ -490,25 +552,6 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user,$facto
     }
 }
 
-function generar_llave_alteratorio($caracteres){
-    $key = "";
-    $pattern = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
-    $max = strlen($pattern)-1;
-    for($i = 0; $i < $caracteres; $i++){
-        $key .= substr($pattern, random_int(0,$max), 1);
-    }
-    return $key;
-}
-
-function generar_llave($caracteres, $patron){
-    $key = "";
-    $max = strlen($patron)-1;
-    for($i = 0; $i < $caracteres; $i++){
-        $key .= substr($patron, random_int(0,$max), 1);
-    }
-    return $key;
-}
-
 function resetear_contra($correo){
     $key = generar_llave_alteratorio(16);
     $consulta = consulta_mysqli_where("id","users","email","'$correo'");
@@ -626,6 +669,29 @@ function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
        }
 }
 
+//Generador de llaves
+
+function generar_llave_alteratorio($caracteres){
+    $key = "";
+    $pattern = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890";
+    $max = strlen($pattern)-1;
+    for($i = 0; $i < $caracteres; $i++){
+        $key .= substr($pattern, random_int(0,$max), 1);
+    }
+    return $key;
+}
+
+function generar_llave($caracteres, $patron){
+    $key = "";
+    $max = strlen($patron)-1;
+    for($i = 0; $i < $caracteres; $i++){
+        $key .= substr($patron, random_int(0,$max), 1);
+    }
+    return $key;
+}
+
+// Jossitos de correo
+
 function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
     if($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . "/config/correo/correo.php");
@@ -640,7 +706,7 @@ function mail_WP( $to, $subject, $message, $headers = '', $attachments  = [] ){
         return false;
     }elseif($_ENV['SMTP_ACTIVE'] == 1){
         include (__DIR__ . DIRECTORY_SEPARATOR ."config/correo/correo_wp.php");
-        return mi_mail($to, $subject, $message, $headers, $attachments);
+        return mi_mail_v2($to, $subject, $message, $headers, $attachments);
     }
 }
 
@@ -661,10 +727,15 @@ function mail_smtp_v1_3_check($correo){
         return FALSE;
     }
 }
+
+//Consultas, lecturas, inserciones y eliminaciones de datos para MySQL o MariaDB, se recomienda usar estos Jossitos dentro del sistema, si vas a permitir que los usuarios registren información a tu base de datos a través de un formulario, se recomienda usar el plugin GranMySQL.
+
 function arreglo_consulta($code){
     $conexion = conect_mysql();
-    $sql = "$code";
-    $query = $conexion->query($sql);
+    $sql = $code;
+    $stmt = $conexion->prepare($sql);
+    $stmt->execute();
+    $query = $stmt->fetchAll(PDO::FETCH_ASSOC);
     $conexion = null;
     return $query;
 }
@@ -891,6 +962,8 @@ function eliminar_tabla_PDO($tabla){
     $pdo -> exec($sql);
 }
 
+//Reproductor nativo
+
 function reproductor_video($url){
     ?>
     <video class="fm-video video-js vjs-16-9 vjs-big-play-centered" style="margin-top: 12px; margin-bottom: 12px;" data-setup="{}" controls id="form-video">
@@ -898,6 +971,9 @@ function reproductor_video($url){
     </video>
     <?php
 }
+
+//mensaje de cookies nativo
+
 function cookie(){
     ?>
     <div class="aviso-cookies" id="aviso-cookies">
@@ -911,6 +987,8 @@ function cookie(){
     <?php
 }
 
+//Sistema de seguridad para el administrador
+
 function secure_auth_admin($iduser,$location){
     $rol = consulta_mysqli_where("id_rol","users","id",$iduser);
     $check_user = $rol['id_rol'];
@@ -919,14 +997,15 @@ function secure_auth_admin($iduser,$location){
         header("location: $location");
     }
 }
-
+//Jossito para traer el nombre de la página donde se encuentra
 function nombre_de_pagina(){
     $url = explode("/", (string) $_SERVER['SCRIPT_NAME']);
     $url = array_reverse($url);
     $url = $url[0];
     return $url;
 }
-
+//Jossitos para creación, movimiento de archivos y borrador de directorio con su contenido.
+//Estos Jossitos probablemente desaparezcan para agregarlos al SysNAND
 function crear_archivo($directorio,$contenido_C){
     $dirname = __DIR__ . DIRECTORY_SEPARATOR . $directorio;
     $create = fopen($dirname, 'w');
@@ -969,6 +1048,8 @@ function borrar_directorio($dirname) {
 	 return true;
 }
 
+//Jossitos para comprobación interna de seguridad SSL/TLS a través del puerto 80 o 443
+
 function check_http(){
     $domain = $_ENV['DOMINIO'];
     if (isset($domain) && $domain !== 'localhost' && isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') {
@@ -979,6 +1060,8 @@ function check_http(){
         return '';
     }
 }
+
+//Cron de JosSecurity
 
 function evento_programado($task_name, $schedule, $interval) {
     $fecha = fecha;
@@ -1000,7 +1083,7 @@ function evento_programado($task_name, $schedule, $interval) {
         insertar_datos_custom_mysqli("INSERT INTO tareas (funcion, sig_fecha, created_at) VALUES ('$task_name', '$next_run','$fecha')");
     }
 }
-
+//Jossito para comprobar zona horaria del cliente
 class fecha_cliente{
     private $zona;
     function __construct(){
@@ -1027,6 +1110,8 @@ class fecha_cliente{
         date_default_timezone_set($_ENV['ZONA_HORARIA']);
     }
 }
+
+//Sistema de Recaptcha
 
 if($_ENV['RECAPTCHA'] != 1 || !isset($_ENV['RECAPTCHA'])){
     function recaptcha(){
@@ -1056,10 +1141,14 @@ if($_ENV['RECAPTCHA'] != 1 || !isset($_ENV['RECAPTCHA'])){
     
 }
 
+//Post "salir" para permitir un logout de manera segura
+
 if(isset($_POST['salir'])){
     logout("","users");
     header("Location: ./../panel");
 }
+
+//Sistema de plugins
 
 if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
     if($_ENV['DEBUG']){
@@ -1085,9 +1174,6 @@ if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
     if(file_exists(__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php")){
         include (__DIR__ . "/plugins/Visibility_Logic/Visibility_Logic.php");
     }
-    if(file_exists(__DIR__ . "/plugins/granmysql/gran_mysql.php")){
-        include (__DIR__ . "/plugins/granmysql/gran_mysql.php");
-    }
     if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
         if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php")){
             include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/twilio/SDK.php");
@@ -1097,6 +1183,11 @@ if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
             include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/onesignal/SDK.php");
         }
     }
+}
+
+// Se ha integrado Gran MySQL como una herramienta completa, dejando de ser solo un plugin.
+if(file_exists(__DIR__ . "/config/extension/granmysql/gran_mysql.php")){
+    include (__DIR__ . "/config/extension/granmysql/gran_mysql.php");
 }
 
 // Podrás crear tus propios Jossitos en el achivo mis_jossitos.php en la carpeta config.

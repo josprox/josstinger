@@ -186,6 +186,14 @@ $i:1;
     align-items: start;
 }
 
+.grid_auto {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-rows: minmax(50px, auto);
+    padding: 8px;
+    align-items: start;
+}
+
 .navbar_dashboard{
     background-color: rgba(232, 9, 240, 0.671);
     border-bottom-left-radius: 12px;

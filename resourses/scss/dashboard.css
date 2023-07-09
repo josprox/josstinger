@@ -802,4 +802,44 @@ button {
   font-size: 1.2em;
   margin: 8px 6px;
   padding: 6px;
+}
+
+.auth_dashboard {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  align-items: start;
+  grid-template-areas: "auth" "dash";
+  margin: 12px auto;
+  width: 100%;
+}
+.auth_dashboard .dash {
+  grid-area: dash;
+  margin: 8px auto;
+  width: 100%;
+}
+.auth_dashboard .auth {
+  grid-area: auth;
+  margin: 8px auto;
+  width: 98%;
+  background-color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+}
+.auth_dashboard .auth h3 {
+  text-align: center;
+}
+.auth_dashboard .auth img {
+  width: 120px;
+  height: 120px;
+}
+.auth_dashboard .auth p {
+  text-align: justify;
+}
+@media screen and (min-width: 600px) {
+  .auth_dashboard {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "dash dash auth";
+  }
 }/*# sourceMappingURL=dashboard.css.map */

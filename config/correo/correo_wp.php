@@ -4,7 +4,7 @@
     use PHPMailer\PHPMailer\PHPMailer;
     use PHPMailer\PHPMailer\SMTP;
     use PHPMailer\PHPMailer\Exception;
-    function mi_mail( $to, $subject, $message, $headers = '', $attachments  = [] ) {
+    function mi_mail_v2( $to, $subject, $message, $headers = '', $attachments  = [] ) {
     require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/Exception.php';
       require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/PHPMailer.php';
       require __DIR__ . DIRECTORY_SEPARATOR . '../../vendor/phpmailer/phpmailer/src/SMTP.php';

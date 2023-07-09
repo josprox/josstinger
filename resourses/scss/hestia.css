@@ -301,6 +301,14 @@ button {
   align-items: start;
 }
 
+.grid_auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-rows: minmax(50px, auto);
+  padding: 8px;
+  align-items: start;
+}
+
 .navbar_dashboard {
   background-color: rgba(232, 9, 240, 0.671);
   border-bottom-left-radius: 12px;
@@ -495,8 +503,8 @@ button {
 }
 
 body {
-  background-color: #FA8BFF;
-  background-image: linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
+  background-color: #FFDEE9;
+  background-image: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
@@ -642,7 +650,7 @@ button {
 .navbar-transparent .navbar-nav .dropdown-menu .dropdown-item {
   color: #fff;
 }
-.navbar-transparent .navbar-nav .dropdown-menu .dropdown-item:hover {
+.navbar-transparent .navbar-nav .dropdown-menu .dropdown-item:hover, .navbar-transparent .navbar-nav .dropdown-menu .dropdown-item:active {
   background-color: #198754;
   color: #fff;
 }
@@ -823,6 +831,46 @@ button {
   color: #f2b16f;
 }
 
+.auth_dashboard {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-rows: minmax(50px, auto);
+  align-items: start;
+  grid-template-areas: "auth" "dash";
+  margin: 12px auto;
+  width: 100%;
+}
+.auth_dashboard .dash {
+  grid-area: dash;
+  margin: 8px auto;
+  width: 100%;
+}
+.auth_dashboard .auth {
+  grid-area: auth;
+  margin: 8px auto;
+  width: 98%;
+  background-color: #fff;
+  padding: 12px;
+  border-radius: 12px;
+}
+.auth_dashboard .auth h3 {
+  text-align: center;
+}
+.auth_dashboard .auth img {
+  width: 120px;
+  height: 120px;
+}
+.auth_dashboard .auth p {
+  text-align: justify;
+}
+@media screen and (min-width: 600px) {
+  .auth_dashboard {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "dash dash auth";
+  }
+}
+
 .dashboard_index {
   min-width: 120px;
   height: 100%;
@@ -850,6 +898,63 @@ button {
 }
 .dashboard_index .bienvenida p {
   font-size: 1.5em;
+}
+.dashboard_index .accesos {
+  margin: 12px 8px;
+  display: grid;
+  grid-template-rows: minmax(50px, auto);
+  grid-template-columns: repeat(1, 1fr);
+  grid-template-areas: "titulo" "titulo" "API" "ad";
+  background-color: rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+}
+.dashboard_index .accesos .titulo {
+  margin: 12px 8px;
+  grid-area: titulo;
+  text-align: center;
+  color: #fff;
+}
+.dashboard_index .accesos .api {
+  grid-area: API;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 12px 8px;
+  border-radius: 12px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.dashboard_index .accesos .api i {
+  font-size: 2em;
+  display: block;
+}
+.dashboard_index .accesos .api button {
+  margin-top: 12px;
+}
+.dashboard_index .accesos .ad {
+  grid-area: ad;
+  border-radius: 12px;
+  padding: 10px;
+  margin: 12px 8px;
+  border-radius: 12px;
+  text-align: center;
+}
+.dashboard_index .accesos .ad a {
+  border-radius: 12px;
+  text-decoration: none;
+}
+.dashboard_index .accesos .ad a:hover {
+  background-color: #198754;
+}
+.dashboard_index .accesos .ad a i {
+  margin-top: 12px;
+  font-size: 2em;
+  display: block;
+}
+.dashboard_index .accesos .ad a p {
+  color: #fff;
 }
 .dashboard_index .tabla {
   margin: 12px 8px;
@@ -898,5 +1003,9 @@ button {
   }
   .dashboard_index .tabla {
     grid-template-columns: repeat(3, 1fr);
+  }
+  .dashboard_index .accesos {
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-areas: "titulo titulo titulo" "API ad ad";
   }
 }/*# sourceMappingURL=hestia.css.map */

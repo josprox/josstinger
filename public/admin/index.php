@@ -13,15 +13,14 @@ if (!isset($_SESSION['id_usuario'])) {
 $iduser = $_SESSION['id_usuario'];
 secure_auth_admin($iduser,"../");
 
-//$row = consulta_mysqli_where("name","users","id",$iduser);
 $row = new GranMySQL();
-$row -> seleccion = "name";
+$row -> seleccion = "name, email";
 $row -> tabla = "users";
 $row -> comparar = "id";
 $row -> comparable = $iduser;
 $consulta = $row -> where();
-$sistema = new SysJosSecurity\SysNAND();
 
+$sistema = new SysJosSecurity\SysNAND();
 ?>
 
 <!doctype html>
@@ -95,7 +94,55 @@ $sistema = new SysJosSecurity\SysNAND();
     }
   }
   if(isset($_POST['eliminar'])){
-    unlink('./../../installer.php');
+    $ruta = __DIR__ . DIRECTORY_SEPARATOR . "../../installer.php";
+    if(file_exists($ruta)){
+      unlink($ruta);
+      ?>
+      <script>
+          Swal.fire(
+          'Ya está',
+          'Se ha eliminado el archivo installer de manera correcta.',
+          'success'
+          )
+      </script>
+      <?php
+    }else{
+      ?>
+      <script>
+          Swal.fire(
+          'No pudimos',
+          'No se ha encontrado el archivo installer.',
+          'error'
+          )
+      </script>
+      <?php
+    }
+  }
+  if(isset($_POST['api_active'])){
+    if(crear_archivo("public/api_public.php","<?php include (__DIR__ . DIRECTORY_SEPARATOR . '../API/index.php'); ?>") == TRUE){
+      ?>
+      <script>
+          Swal.fire(
+          'Ya está',
+          'Se ha activado la API pública, ahora podrás llamarlo en la dirección: <?php echo ruta; ?>api_public.php.',
+          'success'
+          )
+      </script>
+      <?php
+    }
+  }elseif(isset($_POST['api_disabled'])){
+    if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "../api_public.php")){
+      unlink(__DIR__ . DIRECTORY_SEPARATOR . "../api_public.php");
+    }
+    ?>
+      <script>
+          Swal.fire(
+          'Ya está',
+          'Se ha eliminado la API pública.',
+          'success'
+          )
+      </script>
+    <?php
   }
   if (file_exists("./../../installer.php")){?>
   <div class="alert alert-warning" role="alert">
@@ -162,6 +209,32 @@ $sistema = new SysJosSecurity\SysNAND();
                 }
                 ?>
                 <p><?php echo $ssl; ?></p>
+            </div>
+        </main>
+        <main class="accesos">
+            <div class="titulo">
+                <h3>Otras herramientas</h3>
+            </div>
+            <div class="api <?php echo $fondo; ?>">
+                <i class="fa-solid fa-passport"></i>
+                <form action="" method="post">
+                  <?php
+                    if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "../api_public.php")){
+                      ?>
+                        <button type="submit" name="api_disabled" class="btn btn-primary">Desactivar API pública</button>
+                      <?php
+                    }else{
+                      ?>
+                        <button type="submit" name="api_active" class="btn btn-warning">Activar API pública</button>
+                      <?php
+                    }
+                  ?>
+                </form>
+            </div>
+            <div class="ad grid_auto">
+                <a href="cuenta"><i class="fa-solid fa-user"></i><p>Mi Cuenta</p></a>
+                <a href="usuarios"><i class="fa-solid fa-users"></i><p>Usuarios</p></a>
+                <a href="https://jossecurity.josprox.com/documentacion/"><i class="fa-solid fa-shield-halved"></i><p>Documentación</p></a>
             </div>
         </main>
     </section>

@@ -1,7 +1,7 @@
 <!-- Cookies aviso -->
 <script src="./../../resourses/js/aviso-cookies.js"></script>
 <!-- Bootstrap JavaScript Libraries -->
-<script src="./../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+<script src="./../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz" crossorigin="anonymous"></script>
   <!-- Video.js base JS -->
   <script src="./../../resourses/js/video.min.js"></script>
   <!--Funciones del video, desactivar si no se usa-->

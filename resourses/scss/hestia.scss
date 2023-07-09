@@ -26,8 +26,8 @@
     }
 }
 body{
-    background-color: #FA8BFF;
-    background-image: linear-gradient(45deg, #FA8BFF 0%, #2BD2FF 52%, #2BFF88 90%);
+    background-color: #FFDEE9;
+    background-image: linear-gradient(0deg, #FFDEE9 0%, #B5FFFC 100%);
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center;
@@ -155,7 +155,7 @@ button{
         background-color: rgba(0, 0, 0, 0.5);
         .dropdown-item{
             color: $blanco;
-            &:hover{
+            &:hover, &:active{
                 background-color: $verde;
                 color: $blanco;
             }
@@ -339,7 +339,45 @@ button{
         }
     }
 }
-
+.auth_dashboard{
+    padding: 12px;
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    align-items: start;
+    grid-template-areas: "auth""dash";
+    margin: 12px auto;
+    width: 100%;
+    .dash{
+        grid-area: dash;
+        margin: 8px auto;
+        width: 100%;
+    }
+    .auth{
+        grid-area: auth;
+        margin: 8px auto;
+        width: 98%;
+        background-color: $blanco;
+        padding: 12px;
+        border-radius: 12px;
+        h3{
+            text-align: center;
+        }
+        img{
+            width: 120px;
+            height: 120px;
+        }
+        p{
+            text-align: justify;
+        }
+    }
+    @media screen and (min-width: 600px) {
+        &{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-areas: "dash dash auth";
+        }
+    }
+}
 .dashboard_index{
     min-width: 120px;
     height: 100%;
@@ -366,6 +404,64 @@ button{
         text-align: center;
         p{
             font-size: 1.5em;
+        }
+    }
+    .accesos{
+        margin: 12px 8px;
+        display: grid;
+        grid-template-rows: minmax(50px, auto);
+        grid-template-columns: repeat(1, 1fr);
+        grid-template-areas: "titulo" "titulo"
+        "API" "ad";
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 12px;
+        .titulo{
+            margin: 12px 8px;
+            grid-area: titulo;
+            text-align: center;
+            color: $blanco;
+        }
+        .api{
+            grid-area: API;
+            border-radius: 12px;
+            padding: 10px;
+            margin: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            i{
+                font-size: 2em;
+                display: block;
+            }
+            button{
+                margin-top: 12px;
+            }
+        }
+        .ad{
+            grid-area: ad;
+            border-radius: 12px;
+            padding: 10px;
+            margin: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            a{
+                border-radius: 12px;
+                &:hover{
+                    background-color: $verde;
+                }
+                text-decoration: none;
+                i{
+                    margin-top: 12px;
+                    font-size: 2em;
+                    display: block;
+                }
+                p{
+                    color: $blanco;
+                }
+            }
         }
     }
     .tabla{
@@ -415,6 +511,11 @@ button{
         }
         .tabla{
             grid-template-columns: repeat(3, 1fr);
+        }
+        .accesos{
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-areas: "titulo titulo titulo"
+            "API ad ad";
         }
     }
 }

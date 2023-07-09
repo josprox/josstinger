@@ -17,7 +17,8 @@
         "evert/sitemap-php": "^1.2",
         "twilio/sdk": "^6.44",
         "guzzlehttp/guzzle": "^7.5",
-        "intervention/image": "^2.7"
+        "intervention/image": "^2.7",
+        "pragmarx/google2fa": "^8.0"
     },
     "require-dev": {
         "rector/rector": "^0.14.8"

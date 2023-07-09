@@ -202,6 +202,7 @@ CREATE TABLE `users` (
   `last_ip` varchar(255) DEFAULT NULL,
   `fa` varchar(1) NOT NULL,
   `type_fa` varchar(15) DEFAULT NULL,
+  `two_fa` varchar(32) DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
