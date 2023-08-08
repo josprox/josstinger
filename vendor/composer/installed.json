@@ -747,17 +747,17 @@
         },
         {
             "name": "guzzlehttp/promises",
-            "version": "2.0.0",
-            "version_normalized": "2.0.0.0",
+            "version": "2.0.1",
+            "version_normalized": "2.0.1.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/promises.git",
-                "reference": "3a494dc7dc1d7d12e511890177ae2d0e6c107da6"
+                "reference": "111166291a0f8130081195ac4556a5587d7f1b5d"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/promises/zipball/3a494dc7dc1d7d12e511890177ae2d0e6c107da6",
-                "reference": "3a494dc7dc1d7d12e511890177ae2d0e6c107da6",
+                "url": "https://api.github.com/repos/guzzle/promises/zipball/111166291a0f8130081195ac4556a5587d7f1b5d",
+                "reference": "111166291a0f8130081195ac4556a5587d7f1b5d",
                 "shasum": ""
             },
             "require": {
@@ -767,7 +767,7 @@
                 "bamarni/composer-bin-plugin": "^1.8.1",
                 "phpunit/phpunit": "^8.5.29 || ^9.5.23"
             },
-            "time": "2023-05-21T13:50:22+00:00",
+            "time": "2023-08-03T15:11:55+00:00",
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -813,7 +813,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/promises/issues",
-                "source": "https://github.com/guzzle/promises/tree/2.0.0"
+                "source": "https://github.com/guzzle/promises/tree/2.0.1"
             },
             "funding": [
                 {
@@ -833,17 +833,17 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.5.0",
-            "version_normalized": "2.5.0.0",
+            "version": "2.6.0",
+            "version_normalized": "2.6.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "b635f279edd83fc275f822a1188157ffea568ff6"
+                "reference": "8bd7c33a0734ae1c5d074360512beb716bef3f77"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/b635f279edd83fc275f822a1188157ffea568ff6",
-                "reference": "b635f279edd83fc275f822a1188157ffea568ff6",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/8bd7c33a0734ae1c5d074360512beb716bef3f77",
+                "reference": "8bd7c33a0734ae1c5d074360512beb716bef3f77",
                 "shasum": ""
             },
             "require": {
@@ -864,7 +864,7 @@
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
-            "time": "2023-04-17T16:11:26+00:00",
+            "time": "2023-08-03T15:06:02+00:00",
             "type": "library",
             "extra": {
                 "bamarni-bin": {
@@ -932,7 +932,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.5.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.6.0"
             },
             "funding": [
                 {
@@ -1039,17 +1039,17 @@
         },
         {
             "name": "mercadopago/dx-php",
-            "version": "2.5.3",
-            "version_normalized": "2.5.3.0",
+            "version": "2.6.0",
+            "version_normalized": "2.6.0.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mercadopago/sdk-php.git",
-                "reference": "c41853bde4a85742fd3b6741effde34c6919da2d"
+                "reference": "be9cf1cb29f1a78f9dc15f5548f47af6a9a897e4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mercadopago/sdk-php/zipball/c41853bde4a85742fd3b6741effde34c6919da2d",
-                "reference": "c41853bde4a85742fd3b6741effde34c6919da2d",
+                "url": "https://api.github.com/repos/mercadopago/sdk-php/zipball/be9cf1cb29f1a78f9dc15f5548f47af6a9a897e4",
+                "reference": "be9cf1cb29f1a78f9dc15f5548f47af6a9a897e4",
                 "shasum": ""
             },
             "require": {
@@ -1058,7 +1058,7 @@
                 "php": ">=7.1.0"
             },
             "require-dev": {
-                "doctrine/orm": "~2.3",
+                "doctrine/orm": "^2.3",
                 "phpmd/phpmd": "@stable",
                 "phpunit/phpunit": "^7",
                 "sebastian/phpcpd": "*",
@@ -1066,7 +1066,7 @@
                 "symfony/yaml": "~2.5",
                 "vlucas/phpdotenv": "^2.5"
             },
-            "time": "2022-11-30T12:55:58+00:00",
+            "time": "2023-08-03T17:33:17+00:00",
             "type": "library",
             "installation-source": "dist",
             "autoload": {
@@ -1087,7 +1087,7 @@
             "description": "Mercado Pago PHP SDK",
             "homepage": "https://github.com/mercadopago/sdk-php",
             "support": {
-                "source": "https://github.com/mercadopago/sdk-php/tree/2.5.3"
+                "source": "https://github.com/mercadopago/sdk-php/tree/2.6.0"
             },
             "install-path": "../mercadopago/dx-php"
         },
@@ -1324,17 +1324,17 @@
         },
         {
             "name": "phpstan/phpstan",
-            "version": "1.10.25",
-            "version_normalized": "1.10.25.0",
+            "version": "1.10.27",
+            "version_normalized": "1.10.27.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/phpstan/phpstan.git",
-                "reference": "578f4e70d117f9a90699324c555922800ac38d8c"
+                "reference": "a9f44dcea06f59d1363b100bb29f297b311fa640"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/578f4e70d117f9a90699324c555922800ac38d8c",
-                "reference": "578f4e70d117f9a90699324c555922800ac38d8c",
+                "url": "https://api.github.com/repos/phpstan/phpstan/zipball/a9f44dcea06f59d1363b100bb29f297b311fa640",
+                "reference": "a9f44dcea06f59d1363b100bb29f297b311fa640",
                 "shasum": ""
             },
             "require": {
@@ -1343,7 +1343,7 @@
             "conflict": {
                 "phpstan/phpstan-shim": "*"
             },
-            "time": "2023-07-06T12:11:37+00:00",
+            "time": "2023-08-05T09:57:55+00:00",
             "bin": [
                 "phpstan",
                 "phpstan.phar"
