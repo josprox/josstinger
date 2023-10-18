@@ -1,0 +1,123 @@
+@charset "UTF-8";
+@import "color";
+@import "mapa";
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  &::-webkit-scrollbar {
+    width: 12px;
+    background-color: rgba(0, 0, 0, 0.5);
+    @media screen and (max-width: 500px) {
+      &{
+        display: none;
+      }
+    }
+        
+    }
+
+  &::-webkit-scrollbar-thumb {
+    background: rgb(240, 137, 103);
+    background: linear-gradient(0deg, rgba(240, 137, 103, 1) 0%, rgba(247, 205, 107, 1) 50%, rgba(221, 228, 110, 1) 100%);
+    border-radius: 8px;
+  }
+}
+
+a{
+    text-decoration: none;
+}
+
+p, h1, h2, h3, h4, h5{
+    margin: 0;
+}
+
+img{
+    object-fit: cover;
+}
+
+body{
+    // usar una imagen de fondo la cuál usará toda la pantalla y no se repetirá
+    background-color: #7b7b8f;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+    height: 100%;
+    width: 100%;
+}
+html{
+    width: 100%;
+    height:100%; /*Siempre es necesario cuando trabajamos con alturas*/
+    }
+ul,li{
+    list-style: none;
+}
+
+.contenedor{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    .contenido{
+        h1{
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        p{
+            font-size: 1.2rem;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+    }
+}
+
+#menu_principal{
+    background-color: rgba(0, 0, 0, 0.8);
+    left:0px; /*A la derecha deje un espacio de 0px*/
+    right:0px; /*A la izquierda deje un espacio de 0px*/
+    bottom: 0;
+    height: 50px;
+    padding: 12px;
+    position: fixed;
+    width: 100%;
+    z-index: 1;
+    .lista_menu{
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        margin-left: -12px;
+            a{
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                width: 100%;
+                height: 100%;
+                li{
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100%;
+                    height: 100%;
+                    font-size: 1em;
+                    color: #FFF;
+                    text-decoration: none;
+                    transition: .2s all;
+                    &:hover{
+                        color: $completado;
+                    }
+                    p{
+                        display: none;
+                        @media screen and (min-width: 800px){
+                            display: block;
+                        }
+                    }
+                }
+            }
+    }
+}

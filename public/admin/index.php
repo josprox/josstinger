@@ -124,7 +124,7 @@ $sistema = new SysJosSecurity\SysNAND();
       <script>
           Swal.fire(
           'Ya está',
-          'Se ha activado la API pública, ahora podrás llamarlo en la dirección: <?php echo ruta; ?>api_public.php.',
+          'Se ha activado la API pública, ahora podrás llamarlo en la dirección: <?php echo ruta; ?>api_public.',
           'success'
           )
       </script>

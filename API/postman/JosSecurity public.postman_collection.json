@@ -1,0 +1,105 @@
+{
+	"info": {
+		"_postman_id": "127d4c41-74c5-4740-ade5-ae06a0f1589a",
+		"name": "JosSecurity public",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24296254",
+		"_collection_link": "https://www.postman.com/josprox/workspace/jossecurity/collection/24296254-127d4c41-74c5-4740-ade5-ae06a0f1589a?action=share&source=collection_link&creator=24296254"
+	},
+	"item": [
+		{
+			"name": "Basic",
+			"item": [
+				{
+					"name": "JosSecurity API login",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost/jossecurity/api/?API=public&cmd=login&arg1=joss@int.josprox.com&arg2=Andyyyo12?&arg3=&arg4=si&arg5=",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"path": [
+								"jossecurity",
+								"api",
+								""
+							],
+							"query": [
+								{
+									"key": "API",
+									"value": "public"
+								},
+								{
+									"key": "cmd",
+									"value": "login",
+									"description": "Aquí deberás poner el comando"
+								},
+								{
+									"key": "arg1",
+									"value": "joss@int.josprox.com",
+									"description": "Correo de acceso"
+								},
+								{
+									"key": "arg2",
+									"value": "Andyyyo12?",
+									"description": "Contraseña del usuario"
+								},
+								{
+									"key": "arg3",
+									"value": "",
+									"description": "Código de Google auth, SMS o correo"
+								},
+								{
+									"key": "arg4",
+									"value": "si",
+									"description": "¿Deseas permitir las cookies?"
+								},
+								{
+									"key": "arg5",
+									"value": "",
+									"description": "Redirección web"
+								}
+							]
+						},
+						"description": "Sistema API sencillo de JosSecurity."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "JosSecurity API",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?API=public&cmd=test",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "API",
+							"value": "public"
+						},
+						{
+							"key": "cmd",
+							"value": "test",
+							"description": "Aquí deberás poner el comando"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		}
+	]
+}

@@ -19,6 +19,7 @@
 <!-- RichText -->
 <link rel="stylesheet" href="../../node_modules/richtext_for_npm/src/richtext.min.css">
 <script src="../../node_modules/richtext_for_npm/src/jquery.richtext.min.js"></script>
+
 <?php
 
 if($_ENV['RECAPTCHA'] == 1){?>

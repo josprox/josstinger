@@ -180,7 +180,7 @@ if(isset($_POST['2fadesactivar'])){
               ?>
               <div class="grid_2_auto">
                 <img src="../../resourses/img/Authenticator.webp" alt="">
-                <img src="<?php echo ruta . "qrcode?info=" . $datos['url'] ; ?>" alt="">
+                <img src="<?php echo ruta . "admin/qr?info=" . $datos['url'] ; ?>" alt="">
               </div>
               <p>Te recomendamos activar la seguridad 2FA, por favor escane el QR que ve a continuación (beta) o registre el siguiente código en su aplicación de 2FA, puede hacerlo con Google Authenticator, Authy, etc.</p>
               <div class="mb-3">

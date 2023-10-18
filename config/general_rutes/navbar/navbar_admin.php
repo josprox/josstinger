@@ -19,7 +19,7 @@
           <a class="nav-link dropdown-toggle" href="#" id="dropdownId" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-gear"></i> Configuraciones</a>
           <div class="dropdown-menu" aria-labelledby="dropdownId">
             <a class="dropdown-item" href="env"><i class="fa-solid fa-file"></i> Archivo env</a>
-            <a class="dropdown-item" href="custom_api"><i class="fa-solid fa-file"></i> Archivos API</a>
+            <a class="dropdown-item" href="APIv2"><i class="fa-solid fa-file"></i> Archivos API</a>
             <a class="dropdown-item" href="htaccess_general"><i class="fa-solid fa-file"></i> Modifica los htaccess</a>
             <a class="dropdown-item" href="hnf"><i class="fa-solid fa-file"></i> Modifica los head, navbar y footer</a>
         </li>
