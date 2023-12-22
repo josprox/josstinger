@@ -235,6 +235,36 @@ $sistema = new SysJosSecurity\SysNAND();
                 <a href="cuenta"><i class="fa-solid fa-user"></i><p>Mi Cuenta</p></a>
                 <a href="usuarios"><i class="fa-solid fa-users"></i><p>Usuarios</p></a>
                 <a href="https://jossecurity.josprox.com/documentacion/"><i class="fa-solid fa-shield-halved"></i><p>Documentación</p></a>
+                <div class="personalizada">
+                  <?php
+                    if(isset($_POST['actualizar_zona'])){
+                      $conexion = conect_mysqli();
+                      $dir_env= __DIR__ . DIRECTORY_SEPARATOR . "../../.env";
+                      $cambio = mysqli_real_escape_string($conexion, (string)$_POST['horario']);
+                      $conexion -> close();
+                      $contenido_env = file_get_contents($dir_env);
+                      $nuevo_contenido = preg_replace('/ZONA_HORARIA=.*/',  'ZONA_HORARIA=' . $cambio, $contenido_env);
+                      // Escribir el nuevo contenido en el archivo .env
+                      file_put_contents($dir_env, $nuevo_contenido);
+                      ?>
+                      <script>
+                          timer: 8000,
+                          window.location.href = "./"
+                      </script>
+                      <?php
+                    }
+                  ?>
+                  <i class="fa-regular fa-clock"></i>
+                  <p class="mostrar">Cambiar zona horaria</p>
+                  <form class="ocultar" action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+                    <div class="input-group mb-3">
+                      <button class="boton_custom btn-outline-secondary" name="actualizar_zona" type="button">Cambiar</button>
+                      <input type="text"
+                        class="form-control" name="horario" id="horario" aria-describedby="horario" placeholder="horario" value="<?php echo $_ENV['ZONA_HORARIA']; ?>">
+                        <a href="https://www.php.net/manual/es/timezones.php" target="_blank" rel="noopener noreferrer"><p class="mini" id="ocultar">Conoce las zonas horarias que puedes elegir dando clic aquí</p></a>
+                    </div>
+                  </form>
+                </div>
             </div>
         </main>
     </section>
