@@ -10,7 +10,12 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name, email","users","id",$iduser);
+$consulta = new GranMySQL();
+$consulta -> seleccion = "name, email";
+$consulta -> tabla = "users";
+$consulta -> comparar = "id";
+$consulta -> comparable = $iduser;
+$row = $consulta -> where();
 
 if(!isset($_GET['payment_id']) && !isset($_GET['status']) && !isset($_GET['payment_type']) && !isset($_GET['merchant_order_id'])){
     header("Location: ./");
@@ -35,13 +40,17 @@ $meses= (int)$_GET['mut'];
 if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id = $id_user_pay") > 0 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && estado = 'Aprobado'") > 0){
     header("Location: ./");
 }elseif($_GET['status'] == "in_process"){
-    $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
-    $id_token = $consula['id'];
+    $consulta -> seleccion = "id";
+    $consulta -> tabla = "tokens_pays";
+    $consulta -> comparar = "token";
+    $consulta -> comparable = $token;
+    $respuesta = $consulta -> where();
+    $id_token = $respuesta['id'];
     insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Pendiente', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 
 }elseif($_GET['status'] == "approved"){
-    $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
-    $id_token = $consula['id'];
+    $respuesta = consulta_mysqli_where("id","tokens_pays","token","'$token'");
+    $id_token = $respuesta['id'];
     insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Aprobado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 }
 
@@ -169,7 +178,11 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         if (isset($_POST['registrar_hestia'])) {
                         $conexion = conect_mysqli();
                         $nameservers = mysqli_real_escape_string($conexion, (int) $_POST['nameserver']);
-                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts WHERE hestia_accounts.nameserver = $nameservers");
+                        $consulta -> seleccion = "hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password";
+                        $consulta -> tabla = "hestia_accounts";
+                        $consulta -> comparar = "hestia_accounts.nameserver";
+                        $consulta -> comparable = $nameservers;
+                        $consulta_hestia = $consulta -> where();
                         // Server credentials
                         $hst_hostname = (string)$consulta_hestia['host'];
                         $hst_port = (int)$consulta_hestia['port'];
@@ -179,8 +192,12 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $hst_command = 'v-add-user';
                         $hst_id = $consulta_hestia['id'];
                         // New Account
-                        $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_product;");
-                        $username = mysqli_real_escape_string($conexion, (string) generar_llave_alteratorio(8));
+                        $consulta -> seleccion = "nombre";
+                        $consulta -> tabla = "servicios";
+                        $consulta -> comparar = "id";
+                        $consulta -> comparable = $id_product;
+                        $consulta_paquetes = $consulta -> where();
+                        $username = mysqli_real_escape_string($conexion, (string) generar_llave(8,"abcdefghijklmnopqrstuvwxyzABCDEFGHIJLKMNOPQRSTUVWXYZ"));
                         $password = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
                         $email = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
                         $package = (string)$consulta_paquetes['nombre'];
@@ -197,8 +214,12 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $id_user_pay= $_GET['usr'];
                         $id_product= $_GET['prdct'];
                         $meses= (int)$_GET['mut'];
-                        $consula = consulta_mysqli_where("id","tokens_pays","token","'$token'");
-                        $id_token = $consula['id'];
+                        $consulta -> seleccion = "id";
+                        $consulta -> tabla = "tokens_pays";
+                        $consulta -> comparar = "token";
+                        $consulta -> comparable = $token;
+                        $respuesta = $consulta -> where();
+                        $id_token = $respuesta['id'];
                         $fecha_creacion = new DateTime();
                         $fecha_creacion->modify('+'.$meses.' months');
                         $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');

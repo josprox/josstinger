@@ -2,7 +2,7 @@
  //Aquí podrás agregar tareas cron 
 function hestia_clean(){
     foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracion FROM tokens_pays") as $row){
-        if($row['expiracion'] < fecha){
+        if($row['expiracion'] < \FECHA){
     
             $id = $row['id_user'];
     
@@ -49,6 +49,6 @@ function hestia_clean(){
     }
 }
 
-evento_programado("hestia_clean",fecha,"1 hours");
+evento_programado("hestia_clean",\FECHA,"1 hours");
 
 ?>

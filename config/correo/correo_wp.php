@@ -22,7 +22,7 @@
     $mail->Username = $_ENV['SMTP_USERNAME'];
     $mail->Password = $_ENV['SMTP_PASSWORD'];
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-    $mail->setFrom( $_ENV['SMTP_USERNAME'], nombre_app);
+    $mail->setFrom( $_ENV['SMTP_USERNAME'], \NOMBRE_APP);
 
     // Configurar el destinatario, el asunto y el mensaje
     $mail->addAddress( $to );
@@ -37,7 +37,7 @@
     }
     // Adjuntar cada archivo del arreglo de rutas de archivo
     if ( ! is_array( $attachments ) ) {
-        $attachments = explode( "\n", str_replace( "\r\n", "\n", $attachments ) );
+        $attachments = explode( "\n", str_replace( "\r\n", "\n", (string) $attachments ) );
     }
     if ( ! empty( $attachments ) ) {
         foreach ( $attachments as $attachment ) {

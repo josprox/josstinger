@@ -4,6 +4,10 @@ $name_app_default = "Josstinger";
 
 $version_app_default = "2.3";
 
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".env")){
+  header("Location: ./public/panel");
+}
+
 if(isset($_POST['instalar'])){
 
   //Sistema básico

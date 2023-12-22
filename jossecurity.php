@@ -16,16 +16,16 @@ session_start();
 date_default_timezone_set($_ENV['ZONA_HORARIA']);
 
 // Definiciones dentro de JosSecurity
-define("nombre_app",(string)$_ENV['NAME_APP']);
-define("version",(float)$_ENV['VERSION']);
-define("fecha",date("Y-m-d H:i:s"));
-define("fecha_1_day",date("Y-m-d H:i:s", strtotime(fecha . "+ 1 days")));
-define("zona_horaria_cliente", date_default_timezone_get());
-define("ruta", check_http() . $_ENV['DOMINIO'] . $_ENV['HOMEDIR']);
+define("NOMBRE_APP",(string)$_ENV['NAME_APP']);
+define("VERSION",(float)$_ENV['VERSION']);
+define("FECHA",date("Y-m-d H:i:s"));
+define("FECHA_1_DAY",date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days")));
+define("ZONA_HORARIA_CLIENTE", date_default_timezone_get());
+define("RUTA", check_http() . $_ENV['DOMINIO'] . $_ENV['HOMEDIR']);
 //Configuración por defecto de JosSecurity
-$fecha = fecha;
-$nombre_app = nombre_app;
-$version_app = version;
+$fecha = \FECHA;
+$nombre_app = \NOMBRE_APP;
+$version_app = \VERSION;
 
 if ($_ENV['DEBUG'] == 1) {
     echo "<script>console.log('".$nombre_app." está funcionando.');</script>";
@@ -110,7 +110,7 @@ function DatosGA($correo){
     $secretKey = SecretKeyGA();
 
     $url = $google2fa->getQRCodeUrl(
-        nombre_app,
+        NOMBRE_APP,
         $correo,
         $secretKey
     );
@@ -195,7 +195,7 @@ if ($_ENV['CONECT_DATABASE'] == 1){
                     }
                 }
                 return $conexion;
-            } catch (Exception $e) {
+            } catch (Exception) {
                 // Manejo del error
                 echo "Error al conectar a la base de datos.";
                 return null; // O cualquier otro manejo que desees darle al error
@@ -264,7 +264,7 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
     $conexion = conect_mysqli();
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
     $contra = mysqli_real_escape_string($conexion, (string) $contra);
-    $cookies = mysqli_real_escape_string($conexion, $cookies);
+    $cookies = mysqli_real_escape_string($conexion, (string) $cookies);
     $conexion -> close();
     $sql_check = new GranMySQL();
     $sql_check -> seleccion = "id, name, phone, fa, type_fa, two_fa, last_ip";
@@ -276,11 +276,11 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
         return logins($correo,$contra,"users",$cookies, $redireccion);
     }else{
         $generador = generar_llave_alteratorio(16);
-        $fecha = fecha_1_day;
+        $fecha = \FECHA_1_DAY;
         $id_user = $consulta['id'];
         $nombre_user = $consulta['name'];
-        $nombre_app = nombre_app;
-        $web = ruta . "panel?login_auth=" . $generador . "&correo=" . $correo . "&contra=" . $contra . "&cookies=" . $cookies;
+        $nombre_app = \NOMBRE_APP;
+        $web = \RUTA . "panel?login_auth=" . $generador . "&correo=" . $correo . "&contra=" . $contra . "&cookies=" . $cookies;
         switch($consulta['type_fa']){
             case "correo":
                 if($clave !=""){
@@ -397,14 +397,12 @@ class login{
     public $cookies = "si";
     public $modo_admin = TRUE;
     private $conexion;
-    private $nombre_app;
-    private $fecha;
+    private string $nombre_app = \NOMBRE_APP;
+    private string $fecha = \FECHA;
     private $ip;
     public function __construct(){
         $this->conexion = conect_mysqli();
         $this->ip = $_SERVER['REMOTE_ADDR'];
-        $this->fecha = fecha;
-        $this->nombre_app = nombre_app;
     }
     // Comprueba y retorna los datos si se ha activado o desactivado el modo admin
     function compilar(){
@@ -473,7 +471,7 @@ class login{
             }else{
                 $ssl_tls = check_http();
                 $key = generar_llave_alteratorio(16);
-                $fecha_1_day = fecha_1_day;
+                $fecha_1_day = \FECHA_1_DAY;
                 $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$this->check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
                 insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
                 if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
@@ -602,7 +600,7 @@ function resetear_contra($correo){
     $key = generar_llave_alteratorio(16);
     $consulta = consulta_mysqli_where("id","users","email","'$correo'");
     $id_correo = $consulta['id'];
-    $fecha_1_day = date("Y-m-d H:i:s", strtotime(fecha . "+ 1 days"));
+    $fecha_1_day = date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days"));
 
     if(insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
         $row = consulta_mysqli_where("name","users","email","'$correo'");
@@ -729,9 +727,9 @@ function generar_llave_alteratorio($caracteres){
 
 function generar_llave($caracteres, $patron){
     $key = "";
-    $max = strlen($patron)-1;
+    $max = strlen((string) $patron)-1;
     for($i = 0; $i < $caracteres; $i++){
-        $key .= substr($patron, random_int(0,$max), 1);
+        $key .= substr((string) $patron, random_int(0,$max), 1);
     }
     return $key;
 }
@@ -1110,12 +1108,12 @@ function check_http(){
 //Cron de JosSecurity
 
 function evento_programado($task_name, $schedule, $interval) {
-    $fecha = fecha;
-    $timestamp = strtotime($schedule); 
+    $fecha = \FECHA;
+    $timestamp = strtotime((string) $schedule); 
     $next_run = date("Y-m-d H:i:s", $timestamp);
     if(leer_tablas_mysql_custom("SELECT * FROM tareas WHERE funcion = '$task_name'") >=1){
         $consulta = consulta_mysqli_where("sig_fecha","tareas","funcion","'$task_name'");
-        if(fecha >= $consulta['sig_fecha']){
+        if(\FECHA >= $consulta['sig_fecha']){
             $task_name();
             // actualiza el siguiente tiempo de ejecución
             $fecha_creacion = new DateTime();
@@ -1131,9 +1129,8 @@ function evento_programado($task_name, $schedule, $interval) {
 }
 //Jossito para comprobar zona horaria del cliente
 class fecha_cliente{
-    private $zona;
+    private $zona = \ZONA_HORARIA_CLIENTE;
     function __construct(){
-        $this->zona = zona_horaria_cliente;
         date_default_timezone_set($this->zona);
     }
     function fecha_hora(){
@@ -1248,6 +1245,9 @@ if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
         if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "plugins/onesignal/SDK.php")){
             include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/onesignal/SDK.php");
         }
+    }
+    if(isset($_ENV['HI_GOOGLE']) && $_ENV['HI_GOOGLE'] == 1){
+        include (__DIR__ . DIRECTORY_SEPARATOR . "plugins/Google_client/higoogle.php");
     }
 }
 

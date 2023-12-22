@@ -41,7 +41,7 @@ img{
 button{
     border: none;
 }
-// Modificación de iconos.
+// Modificación de iconos y textos.
 .fa-shield-halved, .fa-database, .fa-folder-tree, .fa-envelope{
     color: #FFCC70;
 }
@@ -73,6 +73,36 @@ button{
     color: #0e6e08;
     text-shadow: white 0.1em 0.1em 0.2em;
 }
+.fa-clock{
+    color: #f2b16f;
+    margin-bottom: 5px;
+}
+.mini{
+    font-size: .6em;
+    margin: 0;
+}
+.ocultar{
+    display: none;
+}
+.mostrar{
+    display: block;
+}
+.boton_custom {
+    background: rgb(171, 255, 152);
+    background: linear-gradient(255deg, rgba(171, 255, 152, 1) 0%, rgba(0, 212, 255, 1) 100%);
+    border-radius: 11px;
+    display: inline-block;
+    text-align: center;
+    color: $blanco;
+    text-shadow: black 0.1em 0.1em 0.2em;
+    padding: 6px 5px;
+    transition: all 0.6s;
+
+    &:hover {
+        background: rgba(0, 0, 0, 0.5);
+    }
+}
+
 // Código clasic.
 .contenedor{
     display: block;
@@ -447,6 +477,28 @@ button{
             margin: 12px 8px;
             border-radius: 12px;
             text-align: center;
+            .personalizada{
+                transition: .2s all !important;
+                border-radius: 12px;
+                &:hover{
+                    transition: .2s all !important;
+                    background: $verde;
+                    .ocultar{
+                        display: block;
+                    }
+                    .mostrar{
+                        display: none;
+                    }
+                }
+                i{
+                    margin-top: 12px;
+                    font-size: 2em;
+                    display: block;
+                }
+                p{
+                    color: $blanco;
+                }
+            }
             a{
                 border-radius: 12px;
                 &:hover{

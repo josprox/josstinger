@@ -10,7 +10,12 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$consulta = new GranMySQL();
+$consulta -> seleccion = "name";
+$consulta -> tabla = "users";
+$consulta -> comparar = "id";
+$consulta -> comparable = $iduser;
+$row = $consulta -> where();
 
 if(!isset($_GET['payment_id']) && !isset($_GET['status']) && !isset($_GET['payment_type']) && !isset($_GET['merchant_order_id'])){
     header("Location: ./");

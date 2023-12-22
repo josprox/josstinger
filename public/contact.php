@@ -79,7 +79,7 @@ include (__DIR__ . "/../jossecurity.php");
           $control -> iduser_tabla = "users";
           if($control -> rol_usuario() == 6 OR $control -> rol_usuario() == 1){
             ?>
-            <form action="<?php echo htmlentities($_SERVER['PHP_SELF']); ?>" method="post">
+            <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
               <div class="mb-3">
                 <label for="nombre" class="form-label">Nombre</label>

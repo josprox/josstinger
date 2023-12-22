@@ -270,7 +270,15 @@ try {
                 break;
         }
         header('Content-Type: application/json');
-        echo json_encode($respuesta);
+        $json = json_encode($respuesta, JSON_THROW_ON_ERROR);
+        if (json_validate($json) == 1){
+            echo $json;
+        }else{
+            $json_error = [
+                "comentario" => "El archivo JSON no está bien redactado.",
+                "error" => 400
+            ];
+        }
     }
 
 } catch (Exception $e) {

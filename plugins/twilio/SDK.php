@@ -35,14 +35,14 @@ function resetear_contra_sms($correo){
     $key = generar_llave_alteratorio(16);
     $consulta = consulta_mysqli_where("id","users","email","'$correo'");
     $id_correo = $consulta['id'];
-    $fecha_1_day = date("Y-m-d H:i:s", strtotime(fecha . "+ 1 days"));
+    $fecha_1_day = date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days"));
     if(insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
         $row = consulta_mysqli_where("name, phone","users","email","'$correo'");
         $name = $row['name'];
         $phone = $row['phone'];
         $ssl = check_http();
         $link = $ssl . $_ENV['DOMINIO'] . $_ENV['HOMEDIR'] . "panel?cambiar_contra=" . $key;
-        $mensaje = "Hola $name, acabas de solicitar una restauración de contraseña en ".nombre_app.", para poder restablecerlo tendrás que acceder al siguiente enlace: $link";
+        $mensaje = "Hola $name, acabas de solicitar una restauración de contraseña en ".\NOMBRE_APP.", para poder restablecerlo tendrás que acceder al siguiente enlace: $link";
         $sms = new Nuevo_Mensaje();
         $sms -> numero = $phone;
         $sms -> mensaje = $mensaje;

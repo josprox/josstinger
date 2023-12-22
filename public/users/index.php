@@ -82,13 +82,13 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
         <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
         <?php
         $ssl = check_http();
-        $json_string = file_get_contents("https://josprox.com/entradas.json");
+        $json_string = file_get_contents("https://josprox.com/mis_entradas.json");
         // Convierte la cadena de texto en un array
-        $array = json_decode($json_string, true);
+        $array = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
         $count = 0;
         foreach($array as $row){
             ?>
-            <a class="anuncio_scroller" href="<?php echo $row['guid']; ?>"><?php echo $row['post_title']; ?></a>
+            <a class="anuncio_scroller" href="<?php echo $row['permalink']; ?>"><?php echo $row['title']; ?></a>
             <?php
             $count ++;
             if($count == 15){

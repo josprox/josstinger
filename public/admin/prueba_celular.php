@@ -81,7 +81,7 @@ secure_auth_admin($iduser,"../");
             </div>
             <div class="mb-3 contenedor">
               <label for="menssage" class="form-label">Pon el texto que enviarás</label>
-              <textarea class="form-control" name="menssage" id="menssage" rows="3">Este es un mensaje de prueba dentro de <?php echo nombre_app; ?>, puedes modificarlo a tu gusto o mandar tal cual este mensaje.</textarea>
+              <textarea class="form-control" name="menssage" id="menssage" rows="3">Este es un mensaje de prueba dentro de <?php echo \NOMBRE_APP; ?>, puedes modificarlo a tu gusto o mandar tal cual este mensaje.</textarea>
             </div>
         </div>
         <center>

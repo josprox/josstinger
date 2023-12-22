@@ -60,8 +60,8 @@ $check = new SysJosSecurity\SysNAND;
 
     if(isset($_POST['crear'])){
         $conexion = conect_mysqli();
-        $archivo = mysqli_real_escape_string($conexion, $_POST['archivo']);
-        $ruta = mysqli_real_escape_string($conexion, $_POST['carpeta']);
+        $archivo = mysqli_real_escape_string($conexion, (string) $_POST['archivo']);
+        $ruta = mysqli_real_escape_string($conexion, (string) $_POST['carpeta']);
         $conexion -> close();
         $directorio = (DIRECTORY_SEPARATOR . $carpeta . DIRECTORY_SEPARATOR . $archivo);
         $check -> jossito = "crear_archivo";

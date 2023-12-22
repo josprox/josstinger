@@ -6,12 +6,8 @@ class Nuevo_Push{
   public $mensaje_ing = "";
   public $url_personalizado = "";
 
-  function __construct(){
-    $this->titulo_esp = "";
-    $this->titulo_ing = "";
-    $this->mensaje_esp = "";
-    $this->mensaje_ing = "";
-    $this->url_personalizado = "";
+  function __construct()
+  {
   }
 
   function enviar(){
@@ -39,7 +35,7 @@ class Nuevo_Push{
       'url' => $url
     ];
   
-    $contenido_body = json_encode($array);
+    $contenido_body = json_encode($array, JSON_THROW_ON_ERROR);
     $response = $client->request('POST', 'https://onesignal.com/api/v1/notifications', [
       'body' => $contenido_body,
       'headers' => [
