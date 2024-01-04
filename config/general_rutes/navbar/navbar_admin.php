@@ -26,9 +26,7 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle" href="#" id="dropdownId" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><i class="fa-solid fa-toolbox"></i> Herramientas</a>
           <div class="dropdown-menu" aria-labelledby="dropdownId">
-            <a class="dropdown-item" href="correo_prueba"><i class="fa-solid fa-envelope"></i> Probar email</a>
-            <a class="dropdown-item" href="correo_personalizado"><i class="fa-solid fa-envelope"></i> Enviar email personalizado</a>
-            <a class="dropdown-item" href="correo_recibir"><i class="fa-solid fa-envelope"></i> Probar recibir correos</a>
+            <a class="dropdown-item" href="correos"><i class="fa-solid fa-envelope"></i> Prueba de correo</a>
             <a class="dropdown-item" href="sitemap"><i class="fa-solid fa-signs-post"></i> Generar un sitemap</a>
             <?php
             if ($_ENV['CONECT_POSTGRESQL'] == 1 OR $_ENV['CONECT_POSTGRESQL_PDO'] == 1){?>

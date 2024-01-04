@@ -17,24 +17,21 @@ $row -> comparar = "id";
 $row -> comparable = $iduser;
 $consulta = $row -> where();
 
-$fecha_cliente = new fecha_cliente();
-if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
-$fondo = "fondo_oscuro";
-}else{
-$fondo = "fondo_blanco";
-}
-$check = new SysJosSecurity\SysNAND;
-$checking = [
-    "head.php" => "head",
-    "head_users.php" => "head",
-    "head_admin.php" => "head",
-    "navbar.php" => "navbar",
-    "navbar_admin.php" => "navbar",
-    "navbar_users.php" => "navbar",
-    "footer.php" => "footer",
-    "footer_admin.php" => "footer",
-    "footer_users.php" => "footer"
+$url_general = "routes/";
+$url_interno = (\JS_ROUTE . $url_general);
+$directorios = [
+    "head.php" => ($url_interno . "head/head.php"),
+    "head_users.php" => ($url_interno . "head/head_users.php"),
+    "head_admin.php" => ($url_interno . "head/head_admin.php"),
+    "navbar.php" => ($url_interno . "navbar/navbar.php"),
+    "navbar_admin.php" => ($url_interno . "navbar/navbar_admin.php"),
+    "navbar_users.php" => ($url_interno . "navbar/navbar_users.php"),
+    "footer.php" => ($url_interno . "footer/footer.php"),
+    "footer_admin.php" => ($url_interno . "footer/footer_admin.php"),
+    "footer_users.php" => ($url_interno . "footer/footer_users.php")
 ];
+
+$check = new SysJosSecurity\SysNAND;
 
 ?>
 
@@ -57,162 +54,225 @@ $checking = [
   <br>
 
   <div class="container">
+    <h1>Modifica tus archivos head, navbar y footer.</h1>
       <?php
-      if(isset($_POST['crear'])){
-        $conexion = conect_mysqli();
-        $archivo = mysqli_real_escape_string($conexion, (string) $_POST['archivo']);
-        $carpeta = mysqli_real_escape_string($conexion, (string) $_POST['carpeta']);
-        $conexion -> close();
-        $directorio = (DIRECTORY_SEPARATOR . $carpeta . DIRECTORY_SEPARATOR . $archivo);
-        $check -> jossito = "crear_archivo";
-        $check -> jossito_info = [
-            "routes". $directorio,
-            "<?php //Aquí podrás editar el archivo ?>"
-        ];
-        $check -> condicion = !file_exists(__DIR__ . "/../../routes" . $directorio);
-        if($check -> comparar() == TRUE){
-            ?>
-            <script>
-                Swal.fire(
-                'Ya está',
-                'Se ha creado el archivo de manera correcta',
-                'success'
-                )
-            </script>
-            <script>
-            timer: 8000,
-            window.location.href = "./hnf"
-            </script>
-            <?php
-        }
-      }
-      if(isset($_GET['archivo'])){
-          $archivo = strip_tags((string) $_GET['archivo']);
-      }else{
-        error_reporting(0);
-      }
-        if($archivo==""){
-            $archivos = scandir(__DIR__ . DIRECTORY_SEPARATOR . "../../routes/head/");
-            ?>
-            <h1>Modifica tus archivos de Head, Navbar y Footer.</h1>
-            <ul class="directorios grid_3_auto">
-            <?php
-            for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
-                if ($archivos[$i] !="." && $archivos[$i] !=".." && $archivos[$i] !="head.txt") {
-                    if(!is_dir($archivos[$i])){
-                        ?>
-                        <a href='?archivo=<?php echo $archivos[$i]; ?>&type=head'><li><i class="fa-solid fa-folder"></i> <?php echo $archivos[$i]; ?></li></a>
-                        <?php
-                    }else{
-                        echo $archivos[$i] . "<br>";
-                    }
-                    
-                }
-            }
-            $archivos = scandir(__DIR__ . DIRECTORY_SEPARATOR . "../../routes/navbar/");
-            for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
-                if ($archivos[$i] !="." && $archivos[$i] !=".." && $archivos[$i] !="navbar.txt") {
-                    if(!is_dir($archivos[$i])){
-                        ?>
-                        <a href='?archivo=<?php echo $archivos[$i]; ?>&type=navbar'><li><i class="fa-solid fa-folder"></i> <?php echo $archivos[$i]; ?></li></a>
-                        <?php
-                    }else{
-                        echo $archivos[$i] . "<br>";
-                    }
-                    
-                }
-            }
-            $archivos = scandir(__DIR__ . DIRECTORY_SEPARATOR . "../../routes/footer/");
-            for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
-                if ($archivos[$i] !="." && $archivos[$i] !=".." && $archivos[$i] !="footer.txt") {
-                    if(!is_dir($archivos[$i])){
-                        ?>
-                        <a href='?archivo=<?php echo $archivos[$i]; ?>&type=footer'><li><i class="fa-solid fa-folder"></i> <?php echo $archivos[$i]; ?></li></a>
-                        <?php
-                    }else{
-                        echo $archivos[$i] . "<br>";
-                    }
-                    
-                }
-            }
+    error_reporting(0);
 
+    $archivo = strip_tags((string) $_GET['archivo']);
+
+    if(isset($_POST['crear'])){
+        $conexion = conect_mysqli();
+        $archivo = mysqli_real_escape_string($conexion, (string)$_POST['archivo']);
+        $conexion-> close();
+        $link = $directorios[$archivo];
+        $create = fopen($link, 'w');
+        fwrite($create, "<?php //Aquí podrás editar el archivo ?>");
+        fclose($create);
+        ?>
+        <script>
+                Swal.fire({
+                    title: "Archivo creado",
+                    text: "El archivo fue creado correctamente, será redireccionado en 2 segundos",
+                    icon: "success"
+                });
+                // Espera medio segundo (500 milisegundos) antes de recargar la página
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+            </script>
+        <?php
+    }elseif(isset($_POST['eliminar'])){
+        $conexion = conect_mysqli();
+        $archivo = mysqli_real_escape_string($conexion, (string)$_POST['archivo']);
+        $conexion-> close();
+        $link = $directorios[$archivo];
+        if(!file_exists($link)){
             ?>
-            </ul>
-            <div class="dashboard_index">
-                <div class="bienvenida <?php echo $fondo; ?>">
-                <p><?php echo $consulta['name']; ?> aquí verás si hay archivos que no existen y puedes personalizarlos 😉</p>
+            <script>
+                Swal.fire({
+                    title: "Archivo Borrado",
+                    text: "El archivo fue borrado correctamente.",
+                    icon: "question"
+                });
+                // Espera medio segundo (500 milisegundos) antes de recargar la página
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 500);
+            </script>
+            <?php
+        }else{
+            unlink($link);
+            ?>
+            <script>
+                Swal.fire({
+                    title: "Listo",
+                    text: "El archivo se ha eliminado correctamente",
+                    icon: "success"
+                });
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+
+            </script>
+            <?php
+            
+        }
+    }
+
+    if($archivo==""){
+        (int)$count = 0;
+        foreach ($directorios as $archivo => $directorio){
+            if(!file_exists($directorio)){
+                $count ++;
+            }
+        }
+        if($count != 0){
+        ?>
+        <div class="dashboard_index">
+            <div class="bienvenida fondo_blanco">
+                <p>Bienvenido(a) <?php echo $consulta['name']; ?> al gestionador de archivos, ahora podrás modificar tus archivos como tu desees, ya no es necesario modificar el archivo principal, de esta manera, nunca perderás tus modificaciones al actualizar tu JosSecurity, actualmente puedes modificar <?php if($count > 1){ echo $count . " archivos"; }else{ echo $count . "archivo"; } ?>.</p>
             </div>
             <main class="tabla">
-
                 <?php
-                foreach($checking as $key => $value) {
-                    $check -> condicion = !file_exists(__DIR__ . "/../../routes" . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $key);
+                foreach($directorios as $nombre => $ruta){
+                    $check->condicion = !file_exists($ruta);
                     if($check -> comparar() == TRUE){
-                    ?>
-                    <div class="tarjeta <?php echo $fondo; ?>">
-                        <p>Actualmente el archivo <b><?php echo $key; ?></b> no ha sido configurado para poder tener atributos personalizados, favor de crearlo para modificarlo de manera correcta.</p>
-                        <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
-                            <input type="hidden" name="archivo" value="<?php echo $key; ?>">
-                            <input type="hidden" name="carpeta" value="<?php echo $value; ?>">
-                            <button name="crear" type="submit" class="btn btn-primary">Crear archivo</button>
-                        </form>
-                    </div>
-                    <?php
+                        ?>
+                        <div class="tarjeta fondo_blanco">
+                            <p>Actualmente el archivo <b><?php echo $nombre; ?></b> no ha sido configurado para poder tener atributos personalizados, favor de crearlo para modificarlo de manera correcta.</p>
+                            <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+                                <input type="hidden" name="archivo" value="<?php echo $nombre; ?>">
+                                <input type="hidden" name="carpeta" value="<?php echo $ruta; ?>">
+                                <button name="crear" type="submit" class="btn btn-primary">Crear archivo</button>
+                            </form>
+                        </div>
+                        <?php
                     }
                 }
                 ?>
             </main>
-            </div>
+        </div>
+        <?php
+        }
+        ?>
+            <h3>Archivos head que puedes modificar.</h3>
+            <ul class="directorios grid_3_auto">
+                <?php
+                $json = escanear_directorio($url_general . "head/");
+                if (json_validate($json) == 1) {
+                    $direct = json_decode($json, true); // Decodificar como array asociativo
+
+                    foreach ($direct as $item) {
+                        ?>
+                        <a href='?archivo=<?php echo $item['url']; ?>'>
+                            <li><i class="fa-solid fa-folder"></i> <?php echo $item['nombre']; ?></li>
+                        </a>
+                        <?php
+                    }
+                }
+                ?>
+            </ul>
+
+            <h3>Archivos navbar que puedes modificar.</h3>
+            <ul class="directorios grid_3_auto">
+                <?php
+                $json = escanear_directorio($url_general . "navbar/");
+                if (json_validate($json) == 1) {
+                    $direct = json_decode($json, true); // Decodificar como array asociativo
+
+                    foreach ($direct as $item) {
+                        ?>
+                        <a href='?archivo=<?php echo $item['url']; ?>'>
+                            <li><i class="fa-solid fa-folder"></i> <?php echo $item['nombre']; ?></li>
+                        </a>
+                        <?php
+                    }
+                }
+                ?>
+            </ul>
+
+            <h3>Archivos footer que puedes modificar.</h3>
+            <ul class="directorios grid_3_auto">
+                <?php
+                $json = escanear_directorio($url_general . "footer/");
+                if (json_validate($json) == 1) {
+                    $direct = json_decode($json, true); // Decodificar como array asociativo
+
+                    foreach ($direct as $item) {
+                        ?>
+                        <a href='?archivo=<?php echo $item['url']; ?>'>
+                            <li><i class="fa-solid fa-folder"></i> <?php echo $item['nombre']; ?></li>
+                        </a>
+                        <?php
+                    }
+                }
+                ?>
+            </ul>
+
+
+            <?php
+    }elseif(isset($_GET['archivo'])){
+
+        $titulo = $_GET['archivo'];
+        $directorio = $directorios[$titulo];
+        if(!file_exists($directorio)){
+            ?>
+            <script>
+                Swal.fire({
+                    title: "Archivo no encontrado",
+                    text: "El archivo que estás buscando no se encuentra, no tiene acceso a él o es una carpeta, intentalo de nuevo.",
+                    icon: "question"
+                });
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+            </script>
             <?php
         }else{
-
-            $titulo = $_GET['archivo'];
-            $tipo = $_GET['type'];
-            echo edit_file("Estás editando: $archivo", "./../../routes" . DIRECTORY_SEPARATOR . $tipo . DIRECTORY_SEPARATOR . $archivo);
-            ?>
-            <br>
-            <center>
-                <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
-                    <input type="hidden" name="archivo" value="<?php echo $titulo; ?>">
-                    <input type="hidden" name="carpeta" value="<?php echo $tipo; ?>">
-                    <button name="eliminar" type="submit" class="btn btn-danger">Eliminar archivo</button>
-                </form>
-            </center>
-            <a class="btn btn-primary" href="<?php echo basename(__FILE__); ?>" role="button">Regresar</a>
-            <br>
-            <?php
-        }
-        if(isset($_POST['eliminar'])){
-            $conexion = conect_mysqli();
-            $archivo = mysqli_real_escape_string($conexion, (string) $_POST['archivo']);
-            $carpeta = mysqli_real_escape_string($conexion, (string) $_POST['carpeta']);
-            $conexion -> close();
-            $directorio = (DIRECTORY_SEPARATOR . $carpeta . DIRECTORY_SEPARATOR . $archivo);
-            $check -> jossito = "";
-            $check -> jossito_info = [];
-            $check -> condicion = file_exists(__DIR__ . "/../../routes" . $directorio);
-            if($check -> comparar() == TRUE){
-                unlink(__DIR__ . "/../../routes" . $directorio);
+            echo edit_file("Estás editando: $archivo",$directorio);
+            if($archivo != "index.php"){
                 ?>
-                <script>
-                    Swal.fire(
-                    'Ya está',
-                    'Se ha eliminado el archivo de manera correcta',
-                    'success'
-                    )
-                </script>
-                <script>
-                timer: 8000,
-                window.location.href = "./hnf"
-                </script>
-            <?php
+                <br>
+            <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+                <input type="hidden" name="archivo" value="<?php echo $titulo; ?>">
+                <center>
+                    <button type="submit" name="eliminar" class="btn btn-danger" >Eliminar</button>
+                </center>
+            </form>
+                <?php
             }
         }
+        ?>
+        <a class="btn btn-primary" href="<?php echo basename(__FILE__); ?>" role="button">Regresar</a>
+        <?php
+    }
+
     ?>
   </div>
 
   <!-- Bootstrap JavaScript Libraries -->
   <?php footer_admin(); ?>
+
 </body>
 
 </html>

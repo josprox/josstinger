@@ -257,10 +257,6 @@ try {
                     }
                 }
                 break;
-            //Aquí se agregan las API's creadas por el usuario.
-            if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "custom_public.php")){
-                require_once (__DIR__ . DIRECTORY_SEPARATOR . "custom_public.php");
-            }
             default:
             $respuesta = [
                 "Tipo" => "error",
@@ -271,14 +267,29 @@ try {
         }
         header('Content-Type: application/json');
         $json = json_encode($respuesta, JSON_THROW_ON_ERROR);
-        if (json_validate($json) == 1){
-            echo $json;
-        }else{
-            $json_error = [
-                "comentario" => "El archivo JSON no está bien redactado.",
+    }elseif(isset($_GET['API']) && $_GET['API'] == "custom"){
+        header('Content-Type: application/json');
+        //Aquí se agregan las API's creadas por el usuario.
+        if(!file_exists(__DIR__ . DIRECTORY_SEPARATOR . "custom_API.php")){
+            $respuesta = [
+                "comentario" => "No existe el archivo 'custom'.",
                 "error" => 400
             ];
+        }else{
+            require_once (__DIR__ . DIRECTORY_SEPARATOR . "custom_API.php");
         }
+        $json = json_encode($respuesta, JSON_THROW_ON_ERROR);
+        header('Content-Type: application/json');
+    }else{
+        $respuesta = [
+            "Advertencia" => "El parámetro API no existe o aún no se ha incluido.",
+            "error" => 400
+        ];
+        header('Content-Type: application/json');
+        $json = json_encode($respuesta, JSON_THROW_ON_ERROR);
+    }
+    if (isset($json) && json_validate($json) == 1){
+        echo $json;
     }
 
 } catch (Exception $e) {

@@ -17,12 +17,6 @@ $row -> comparar = "id";
 $row -> comparable = $iduser;
 $consulta = $row -> where();
 
-$fecha_cliente = new fecha_cliente();
-if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
-$fondo = "fondo_oscuro";
-}else{
-$fondo = "fondo_blanco";
-}
 $check = new SysJosSecurity\SysNAND;
 $checking = [
     ".htaccess" => "/",
@@ -119,7 +113,7 @@ $checking = [
             ?>
             </ul>
             <div class="dashboard_index">
-                <div class="bienvenida <?php echo $fondo; ?>">
+                <div class="bienvenida fondo_blanco">
                 <p><?php echo $consulta['name']; ?> aquí verás si hay archivos que no existen y puedes personalizarlos (Beta) 😉</p>
             </div>
             <main class="tabla">
@@ -129,7 +123,7 @@ $checking = [
                     $check -> condicion = !file_exists(__DIR__ . "/../.." . DIRECTORY_SEPARATOR . $value . DIRECTORY_SEPARATOR . $key);
                     if($check -> comparar() == TRUE){
                     ?>
-                    <div class="tarjeta <?php echo $fondo; ?>">
+                    <div class="tarjeta fondo_blanco">
                         <p>Actualmente el archivo <b><?php echo $key; ?></b> no ha sido configurado para poder tener atributos personalizados, favor de crearlo para modificarlo de manera correcta.</p>
                         <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
                             <input type="hidden" name="archivo" value="<?php echo $key; ?>">

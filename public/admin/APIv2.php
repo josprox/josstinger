@@ -17,17 +17,12 @@ $row -> comparar = "id";
 $row -> comparable = $iduser;
 $consulta = $row -> where();
 
+$url_general = "API/";
+$url_interno = \JS_ROUTE . $url_general;
 $directorios = [
-    "custom_admin.php" => (__DIR__ . DIRECTORY_SEPARATOR . "../../API/custom_admin.php"),
-    "custom_public.php" => (__DIR__ . DIRECTORY_SEPARATOR . "../../API/custom_public.php")
-  ];
-
-$fecha_cliente = new fecha_cliente();
-if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
-$fondo = "fondo_oscuro";
-}else{
-$fondo = "fondo_blanco";
-}
+    "index.php" => ($url_interno . "index.php"),
+    "custom_API.php" => ($url_interno . "custom_API.php")
+];
 
 $check = new SysJosSecurity\SysNAND;
 
@@ -52,7 +47,7 @@ $check = new SysJosSecurity\SysNAND;
   <br>
 
   <div class="container">
-    <h3>configura tus archivos API.</h3>
+    <h1>Modifica tus archivos head, navbar y footer.</h1>
       <?php
     error_reporting(0);
 
@@ -60,40 +55,90 @@ $check = new SysJosSecurity\SysNAND;
 
     if(isset($_POST['crear'])){
         $conexion = conect_mysqli();
-        $archivo = mysqli_real_escape_string($conexion, (string) $_POST['archivo']);
-        $ruta = mysqli_real_escape_string($conexion, (string) $_POST['carpeta']);
-        $conexion -> close();
-        $directorio = (DIRECTORY_SEPARATOR . $carpeta . DIRECTORY_SEPARATOR . $archivo);
-        $check -> jossito = "crear_archivo";
-        $check -> jossito_info = [
-            "API". $directorio,
-            "<?php //Aquí podrás editar el archivo ?>"
-        ];
-        $check -> condicion = !file_exists(__DIR__ . "/../../API" . $directorio);
-        if($check -> comparar() == TRUE){
+        $archivo = mysqli_real_escape_string($conexion, (string)$_POST['archivo']);
+        $conexion-> close();
+        $link = $directorios[$archivo];
+        $create = fopen($link, 'w');
+        fwrite($create, "<?php //Aquí podrás editar el archivo ?>");
+        fclose($create);
+        ?>
+        <script>
+                Swal.fire({
+                    title: "Archivo creado",
+                    text: "El archivo fue creado correctamente, será redireccionado en 2 segundos",
+                    icon: "success"
+                });
+                // Espera medio segundo (500 milisegundos) antes de recargar la página
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+            </script>
+        <?php
+    }elseif(isset($_POST['eliminar'])){
+        $conexion = conect_mysqli();
+        $archivo = mysqli_real_escape_string($conexion, (string)$_POST['archivo']);
+        $conexion-> close();
+        $link = $directorios[$archivo];
+        if(!file_exists($link)){
             ?>
             <script>
-                Swal.fire(
-                'Ya está',
-                'Se ha creado el archivo de manera correcta',
-                'success'
-                )
-            </script>
-            <script>
-            timer: 8000,
-            window.location.href = "./APIv2"
+                Swal.fire({
+                    title: "Archivo Borrado",
+                    text: "El archivo fue borrado correctamente.",
+                    icon: "question"
+                });
+                // Espera medio segundo (500 milisegundos) antes de recargar la página
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 500);
             </script>
             <?php
+        }else{
+            unlink($link);
+            ?>
+            <script>
+                Swal.fire({
+                    title: "Listo",
+                    text: "El archivo se ha eliminado correctamente",
+                    icon: "success"
+                });
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+
+            </script>
+            <?php
+            
         }
     }
 
     if($archivo==""){
-        $archivos = scandir(__DIR__ . DIRECTORY_SEPARATOR ."../../API/");
-        if(!file_exists($directorios['custom_admin.php']) || !file_exists($directorios['custom_public.php'])){
+        (int)$count = 0;
+        foreach ($directorios as $archivo => $directorio){
+            if(!file_exists($directorio)){
+                $count ++;
+            }
+        }
+        if($count != 0){
         ?>
         <div class="dashboard_index">
-            <div class="bienvenida <?php echo $fondo; ?>">
-                <p>Bienvenido(a) <?php echo $consulta['name']; ?> al gestionador de API's, ahora podrás modificar tus API's como tu desees, ya no es necesario modificar el archivo principal, de esta manera, nunca perderás tus modificaciones al actualizar a JosSecurity.</p>
+            <div class="bienvenida fondo_blanco">
+                <p>Bienvenido(a) <?php echo $consulta['name']; ?> al gestionador de archivos, ahora podrás modificar tus archivos como tu desees, ya no es necesario modificar el archivo principal, de esta manera, nunca perderás tus modificaciones al actualizar tu JosSecurity, actualmente puedes modificar <?php if($count > 1){ echo $count . " archivos"; }else{ echo $count . "archivo"; } ?>.</p>
             </div>
             <main class="tabla">
                 <?php
@@ -101,7 +146,7 @@ $check = new SysJosSecurity\SysNAND;
                     $check->condicion = !file_exists($ruta);
                     if($check -> comparar() == TRUE){
                         ?>
-                        <div class="tarjeta <?php echo $fondo; ?>">
+                        <div class="tarjeta fondo_blanco">
                             <p>Actualmente el archivo <b><?php echo $nombre; ?></b> no ha sido configurado para poder tener atributos personalizados, favor de crearlo para modificarlo de manera correcta.</p>
                             <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
                                 <input type="hidden" name="archivo" value="<?php echo $nombre; ?>">
@@ -120,26 +165,60 @@ $check = new SysJosSecurity\SysNAND;
         ?>
             <h3>Archivos API que puedes modificar.</h3>
             <ul class="directorios grid_3_auto">
-            <?php
-            for ($i=0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
-                if ($archivos[$i] !="." && $archivos[$i] !="..") {
-                    if(!is_dir($archivos[$i])){
+                <?php
+                $json = escanear_directorio($url_general);
+                if (json_validate($json) == 1) {
+                    $direct = json_decode($json, true); // Decodificar como array asociativo
+
+                    foreach ($direct as $item) {
                         ?>
-                        <a href='?archivo=<?php echo $archivos[$i]; ?>'><li><i class="fa-solid fa-folder"></i> <?php echo $archivos[$i]; ?></li></a>
+                        <a href='?archivo=<?php echo $item['url']; ?>'>
+                            <li><i class="fa-solid fa-folder"></i> <?php echo $item['nombre']; ?></li>
+                        </a>
                         <?php
-                    }else{
-                        echo $archivos[$i] . "<br>";
                     }
-                    
                 }
-            }
-            ?>
+                ?>
             </ul>
+
+
             <?php
-    }else{
+    }elseif(isset($_GET['archivo'])){
 
         $titulo = $_GET['archivo'];
-        echo edit_file("Estás editando: $archivo",__DIR__ . DIRECTORY_SEPARATOR ."../../API/" . $archivo);
+        $directorio = $directorios[$titulo];
+        if(!file_exists($directorio)){
+            ?>
+            <script>
+                Swal.fire({
+                    title: "Archivo no encontrado",
+                    text: "El archivo que estás buscando no se encuentra, no tiene acceso a él o es una carpeta, intentalo de nuevo.",
+                    icon: "question"
+                });
+                setTimeout(function() {
+                    // Obtén la URL actual
+                    var currentUrl = window.location.href;
+                    // Elimina los parámetros GET de la URL
+                    var urlWithoutParams = currentUrl.split('?')[0];
+                    // Recarga la página con la nueva URL
+                    window.location.href = urlWithoutParams;
+                }, 2000);
+            </script>
+            <?php
+        }else{
+            echo edit_file("Estás editando: $archivo",$directorio);
+            if($archivo != "index.php"){
+                ?>
+                <br>
+            <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
+                <input type="hidden" name="archivo" value="<?php echo $titulo; ?>">
+                <center>
+                    <button type="submit" name="eliminar" class="btn btn-danger" >Eliminar</button>
+                </center>
+            </form>
+                <?php
+            }
+        }
         ?>
         <a class="btn btn-primary" href="<?php echo basename(__FILE__); ?>" role="button">Regresar</a>
         <?php

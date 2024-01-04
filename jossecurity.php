@@ -18,6 +18,7 @@ date_default_timezone_set($_ENV['ZONA_HORARIA']);
 // Definiciones dentro de JosSecurity
 define("NOMBRE_APP",(string)$_ENV['NAME_APP']);
 define("VERSION",(float)$_ENV['VERSION']);
+define("JS_ROUTE", __DIR__ . DIRECTORY_SEPARATOR);
 define("FECHA",date("Y-m-d H:i:s"));
 define("FECHA_1_DAY",date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days")));
 define("ZONA_HORARIA_CLIENTE", date_default_timezone_get());
@@ -1104,6 +1105,33 @@ function check_http(){
         return '';
     }
 }
+
+// Jossito para escanear directorios
+function escanear_directorio($url_interno){
+    $archivos = scandir(__DIR__ . DIRECTORY_SEPARATOR . $url_interno);
+    $resultados = [];
+    
+    for ($i = 0; $i < (is_countable($archivos) ? count($archivos) : 0); $i++) { 
+        if ($archivos[$i] !== "." && $archivos[$i] !== "..") {
+            if (!is_dir($archivos[$i])) {
+                $resultados[] = [
+                    'url' => $archivos[$i],
+                    'nombre' => $archivos[$i]
+                ];
+            } else {
+                // Puedes ajustar esta parte según tus necesidades para carpetas
+                $resultados[] = $archivos[$i];
+            }
+        }
+    }
+    
+    // Convertir el array a JSON
+    $json_resultados = json_encode($resultados);
+
+    // Retornar el JSON
+    return $json_resultados;
+}
+
 
 //Cron de JosSecurity
 

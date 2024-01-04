@@ -158,17 +158,12 @@ $sistema = new SysJosSecurity\SysNAND();
   <?php
   }
   $fecha_cliente = new fecha_cliente();
-  if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
-    $fondo = "fondo_oscuro";
-  }else{
-    $fondo = "fondo_blanco";
-  }
   ?>
 
   <h1 align="center">Bienvenido a <?php echo $nombre_app; ?></h1>
 
   <section class="dashboard_index">
-        <div class="bienvenida <?php echo $fondo; ?>">
+        <div class="bienvenida fondo_blanco">
             <p><?php
   if($fecha_cliente -> hora_24() >= "00:00" && $fecha_cliente -> hora_24() <= "12:00"){
     echo "Buenos días";
@@ -180,21 +175,21 @@ $sistema = new SysJosSecurity\SysNAND();
   ?> <?php echo $consulta['name']; ?>, un gusto volver a verte. 👌</p>
         </div>
         <main class="tabla">
-            <div class="tarjeta <?php echo $fondo; ?>">
+            <div class="tarjeta fondo_blanco">
                 <i class="fa-solid fa-trash"></i>
                 <p>Organiza los archivos con un clic.</p>
                 <form action="" method="post">
                     <button name="limpiar" type="submit" class="btn btn-primary">Limpiar</button>
                 </form>
             </div>
-            <div class="tarjeta <?php echo $fondo; ?>">
+            <div class="tarjeta fondo_blanco">
                 <i class="fa-solid fa-image"></i>
                 <p>Optimizar imágenes.</p>
                 <form action="" method="post">
                     <button name="optimizar" type="submit" class="btn btn-secondary">Optimizar</button>
                 </form>
             </div>
-            <div class="tarjeta <?php echo $fondo; ?>">
+            <div class="tarjeta fondo_blanco">
                 <?php 
                 if(check_http() == "https://"){
                   $ssl = "Conectado con seguridad";
@@ -215,7 +210,7 @@ $sistema = new SysJosSecurity\SysNAND();
             <div class="titulo">
                 <h3>Otras herramientas</h3>
             </div>
-            <div class="api <?php echo $fondo; ?>">
+            <div class="api fondo_blanco">
                 <i class="fa-solid fa-passport"></i>
                 <form action="" method="post">
                   <?php

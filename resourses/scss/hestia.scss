@@ -571,3 +571,41 @@ button{
         }
     }
 }
+
+.blog{
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    grid-template-rows: minmax(50px, auto);
+    grid-template-areas: "sinopsis""contenido";
+    .sinopsis{
+        grid-area: sinopsis;
+        background-color: rgba(0, 0, 0, 0.2);
+        margin: 8px 5px;
+        padding: 12px 8px;
+        border-radius: 12px;
+        color: #00DBDE;
+        button{
+            background-color: lch(91.95% 44.14 172.74);
+            margin-top: 8px;
+            padding: 12px 8px;
+            border-radius: 12px;
+            color: $blanco;
+            text-shadow: black 0.1em 0.1em 0.2em;
+            transition: all 1s !important;
+            &:hover{
+                background-color: lch(97.23% 53.07 100.19);
+            }
+        }
+    }
+    .contenido{
+        background-color: rgba(0, 0, 0, 0.2);
+        margin: 8px 5px;
+        padding: 12px 8px;
+        border-radius: 12px;
+        grid-area: contenido;
+    }
+    @media screen and (min-width:600px) {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-areas: "sinopsis contenido contenido";
+    }
+}

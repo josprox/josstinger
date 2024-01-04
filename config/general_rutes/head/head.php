@@ -9,7 +9,18 @@ if ($pagina  == "panel.php"){
   <!-- Configuración para no hacer zoom -->
   <meta name="viewport" content= "width=device-width, user-scalable=no">
   <!-- Hestia -->
-  <link rel="stylesheet" href="../resourses/scss/hestia.css">
+  <?php
+  $fecha_cliente = new fecha_cliente();
+  if($fecha_cliente -> hora_24() >= "18:01" && $fecha_cliente -> hora_24() <= "24:00"){
+    ?>
+    <link rel="stylesheet" href="../resourses/scss/dark_mode.css">
+    <?php
+  }else{
+    ?>
+    <link rel="stylesheet" href="../resourses/scss/hestia.css">
+    <?php
+  }
+  ?>
   <!-- Bootstrap min -->
   <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
   <!-- fontawesome -->

@@ -91,7 +91,7 @@ $cuerpo = '
                 <!-- Set text color to background color -->
                 <div style="display: none; visibility: hidden; overflow: hidden; opacity: 0; font-size: 1px; line-height: 1px; height: 0; max-height: 0; max-width: 0;
                 color: #F0F0F0;" class="preheader">
-                    Tienes un nuevo mensaje de: '.$nombre.'</div>
+                    Hola, tienes un mensaje de '.$nombre.'!!</div>
 
                 <!-- LOGO -->
                 <!-- Image text color should be opposite to background color. Set your url, image src, alt and title. Alt text should fit the image size. Real image size should be x2. URL format: http://domain.com/?utm_source={{Campaign-Source}}&utm_medium=email&utm_content=logo&utm_campaign={{Campaign-Name}} -->
@@ -149,17 +149,11 @@ $cuerpo = '
                 padding-top: 5px;
                 color: #000000;
                 font-family: sans-serif;" class="subheader">
-        Tienes un mensaje de:
+    Tienes un nuevo mensaje de '.$nombre.'. <br>Con el asunto: '.$asunto.'. <br> A continuación, se mostrará el mensaje:
             </td>
         </tr>
                                                     
                                                     <tr>
-            <td align="center" valign="top" style="border-collapse: collapse; border-spacing: 0; margin: 0; padding: 0; padding-bottom: 3px; padding-left: 6.25%; padding-right: 6.25%; width: 87.5%; font-size: 18px; font-weight: 300; line-height: 150%;
-                padding-top: 5px;
-                color: #000000;
-                font-family: sans-serif;" class="subheader">
-        '.$nombre.' con el siguiente asunto:
-            </td>
         </tr>
     
     
