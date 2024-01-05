@@ -50,7 +50,6 @@ ul, li {
 }
 
 .inicio {
-  position: -webkit-sticky;
   position: sticky;
   top: 0;
   width: 98%;
@@ -112,7 +111,6 @@ ul, li {
 
 .media-element {
   display: grid;
-  grid-template-rows: -webkit-min-content;
   grid-template-rows: min-content;
   padding: 8px;
   text-align: center;
@@ -147,7 +145,6 @@ ul, li {
 }
 
 .snaps-inline {
-  -ms-scroll-snap-type: inline mandatory;
   scroll-snap-type: inline mandatory;
 }
 .snaps-inline * {

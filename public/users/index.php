@@ -49,11 +49,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
         <?php
         $consulta_fecha_del_usuario = new fecha_cliente();
         ?>
-        <div class="tarjeta_del_momento <?php if($consulta_fecha_del_usuario -> hora_24() >= "18:01" && $consulta_fecha_del_usuario -> hora_24() <= "24:00"){
-            echo "fondo_oscuro";
-        }else{
-            echo "fondo_blanco";
-        } ?>">
+        <div class="tarjeta_del_momento fondo_blanco">
             <?php
             if($consulta_fecha_del_usuario -> hora_24() >= "00:00" && $consulta_fecha_del_usuario -> hora_24() <= "12:00"){
                 ?>
