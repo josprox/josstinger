@@ -3,10 +3,12 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser;
 
+use PhpParser\Node;
 use PhpParser\Node\Scalar\String_;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprIntegerNode;
 use PHPStan\PhpDocParser\Lexer\Lexer;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
+use Rector\BetterPhpDocParser\PhpDoc\StringNode;
 use Rector\BetterPhpDocParser\ValueObject\Parser\BetterTokenIterator;
 /**
  * @see \Rector\Tests\BetterPhpDocParser\PhpDocParser\StaticDoctrineAnnotationParser\ArrayParserTest
@@ -27,7 +29,7 @@ final class ArrayParser
      *
      * @return ArrayItemNode[]
      */
-    public function parseCurlyArray(BetterTokenIterator $tokenIterator) : array
+    public function parseCurlyArray(BetterTokenIterator $tokenIterator, Node $currentPhpNode) : array
     {
         $values = [];
         // nothing
@@ -41,7 +43,7 @@ final class ArrayParser
             return [];
         }
         // first item
-        $values[] = $this->resolveArrayItem($tokenIterator);
+        $values[] = $this->resolveArrayItem($tokenIterator, $currentPhpNode);
         // 2nd+ item
         while ($tokenIterator->isCurrentTokenType(Lexer::TOKEN_COMMA)) {
             // optional trailing comma
@@ -50,7 +52,7 @@ final class ArrayParser
             if ($tokenIterator->isCurrentTokenType(Lexer::TOKEN_CLOSE_CURLY_BRACKET)) {
                 break;
             }
-            $values[] = $this->resolveArrayItem($tokenIterator);
+            $values[] = $this->resolveArrayItem($tokenIterator, $currentPhpNode);
             if ($tokenIterator->isNextTokenType(Lexer::TOKEN_CLOSE_CURLY_BRACKET)) {
                 break;
             }
@@ -91,7 +93,7 @@ final class ArrayParser
      * Mimics https://github.com/doctrine/annotations/blob/c66f06b7c83e9a2a7523351a9d5a4b55f885e574/lib/Doctrine/Common/Annotations/DocParser.php#L1354-L1385
      * @return array<null|mixed, mixed>
      */
-    private function resolveArrayItem(BetterTokenIterator $tokenIterator) : array
+    private function resolveArrayItem(BetterTokenIterator $tokenIterator, Node $currentPhpNode) : array
     {
         // skip newlines
         $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL);
@@ -116,17 +118,17 @@ final class ArrayParser
             $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_COLON);
             if ($key === null) {
                 if ($tokenIterator->isNextTokenType(Lexer::TOKEN_IDENTIFIER)) {
-                    $key = $this->plainValueParser->parseValue($tokenIterator);
+                    $key = $this->plainValueParser->parseValue($tokenIterator, $currentPhpNode);
                 } else {
                     $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_COMMA);
-                    $key = $this->plainValueParser->parseValue($tokenIterator);
+                    $key = $this->plainValueParser->parseValue($tokenIterator, $currentPhpNode);
                 }
             }
             $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_EQUAL);
             $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_COLON);
-            return [$key, $this->plainValueParser->parseValue($tokenIterator)];
+            return [$key, $this->plainValueParser->parseValue($tokenIterator, $currentPhpNode)];
         }
-        return [$key, $this->plainValueParser->parseValue($tokenIterator)];
+        return [$key, $this->plainValueParser->parseValue($tokenIterator, $currentPhpNode)];
     }
     /**
      * @return String_::KIND_SINGLE_QUOTED|String_::KIND_DOUBLE_QUOTED|null
@@ -143,25 +145,32 @@ final class ArrayParser
         return null;
     }
     /**
-     * @param mixed $key
-     * @param mixed $value
+     * @param mixed $rawKey
+     * @param mixed $rawValue
      */
-    private function createArrayItemFromKeyAndValue($key, $value) : ArrayItemNode
+    private function createArrayItemFromKeyAndValue($rawKey, $rawValue) : ArrayItemNode
     {
-        $valueQuoteKind = $this->resolveQuoteKind($value);
-        if (\is_string($value) && $valueQuoteKind === String_::KIND_DOUBLE_QUOTED) {
+        $valueQuoteKind = $this->resolveQuoteKind($rawValue);
+        if (\is_string($rawValue) && $valueQuoteKind === String_::KIND_DOUBLE_QUOTED) {
             // give raw value
-            $value = \trim($value, '"');
+            $value = new StringNode(\substr($rawValue, 1, \strlen($rawValue) - 2));
+        } else {
+            $value = $rawValue;
         }
-        $keyQuoteKind = $this->resolveQuoteKind($key);
-        if (\is_string($key) && $keyQuoteKind === String_::KIND_DOUBLE_QUOTED) {
+        $keyQuoteKind = $this->resolveQuoteKind($rawKey);
+        if (\is_string($rawKey) && $keyQuoteKind === String_::KIND_DOUBLE_QUOTED) {
             // give raw value
-            $key = \trim($key, '"');
+            $key = new StringNode(\substr($rawKey, 1, \strlen($rawKey) - 2));
+        } else {
+            $key = $rawKey;
+        }
+        if (\is_string($value) && $valueQuoteKind === String_::KIND_SINGLE_QUOTED) {
+            $value = \trim($value, "'");
         }
         if ($key !== null) {
-            return new ArrayItemNode($value, $key, $valueQuoteKind, $keyQuoteKind);
+            return new ArrayItemNode($value, $key);
         }
-        return new ArrayItemNode($value, null, $valueQuoteKind, $keyQuoteKind);
+        return new ArrayItemNode($value);
     }
     /**
      * @param mixed $value

@@ -4,23 +4,28 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp80\Rector\Expression;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
 use PhpParser\Node\Expr\BinaryOp\Identical;
+use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
+use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\Isset_;
+use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Expr\Throw_;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
-use Rector\Core\NodeAnalyzer\CoalesceAnalyzer;
 use Rector\Core\NodeManipulator\BinaryOpManipulator;
-use Rector\Core\NodeManipulator\IfManipulator;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\Rector\AbstractRector;
+use Rector\NodeAnalyzer\CoalesceAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -32,12 +37,7 @@ final class DowngradeThrowExprRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\Core\NodeManipulator\IfManipulator
-     */
-    private $ifManipulator;
-    /**
-     * @readonly
-     * @var \Rector\Core\NodeAnalyzer\CoalesceAnalyzer
+     * @var \Rector\NodeAnalyzer\CoalesceAnalyzer
      */
     private $coalesceAnalyzer;
     /**
@@ -45,11 +45,16 @@ final class DowngradeThrowExprRector extends AbstractRector
      * @var \Rector\Core\NodeManipulator\BinaryOpManipulator
      */
     private $binaryOpManipulator;
-    public function __construct(IfManipulator $ifManipulator, CoalesceAnalyzer $coalesceAnalyzer, BinaryOpManipulator $binaryOpManipulator)
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
+     */
+    private $betterNodeFinder;
+    public function __construct(CoalesceAnalyzer $coalesceAnalyzer, BinaryOpManipulator $binaryOpManipulator, BetterNodeFinder $betterNodeFinder)
     {
-        $this->ifManipulator = $ifManipulator;
         $this->coalesceAnalyzer = $coalesceAnalyzer;
         $this->binaryOpManipulator = $binaryOpManipulator;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -85,7 +90,10 @@ CODE_SAMPLE
             return null;
         }
         if ($node->expr instanceof Assign) {
-            return $this->refactorAssign($node, $node->expr);
+            $resultNode = $this->refactorAssign($node->expr);
+            if ($resultNode !== null) {
+                return $resultNode;
+            }
         }
         if ($node->expr instanceof Coalesce) {
             return $this->refactorCoalesce($node->expr, null);
@@ -93,12 +101,12 @@ CODE_SAMPLE
         if ($node->expr instanceof Ternary) {
             return $this->refactorTernary($node->expr, null);
         }
-        return null;
+        return $this->refactorDirectCoalesce($node);
     }
     /**
      * @return If_|Expression|Stmt[]|null
      */
-    private function refactorAssign(Expression $expression, Assign $assign)
+    private function refactorAssign(Assign $assign)
     {
         if (!$this->hasThrowInAssignExpr($assign)) {
             return null;
@@ -112,7 +120,7 @@ CODE_SAMPLE
         if ($assign->expr instanceof Ternary) {
             return $this->refactorTernary($assign->expr, $assign);
         }
-        return $expression;
+        return null;
     }
     /**
      * @return If_|Stmt[]|null
@@ -123,7 +131,7 @@ CODE_SAMPLE
             return null;
         }
         $inversedTernaryExpr = $this->binaryOpManipulator->inverseNode($ternary->cond);
-        $if = $this->ifManipulator->createIfStmt($inversedTernaryExpr, new Expression($ternary->else));
+        $if = new If_($inversedTernaryExpr, ['stmts' => [new Expression($ternary->else)]]);
         if (!$assign instanceof Assign) {
             return $if;
         }
@@ -142,7 +150,7 @@ CODE_SAMPLE
             return null;
         }
         $condExpr = $this->createCondExpr($coalesce);
-        $if = $this->ifManipulator->createIfStmt($condExpr, new Expression($coalesce->right));
+        $if = new If_($condExpr, ['stmts' => [new Expression($coalesce->right)]]);
         if (!$assign instanceof Assign) {
             return $if;
         }
@@ -160,8 +168,8 @@ CODE_SAMPLE
      */
     private function refactorReturn(Return_ $return) : ?array
     {
-        $throwExpr = $this->betterNodeFinder->findFirstInstanceOf($return, Throw_::class);
-        if (!$throwExpr instanceof Throw_) {
+        $throw = $this->betterNodeFinder->findFirstInstanceOf($return, Throw_::class);
+        if (!$throw instanceof Throw_) {
             return null;
         }
         if ($return->expr instanceof Coalesce) {
@@ -172,11 +180,19 @@ CODE_SAMPLE
             $if = $this->createIf($coalesce, $coalesce->right);
             return [$if, new Return_($coalesce->left)];
         }
+        if ($return->expr instanceof Throw_) {
+            return [new Expression($return->expr)];
+        }
         return null;
     }
     private function createIf(Coalesce $coalesce, Throw_ $throw) : If_
     {
-        $booleanNot = new BooleanNot(new Isset_([$coalesce->left]));
+        $conditionalExpr = $coalesce->left;
+        if ($conditionalExpr instanceof Variable || $conditionalExpr instanceof ArrayDimFetch || $conditionalExpr instanceof PropertyFetch) {
+            $booleanNot = new BooleanNot(new Isset_([$conditionalExpr]));
+        } else {
+            $booleanNot = new NotIdentical($conditionalExpr, new ConstFetch(new Name('null')));
+        }
         return new If_($booleanNot, ['stmts' => [new Expression($throw)]]);
     }
     /**
@@ -188,5 +204,31 @@ CODE_SAMPLE
             return new BooleanNot(new Isset_([$coalesce->left]));
         }
         return new Identical($coalesce->left, $this->nodeFactory->createNull());
+    }
+    /**
+     * @return Stmt[]|null
+     */
+    private function refactorDirectCoalesce(Expression $expression) : ?array
+    {
+        /** @var Coalesce[] $coalesces */
+        $coalesces = $this->betterNodeFinder->findInstanceOf($expression, Coalesce::class);
+        foreach ($coalesces as $coalesce) {
+            if (!$coalesce->right instanceof Throw_) {
+                continue;
+            }
+            // add condition if above
+            $throwExpr = $coalesce->right;
+            $throw = new Stmt\Throw_($throwExpr->expr);
+            $if = new If_(new Identical($coalesce->left, new ConstFetch(new Name('null'))), ['stmts' => [$throw]]);
+            // replace coalsese with left :)
+            $this->traverseNodesWithCallable($expression, static function (Node $node) : ?Expr {
+                if (!$node instanceof Coalesce) {
+                    return null;
+                }
+                return $node->left;
+            });
+            return [$if, $expression];
+        }
+        return null;
     }
 }

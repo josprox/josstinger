@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
-use PhpParser\Node\Name;
-use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PhpParser\Node\Identifier;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\Type;
@@ -36,9 +35,9 @@ final class FloatTypeMapper implements TypeMapperInterface
     /**
      * @param FloatType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
     {
-        return new IdentifierTypeNode('float');
+        return $type->toPhpDocNode();
     }
     /**
      * @param FloatType $type
@@ -48,6 +47,6 @@ final class FloatTypeMapper implements TypeMapperInterface
         if (!$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::SCALAR_TYPES)) {
             return null;
         }
-        return new Name('float');
+        return new Identifier('float');
     }
 }

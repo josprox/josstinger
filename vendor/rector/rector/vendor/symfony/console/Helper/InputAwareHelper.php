@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Helper;
+namespace RectorPrefix202312\Symfony\Component\Console\Helper;
 
-use RectorPrefix202211\Symfony\Component\Console\Input\InputAwareInterface;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputAwareInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
 /**
  * An implementation of InputAwareInterface for Helpers.
  *
@@ -21,7 +21,7 @@ abstract class InputAwareHelper extends Helper implements InputAwareInterface
 {
     protected $input;
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function setInput(InputInterface $input)
     {

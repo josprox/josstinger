@@ -12,21 +12,21 @@ use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Visibility\ValueObject\ChangeConstantVisibility;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202211\Webmozart\Assert\Assert;
+use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Visibility\Rector\ClassConst\ChangeConstantVisibilityRector\ChangeConstantVisibilityRectorTest
  */
 final class ChangeConstantVisibilityRector extends AbstractRector implements ConfigurableRectorInterface
 {
     /**
-     * @var ChangeConstantVisibility[]
-     */
-    private $classConstantVisibilityChanges = [];
-    /**
      * @readonly
      * @var \Rector\Privatization\NodeManipulator\VisibilityManipulator
      */
     private $visibilityManipulator;
+    /**
+     * @var ChangeConstantVisibility[]
+     */
+    private $classConstantVisibilityChanges = [];
     public function __construct(VisibilityManipulator $visibilityManipulator)
     {
         $this->visibilityManipulator = $visibilityManipulator;
@@ -70,10 +70,10 @@ CODE_SAMPLE
     public function refactor(Node $node) : ?Node
     {
         foreach ($this->classConstantVisibilityChanges as $classConstantVisibilityChange) {
-            if (!$this->isObjectType($node, $classConstantVisibilityChange->getObjectType())) {
+            if (!$this->isName($node, $classConstantVisibilityChange->getConstant())) {
                 continue;
             }
-            if (!$this->isName($node, $classConstantVisibilityChange->getConstant())) {
+            if (!$this->isObjectType($node, $classConstantVisibilityChange->getObjectType())) {
                 continue;
             }
             $this->visibilityManipulator->changeNodeVisibility($node, $classConstantVisibilityChange->getVisibility());

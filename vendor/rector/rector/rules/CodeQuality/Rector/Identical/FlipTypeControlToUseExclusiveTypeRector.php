@@ -5,23 +5,16 @@ namespace Rector\CodeQuality\Rector\Identical;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Identical;
+use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\Instanceof_;
 use PhpParser\Node\Name\FullyQualified;
-use PhpParser\Node\Stmt\Expression;
-use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
-use PHPStan\Type\NullType;
 use PHPStan\Type\ObjectType;
-use PHPStan\Type\Type;
-use PHPStan\Type\UnionType;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 use Rector\StaticTypeMapper\ValueObject\Type\ShortenedObjectType;
+use Rector\TypeDeclaration\TypeAnalyzer\NullableTypeAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -31,37 +24,34 @@ final class FlipTypeControlToUseExclusiveTypeRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTagRemover
+     * @var \Rector\TypeDeclaration\TypeAnalyzer\NullableTypeAnalyzer
      */
-    private $phpDocTagRemover;
-    public function __construct(PhpDocTagRemover $phpDocTagRemover)
+    private $nullableTypeAnalyzer;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     */
+    private $valueResolver;
+    public function __construct(NullableTypeAnalyzer $nullableTypeAnalyzer, ValueResolver $valueResolver)
     {
-        $this->phpDocTagRemover = $phpDocTagRemover;
+        $this->nullableTypeAnalyzer = $nullableTypeAnalyzer;
+        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
-        return new RuleDefinition('Flip type control to use exclusive type', [new CodeSample(<<<'CODE_SAMPLE'
-class SomeClass
+        return new RuleDefinition('Flip type control from null compare to use exclusive instanceof object', [new CodeSample(<<<'CODE_SAMPLE'
+function process(?DateTime $dateTime)
 {
-    public function __construct(array $values)
-    {
-        /** @var PhpDocInfo|null $phpDocInfo */
-        $phpDocInfo = $functionLike->getAttribute(AttributeKey::PHP_DOC_INFO);
-        if ($phpDocInfo === null) {
-            return;
-        }
+    if ($dateTime === null) {
+        return;
     }
 }
 CODE_SAMPLE
 , <<<'CODE_SAMPLE'
-class SomeClass
+function process(?DateTime $dateTime)
 {
-    public function __construct(array $values)
-    {
-        $phpDocInfo = $functionLike->getAttribute(AttributeKey::PHP_DOC_INFO);
-        if (! $phpDocInfo instanceof PhpDocInfo) {
-            return;
-        }
+    if (! $dateTime instanceof DateTime) {
+        return;
     }
 }
 CODE_SAMPLE
@@ -72,90 +62,47 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Identical::class];
+        return [Identical::class, NotIdentical::class];
     }
     /**
-     * @param Identical $node
+     * @param Identical|NotIdentical $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$this->valueResolver->isNull($node->left) && !$this->valueResolver->isNull($node->right)) {
+        $expr = $this->matchNullComparedExpr($node);
+        if (!$expr instanceof Expr) {
             return null;
         }
-        $variable = $this->valueResolver->isNull($node->left) ? $node->right : $node->left;
-        $assign = $this->getVariableAssign($node, $variable);
-        if (!$assign instanceof Assign) {
+        $nullableObjectType = $this->nullableTypeAnalyzer->resolveNullableObjectType($expr);
+        if (!$nullableObjectType instanceof ObjectType) {
             return null;
         }
-        $expression = $assign->getAttribute(AttributeKey::PARENT_NODE);
-        if (!$expression instanceof Expression) {
-            return null;
-        }
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($expression);
-        $type = $phpDocInfo->getVarType();
-        if (!$type instanceof UnionType) {
-            $type = $this->getType($assign->expr);
-        }
-        if (!$type instanceof UnionType) {
-            return null;
-        }
-        /** @var Type[] $types */
-        $types = $this->getTypes($type);
-        if ($this->isNotNullOneOf($types)) {
-            return null;
-        }
-        return $this->processConvertToExclusiveType($types, $variable, $phpDocInfo);
-    }
-    private function getVariableAssign(Identical $identical, Expr $expr) : ?Node
-    {
-        return $this->betterNodeFinder->findFirstPrevious($identical, function (Node $node) use($expr) : bool {
-            if (!$node instanceof Assign) {
-                return \false;
-            }
-            return $this->nodeComparator->areNodesEqual($node->var, $expr);
-        });
+        return $this->processConvertToExclusiveType($nullableObjectType, $expr, $node);
     }
     /**
-     * @return Type[]
+     * @param \PhpParser\Node\Expr\BinaryOp\Identical|\PhpParser\Node\Expr\BinaryOp\NotIdentical $binaryOp
+     * @return \PhpParser\Node\Expr\BooleanNot|\PhpParser\Node\Expr\Instanceof_
      */
-    private function getTypes(UnionType $unionType) : array
+    private function processConvertToExclusiveType(ObjectType $objectType, Expr $expr, $binaryOp)
     {
-        $types = $unionType->getTypes();
-        if (\count($types) > 2) {
-            return [];
+        $fullyQualifiedType = $objectType instanceof ShortenedObjectType ? $objectType->getFullyQualifiedName() : $objectType->getClassName();
+        $instanceof = new Instanceof_($expr, new FullyQualified($fullyQualifiedType));
+        if ($binaryOp instanceof NotIdentical) {
+            return $instanceof;
         }
-        return $types;
+        return new BooleanNot($instanceof);
     }
     /**
-     * @param Type[] $types
+     * @param \PhpParser\Node\Expr\BinaryOp\Identical|\PhpParser\Node\Expr\BinaryOp\NotIdentical $binaryOp
      */
-    private function isNotNullOneOf(array $types) : bool
+    private function matchNullComparedExpr($binaryOp) : ?Expr
     {
-        if ($types === []) {
-            return \true;
+        if ($this->valueResolver->isNull($binaryOp->left)) {
+            return $binaryOp->right;
         }
-        if ($types[0] === $types[1]) {
-            return \true;
+        if ($this->valueResolver->isNull($binaryOp->right)) {
+            return $binaryOp->left;
         }
-        if ($types[0] instanceof NullType) {
-            return \false;
-        }
-        return !$types[1] instanceof NullType;
-    }
-    /**
-     * @param Type[] $types
-     */
-    private function processConvertToExclusiveType(array $types, Expr $expr, PhpDocInfo $phpDocInfo) : ?BooleanNot
-    {
-        $type = $types[0] instanceof NullType ? $types[1] : $types[0];
-        if (!$type instanceof FullyQualifiedObjectType && !$type instanceof ObjectType) {
-            return null;
-        }
-        $varTagValueNode = $phpDocInfo->getVarTagValueNode();
-        if ($varTagValueNode instanceof VarTagValueNode) {
-            $this->phpDocTagRemover->removeTagValueFromNode($phpDocInfo, $varTagValueNode);
-        }
-        $fullyQualifiedType = $type instanceof ShortenedObjectType ? $type->getFullyQualifiedName() : $type->getClassName();
-        return new BooleanNot(new Instanceof_($expr, new FullyQualified($fullyQualifiedType)));
+        return null;
     }
 }

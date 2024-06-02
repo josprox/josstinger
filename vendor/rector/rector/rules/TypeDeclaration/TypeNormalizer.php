@@ -5,16 +5,12 @@ namespace Rector\TypeDeclaration;
 
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\Constant\ConstantArrayType;
-use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
-use PHPStan\Type\ObjectType;
-use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeTraverser;
 use PHPStan\Type\UnionType;
 use Rector\Core\Util\Reflection\PrivatesAccessor;
-use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\TypeDeclaration\ValueObject\NestedArrayType;
 /**
  * @see \Rector\Tests\TypeDeclaration\TypeNormalizerTest
@@ -22,44 +18,17 @@ use Rector\TypeDeclaration\ValueObject\NestedArrayType;
 final class TypeNormalizer
 {
     /**
-     * @var NestedArrayType[]
-     */
-    private $collectedNestedArrayTypes = [];
-    /**
-     * @readonly
-     * @var \Rector\NodeTypeResolver\PHPStan\Type\TypeFactory
-     */
-    private $typeFactory;
-    /**
      * @readonly
      * @var \Rector\Core\Util\Reflection\PrivatesAccessor
      */
     private $privatesAccessor;
-    public function __construct(TypeFactory $typeFactory, PrivatesAccessor $privatesAccessor)
+    /**
+     * @var NestedArrayType[]
+     */
+    private $collectedNestedArrayTypes = [];
+    public function __construct(PrivatesAccessor $privatesAccessor)
     {
-        $this->typeFactory = $typeFactory;
         $this->privatesAccessor = $privatesAccessor;
-    }
-    public function convertConstantArrayTypeToArrayType(ConstantArrayType $constantArrayType) : ?ArrayType
-    {
-        $nonConstantValueTypes = [];
-        if ($constantArrayType->getItemType() instanceof UnionType) {
-            /** @var UnionType $unionType */
-            $unionType = $constantArrayType->getItemType();
-            foreach ($unionType->getTypes() as $unionedType) {
-                if ($unionedType instanceof ConstantStringType) {
-                    $stringType = new StringType();
-                    $nonConstantValueTypes[\get_class($stringType)] = $stringType;
-                } elseif ($unionedType instanceof ObjectType) {
-                    $nonConstantValueTypes[] = $unionedType;
-                } else {
-                    return null;
-                }
-            }
-        } else {
-            return null;
-        }
-        return $this->createArrayTypeFromNonConstantValueTypes($nonConstantValueTypes);
     }
     /**
      * @api
@@ -100,22 +69,9 @@ final class TypeNormalizer
             if ($this->isConstantArrayNever($traversedType)) {
                 \assert($traversedType instanceof ConstantArrayType);
                 // not sure why, but with direct new node everything gets nulled to MixedType
-                $this->privatesAccessor->setPrivatePropertyOfClass($traversedType, 'keyType', new MixedType(), Type::class);
-                $this->privatesAccessor->setPrivatePropertyOfClass($traversedType, 'itemType', new MixedType(), Type::class);
+                $this->privatesAccessor->setPrivateProperty($traversedType, 'keyType', new MixedType());
+                $this->privatesAccessor->setPrivateProperty($traversedType, 'itemType', new MixedType());
                 return $traversedType;
-            }
-            if ($traversedType instanceof UnionType) {
-                $traversedTypeTypes = $traversedType->getTypes();
-                $countTraversedTypes = \count($traversedTypeTypes);
-                if ($this->isUnionMixedArrayNeverType($countTraversedTypes, $traversedTypeTypes)) {
-                    return new MixedType();
-                }
-                $collectedTypes = $this->getCollectedTypes($traversedTypeTypes);
-                $countCollectedTypes = \count($collectedTypes);
-                // re-create new union types
-                if ($countTraversedTypes !== $countCollectedTypes && $countTraversedTypes > 2) {
-                    return $this->typeFactory->createMixedPassedOrUnionType($collectedTypes);
-                }
             }
             if ($traversedType instanceof NeverType) {
                 return new MixedType();
@@ -127,46 +83,10 @@ final class TypeNormalizer
     {
         return $type instanceof ConstantArrayType && $type->getKeyType() instanceof NeverType && $type->getItemType() instanceof NeverType;
     }
-    /**
-     * @param Type[] $traversedTypeTypes
-     * @return Type[]
-     */
-    private function getCollectedTypes(array $traversedTypeTypes) : array
-    {
-        $collectedTypes = [];
-        foreach ($traversedTypeTypes as $traversedTypeType) {
-            // basically an empty array - not useful at all
-            if ($this->isArrayNeverType($traversedTypeType)) {
-                continue;
-            }
-            $collectedTypes[] = $traversedTypeType;
-        }
-        return $collectedTypes;
-    }
-    /**
-     * @param Type[] $traversedTypeTypes
-     */
-    private function isUnionMixedArrayNeverType(int $countTraversedTypes, array $traversedTypeTypes) : bool
-    {
-        return $countTraversedTypes === 2 && ($this->isArrayNeverType($traversedTypeTypes[0]) || $this->isArrayNeverType($traversedTypeTypes[1]));
-    }
-    /**
-     * @param array<string|int, Type> $nonConstantValueTypes
-     */
-    private function createArrayTypeFromNonConstantValueTypes(array $nonConstantValueTypes) : ArrayType
-    {
-        $nonConstantValueTypes = \array_values($nonConstantValueTypes);
-        if (\count($nonConstantValueTypes) > 1) {
-            $nonConstantValueType = new UnionType($nonConstantValueTypes);
-        } else {
-            $nonConstantValueType = $nonConstantValueTypes[0];
-        }
-        return new ArrayType(new MixedType(), $nonConstantValueType);
-    }
     private function collectNestedArrayTypeFromUnionType(UnionType $unionType, int $arrayNesting) : void
     {
         foreach ($unionType->getTypes() as $unionedType) {
-            if ($unionedType instanceof ArrayType) {
+            if ($unionedType->isArray()->yes()) {
                 ++$arrayNesting;
                 $this->normalizeArrayOfUnionToUnionArray($unionedType, $arrayNesting);
             } else {
@@ -193,12 +113,5 @@ final class TypeNormalizer
             return new UnionType($unionedTypes);
         }
         return $unionedTypes[0];
-    }
-    private function isArrayNeverType(Type $type) : bool
-    {
-        if (!$type instanceof ArrayType) {
-            return \false;
-        }
-        return $type->getKeyType() instanceof NeverType && $type->getItemType() instanceof NeverType;
     }
 }

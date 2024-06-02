@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202211\React\Socket;
+namespace RectorPrefix202312\React\Socket;
 
-use RectorPrefix202211\Evenement\EventEmitter;
-use RectorPrefix202211\React\EventLoop\Loop;
-use RectorPrefix202211\React\EventLoop\LoopInterface;
+use RectorPrefix202312\Evenement\EventEmitter;
+use RectorPrefix202312\React\EventLoop\Loop;
+use RectorPrefix202312\React\EventLoop\LoopInterface;
 use InvalidArgumentException;
 use RuntimeException;
 /**
@@ -54,7 +54,7 @@ final class UnixServer extends EventEmitter implements ServerInterface
         if (\strpos($path, '://') === \false) {
             $path = 'unix://' . $path;
         } elseif (\substr($path, 0, 7) !== 'unix://') {
-            throw new \InvalidArgumentException('Given URI "' . $path . '" is invalid (EINVAL)', \defined('SOCKET_EINVAL') ? \SOCKET_EINVAL : 22);
+            throw new \InvalidArgumentException('Given URI "' . $path . '" is invalid (EINVAL)', \defined('SOCKET_EINVAL') ? \SOCKET_EINVAL : (\defined('PCNTL_EINVAL') ? \PCNTL_EINVAL : 22));
         }
         $errno = 0;
         $errstr = '';

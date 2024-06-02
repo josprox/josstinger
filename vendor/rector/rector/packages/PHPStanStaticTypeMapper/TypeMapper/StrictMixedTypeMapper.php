@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
-use PhpParser\Node\Name;
-use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PhpParser\Node\Identifier;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\StrictMixedType;
 use PHPStan\Type\Type;
@@ -29,15 +28,15 @@ final class StrictMixedTypeMapper implements TypeMapperInterface
     /**
      * @param StrictMixedType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
     {
-        return new IdentifierTypeNode(self::MIXED);
+        return $type->toPhpDocNode();
     }
     /**
      * @param StrictMixedType $type
      */
     public function mapToPhpParserNode(Type $type, string $typeKind) : ?Node
     {
-        return new Name(self::MIXED);
+        return new Identifier(self::MIXED);
     }
 }

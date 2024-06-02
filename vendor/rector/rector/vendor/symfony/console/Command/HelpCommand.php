@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Command;
+namespace RectorPrefix202312\Symfony\Component\Console\Command;
 
-use RectorPrefix202211\Symfony\Component\Console\Descriptor\ApplicationDescription;
-use RectorPrefix202211\Symfony\Component\Console\Helper\DescriptorHelper;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Descriptor\ApplicationDescription;
+use RectorPrefix202312\Symfony\Component\Console\Helper\DescriptorHelper;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
 /**
  * HelpCommand displays the help for a given command.
  *
@@ -28,7 +28,7 @@ class HelpCommand extends Command
      */
     private $command;
     /**
-     * {@inheritdoc}
+     * @return void
      */
     protected function configure()
     {
@@ -50,13 +50,13 @@ To display the list of available commands, please use the <info>list</info> comm
 EOF
 );
     }
+    /**
+     * @return void
+     */
     public function setCommand(Command $command)
     {
         $this->command = $command;
     }
-    /**
-     * {@inheritdoc}
-     */
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
         $this->command = $this->command ?? $this->getApplication()->find($input->getArgument('command_name'));

@@ -69,15 +69,25 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
+        if ($node->params === [] && !$node->returnType instanceof Node) {
+            return null;
+        }
         $classReflection = $this->reflectionResolver->resolveClassReflection($node);
         if (!$classReflection instanceof ClassReflection) {
             return null;
         }
         $staticType = new StaticType($classReflection);
+        $hasChanged = \false;
         foreach ($node->getParams() as $param) {
-            $this->phpDocFromTypeDeclarationDecorator->decorateParamWithSpecificType($param, $node, $staticType);
+            $hasParamChanged = $this->phpDocFromTypeDeclarationDecorator->decorateParamWithSpecificType($param, $node, $staticType);
+            if ($hasParamChanged) {
+                $hasChanged = \true;
+            }
         }
         if (!$this->phpDocFromTypeDeclarationDecorator->decorateReturnWithSpecificType($node, $staticType)) {
+            if ($hasChanged) {
+                return $node;
+            }
             return null;
         }
         return $node;

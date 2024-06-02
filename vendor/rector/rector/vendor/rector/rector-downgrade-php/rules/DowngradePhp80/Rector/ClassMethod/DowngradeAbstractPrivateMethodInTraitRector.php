@@ -4,11 +4,11 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp80\Rector\ClassMethod;
 
 use PhpParser\Node;
+use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Trait_;
+use PHPStan\Reflection\ClassReflection;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\Privatization\NodeManipulator\VisibilityManipulator;
+use Rector\Core\Reflection\ReflectionResolver;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -18,12 +18,12 @@ final class DowngradeAbstractPrivateMethodInTraitRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\Privatization\NodeManipulator\VisibilityManipulator
+     * @var \Rector\Core\Reflection\ReflectionResolver
      */
-    private $visibilityManipulator;
-    public function __construct(VisibilityManipulator $visibilityManipulator)
+    private $reflectionResolver;
+    public function __construct(ReflectionResolver $reflectionResolver)
     {
-        $this->visibilityManipulator = $visibilityManipulator;
+        $this->reflectionResolver = $reflectionResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -56,7 +56,8 @@ CODE_SAMPLE
         if ($this->shouldSkip($node)) {
             return null;
         }
-        $this->visibilityManipulator->removeAbstract($node);
+        // remove abstract
+        $node->flags -= Class_::MODIFIER_ABSTRACT;
         // Add empty array for stmts to generate empty function body
         $node->stmts = [];
         return $node;
@@ -69,7 +70,10 @@ CODE_SAMPLE
         if (!$classMethod->isPrivate()) {
             return \true;
         }
-        $parentNode = $classMethod->getAttribute(AttributeKey::PARENT_NODE);
-        return !$parentNode instanceof Trait_;
+        $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
+        if (!$classReflection instanceof ClassReflection) {
+            return \true;
+        }
+        return !$classReflection->isTrait();
     }
 }

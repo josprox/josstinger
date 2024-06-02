@@ -4,7 +4,6 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Identical;
 
 use PhpParser\Node;
-use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
@@ -16,6 +15,7 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Scalar\String_;
 use Rector\Core\Enum\ObjectReference;
 use Rector\Core\NodeManipulator\BinaryOpManipulator;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Php71\ValueObject\TwoNodeMatch;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -26,17 +26,23 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class GetClassToInstanceOfRector extends AbstractRector
 {
     /**
-     * @var string[]
-     */
-    private const NO_NAMESPACED_CLASSNAMES = ['self', 'static'];
-    /**
      * @readonly
      * @var \Rector\Core\NodeManipulator\BinaryOpManipulator
      */
     private $binaryOpManipulator;
-    public function __construct(BinaryOpManipulator $binaryOpManipulator)
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     */
+    private $valueResolver;
+    /**
+     * @var string[]
+     */
+    private const NO_NAMESPACED_CLASSNAMES = ['self', 'static'];
+    public function __construct(BinaryOpManipulator $binaryOpManipulator, ValueResolver $valueResolver)
     {
         $this->binaryOpManipulator = $binaryOpManipulator;
+        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -66,13 +72,14 @@ final class GetClassToInstanceOfRector extends AbstractRector
         $firstExpr = $twoNodeMatch->getFirstExpr();
         /** @var FuncCall $secondExpr */
         $secondExpr = $twoNodeMatch->getSecondExpr();
-        if (!isset($secondExpr->args[0])) {
+        if ($secondExpr->isFirstClassCallable()) {
             return null;
         }
-        if (!$secondExpr->args[0] instanceof Arg) {
+        if (!isset($secondExpr->getArgs()[0])) {
             return null;
         }
-        $varNode = $secondExpr->args[0]->value;
+        $firstArg = $secondExpr->getArgs()[0];
+        $varNode = $firstArg->value;
         if ($firstExpr instanceof String_) {
             $className = $this->valueResolver->getValue($firstExpr);
         } else {

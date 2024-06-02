@@ -18,6 +18,10 @@ final class PathSkipVoter implements SkipVoterInterface
      * @var \Rector\Skipper\SkipCriteriaResolver\SkippedPathsResolver
      */
     private $skippedPathsResolver;
+    /**
+     * @var array<string, bool>
+     */
+    private $skippedFiles = [];
     public function __construct(FileInfoMatcher $fileInfoMatcher, SkippedPathsResolver $skippedPathsResolver)
     {
         $this->fileInfoMatcher = $fileInfoMatcher;
@@ -35,7 +39,10 @@ final class PathSkipVoter implements SkipVoterInterface
      */
     public function shouldSkip($element, string $filePath) : bool
     {
+        if (isset($this->skippedFiles[$filePath])) {
+            return $this->skippedFiles[$filePath];
+        }
         $skippedPaths = $this->skippedPathsResolver->resolve();
-        return $this->fileInfoMatcher->doesFileInfoMatchPatterns($filePath, $skippedPaths);
+        return $this->skippedFiles[$filePath] = $this->fileInfoMatcher->doesFileInfoMatchPatterns($filePath, $skippedPaths);
     }
 }

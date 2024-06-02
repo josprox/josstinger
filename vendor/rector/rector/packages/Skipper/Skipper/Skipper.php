@@ -3,28 +3,39 @@
 declare (strict_types=1);
 namespace Rector\Skipper\Skipper;
 
+use PhpParser\Node;
+use Rector\Core\Contract\Rector\RectorInterface;
+use Rector\Core\ProcessAnalyzer\RectifiedAnalyzer;
 use Rector\Skipper\Contract\SkipVoterInterface;
+use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @api
- * @see \Rector\Tests\Skipper\Skipper\Skipper\SkipperTest
+ * @see \Rector\Tests\Skipper\Skipper\SkipperTest
  */
 final class Skipper
 {
+    /**
+     * @readonly
+     * @var \Rector\Core\ProcessAnalyzer\RectifiedAnalyzer
+     */
+    private $rectifiedAnalyzer;
+    /**
+     * @var array<SkipVoterInterface>
+     * @readonly
+     */
+    private $skipVoters;
     /**
      * @var string
      */
     private const FILE_ELEMENT = 'file_elements';
     /**
-     * @var SkipVoterInterface[]
-     * @readonly
+     * @param array<SkipVoterInterface> $skipVoters
      */
-    private $skipVoters;
-    /**
-     * @param SkipVoterInterface[] $skipVoters
-     */
-    public function __construct(array $skipVoters)
+    public function __construct(RectifiedAnalyzer $rectifiedAnalyzer, array $skipVoters)
     {
+        $this->rectifiedAnalyzer = $rectifiedAnalyzer;
         $this->skipVoters = $skipVoters;
+        Assert::allIsInstanceOf($this->skipVoters, SkipVoterInterface::class);
     }
     /**
      * @param string|object $element
@@ -52,5 +63,16 @@ final class Skipper
             return \true;
         }
         return \false;
+    }
+    /**
+     * @param class-string<RectorInterface> $rectorClass
+     * @param string|object $element
+     */
+    public function shouldSkipCurrentNode($element, string $filePath, string $rectorClass, Node $node) : bool
+    {
+        if ($this->shouldSkipElementAndFilePath($element, $filePath)) {
+            return \true;
+        }
+        return $this->rectifiedAnalyzer->hasRectified($rectorClass, $node);
     }
 }

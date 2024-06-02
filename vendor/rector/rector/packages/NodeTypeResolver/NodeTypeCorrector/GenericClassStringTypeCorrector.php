@@ -27,10 +27,15 @@ final class GenericClassStringTypeCorrector
             if (!$traversedType instanceof ConstantStringType) {
                 return $traverseCallback($traversedType);
             }
-            if (!$this->reflectionProvider->hasClass($traversedType->getValue())) {
+            $value = $traversedType->getValue();
+            if (!$this->reflectionProvider->hasClass($value)) {
                 return $traverseCallback($traversedType);
             }
-            return new GenericClassStringType(new ObjectType($traversedType->getValue()));
+            $classReflection = $this->reflectionProvider->getClass($value);
+            if ($classReflection->getName() !== $value) {
+                return $traverseCallback($traversedType);
+            }
+            return new GenericClassStringType(new ObjectType($value));
         });
     }
 }

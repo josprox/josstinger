@@ -22,15 +22,9 @@ use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt\ElseIf_;
 use PhpParser\Node\Stmt\If_;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\BooleanType;
-use PHPStan\Type\FloatType;
-use PHPStan\Type\IntegerType;
 use PHPStan\Type\ObjectType;
-use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\TypeAnalyzer\ArrayTypeAnalyzer;
 use Rector\NodeTypeResolver\TypeAnalyzer\StringTypeAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -53,10 +47,16 @@ final class ExplicitBoolCompareRector extends AbstractRector
      * @var \Rector\NodeTypeResolver\TypeAnalyzer\ArrayTypeAnalyzer
      */
     private $arrayTypeAnalyzer;
-    public function __construct(StringTypeAnalyzer $stringTypeAnalyzer, ArrayTypeAnalyzer $arrayTypeAnalyzer)
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     */
+    private $valueResolver;
+    public function __construct(StringTypeAnalyzer $stringTypeAnalyzer, ArrayTypeAnalyzer $arrayTypeAnalyzer, ValueResolver $valueResolver)
     {
         $this->stringTypeAnalyzer = $stringTypeAnalyzer;
         $this->arrayTypeAnalyzer = $arrayTypeAnalyzer;
+        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -97,7 +97,7 @@ CODE_SAMPLE
     public function refactor(Node $node) : ?Node
     {
         // skip short ternary
-        if ($node instanceof Ternary && $node->if === null) {
+        if ($node instanceof Ternary && !$node->if instanceof Expr) {
             return null;
         }
         if ($node->cond instanceof BooleanNot) {
@@ -111,24 +111,15 @@ CODE_SAMPLE
             return null;
         }
         $conditionStaticType = $this->getType($conditionNode);
-        if ($conditionStaticType instanceof BooleanType) {
+        if ($conditionStaticType->isBoolean()->yes()) {
             return null;
         }
         $binaryOp = $this->resolveNewConditionNode($conditionNode, $isNegated);
         if (!$binaryOp instanceof BinaryOp) {
             return null;
         }
-        $nextNode = $node->getAttribute(AttributeKey::NEXT_NODE);
-        // avoid duplicated ifs when combined with ChangeOrIfReturnToEarlyReturnRector
-        if ($this->shouldSkip($conditionStaticType, $binaryOp, $nextNode)) {
-            return null;
-        }
         $node->cond = $binaryOp;
         return $node;
-    }
-    private function shouldSkip(Type $conditionStaticType, BinaryOp $binaryOp, ?Node $nextNode) : bool
-    {
-        return $conditionStaticType instanceof StringType && $binaryOp instanceof BooleanOr && !$nextNode instanceof Node;
     }
     private function resolveNewConditionNode(Expr $expr, bool $isNegated) : ?BinaryOp
     {
@@ -142,10 +133,10 @@ CODE_SAMPLE
             return $this->resolveString($isNegated, $expr);
         }
         $exprType = $this->getType($expr);
-        if ($exprType instanceof IntegerType) {
+        if ($exprType->isInteger()->yes()) {
             return $this->resolveInteger($isNegated, $expr);
         }
-        if ($exprType instanceof FloatType) {
+        if ($exprType->isFloat()->yes()) {
             return $this->resolveFloat($isNegated, $expr);
         }
         if ($this->nodeTypeResolver->isNullableTypeOfSpecificType($expr, ObjectType::class)) {
@@ -158,8 +149,11 @@ CODE_SAMPLE
      */
     private function resolveCount(bool $isNegated, FuncCall $funcCall)
     {
-        $countedType = $this->getType($funcCall->args[0]->value);
-        if ($countedType instanceof ArrayType) {
+        if ($funcCall->isFirstClassCallable()) {
+            return null;
+        }
+        $countedType = $this->getType($funcCall->getArgs()[0]->value);
+        if ($countedType->isArray()->yes()) {
             return null;
         }
         $lNumber = new LNumber(0);

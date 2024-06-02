@@ -7,7 +7,6 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BooleanNot;
 use PHPStan\Analyser\Scope;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Strict\NodeFactory\ExactCompareFactory;
 use Rector\Strict\Rector\AbstractFalsyScalarRuleFixerRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
@@ -58,7 +57,7 @@ class SomeClass
     }
 }
 CODE_SAMPLE
-, [self::TREAT_AS_NON_EMPTY => \true])]);
+, [\Rector\Strict\Rector\BooleanNot\BooleanInBooleanNotRuleFixerRector::TREAT_AS_NON_EMPTY => \true])]);
     }
     /**
      * @return array<class-string<Node>>
@@ -70,13 +69,12 @@ CODE_SAMPLE
     /**
      * @param BooleanNot $node
      */
-    public function refactor(Node $node) : ?Expr
+    public function refactorWithScope(Node $node, Scope $scope) : ?Expr
     {
-        $scope = $node->getAttribute(AttributeKey::SCOPE);
-        if (!$scope instanceof Scope) {
+        $exprType = $scope->getNativeType($node->expr);
+        if ($exprType->isBoolean()->yes()) {
             return null;
         }
-        $exprType = $scope->getType($node->expr);
         return $this->exactCompareFactory->createIdenticalFalsyCompare($exprType, $node->expr, $this->treatAsNonEmpty);
     }
 }

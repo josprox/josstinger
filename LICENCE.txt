@@ -1,22 +1,13 @@
 # Licencia.
 
 Un programa creado por JOSPROX MX/ JOSPROX Internacional.
-Licencia: Creative Commons (Atribución-NoComercial 4.0 Internacional - Compartir igual).
 
-Reconocimiento - Compartir Igual (by-sa)
+Licencia: CC BY-NC 4.0.
 
-Esta licencia permite el uso comercial de la obra y de las posibles obras derivadas, pero la distribución de éstas se debe hacer con una licencia igual a la que regula la obra original, es decir, la obra derivada que se lleve a cabo a partir de la obra original deberá ser explotada bajo la misma licencia.
-
-Atribución-NoComercial 4.0 Internacional (CC BY-NC 4.0)
-
+Creative Commons Attribution 4.0 International
 Usted es libre de:
-
 - Compartir — copiar y redistribuir el material en cualquier medio o formato.
-
-- Adaptar — remezclar, transformar y construir a partir del material.
-
-Bajo los siguientes términos:
-
-- Atribución — Usted debe dar crédito de manera adecuada, brindar un enlace a la licencia, e indicar si se han realizado cambios. Puede hacerlo en cualquier forma razonable, pero no de forma tal que sugiera que usted o su uso tienen el apoyo de la licencia.
-
-- NoComercial — Usted no puede hacer uso del material con propósitos comerciales.
+- Adaptar — remezclar, transformar y construir a partir del material para cualquier propósito, incluso comercialmente.
+Bajo a los siguientes términos:
+Atribución — Usted debe dar crédito de manera adecuada, brindar un enlace a la licencia, e indicar si se han realizado cambios. Puede hacerlo en cualquier forma razonable, pero no de forma tal que sugiera que usted o su uso tienen el apoyo de la licenciante.
+Para mas información acceda a https://spdx.org/licenses/CC-BY-4.0.html.

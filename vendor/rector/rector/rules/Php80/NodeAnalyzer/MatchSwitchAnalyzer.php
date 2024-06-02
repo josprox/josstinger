@@ -14,6 +14,7 @@ use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
 use PhpParser\Node\Stmt\Throw_;
 use Rector\Core\PhpParser\Comparing\NodeComparator;
+use Rector\Core\PhpParser\Printer\BetterStandardPrinter;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\Php80\Enum\MatchKind;
 use Rector\Php80\ValueObject\CondAndExpr;
@@ -34,11 +35,17 @@ final class MatchSwitchAnalyzer
      * @var \Rector\Core\PhpParser\Comparing\NodeComparator
      */
     private $nodeComparator;
-    public function __construct(\Rector\Php80\NodeAnalyzer\SwitchAnalyzer $switchAnalyzer, NodeNameResolver $nodeNameResolver, NodeComparator $nodeComparator)
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Printer\BetterStandardPrinter
+     */
+    private $betterStandardPrinter;
+    public function __construct(\Rector\Php80\NodeAnalyzer\SwitchAnalyzer $switchAnalyzer, NodeNameResolver $nodeNameResolver, NodeComparator $nodeComparator, BetterStandardPrinter $betterStandardPrinter)
     {
         $this->switchAnalyzer = $switchAnalyzer;
         $this->nodeNameResolver = $nodeNameResolver;
         $this->nodeComparator = $nodeComparator;
+        $this->betterStandardPrinter = $betterStandardPrinter;
     }
     /**
      * @param CondAndExpr[] $condAndExprs
@@ -63,7 +70,7 @@ final class MatchSwitchAnalyzer
         if (!$this->switchAnalyzer->hasEachCaseBreak($switch)) {
             return \true;
         }
-        if ($this->switchAnalyzer->hasDifferentTypeCases($switch->cases)) {
+        if ($this->switchAnalyzer->hasDifferentTypeCases($switch->cases, $switch->cond)) {
             return \true;
         }
         if (!$this->switchAnalyzer->hasEachCaseSingleStmt($switch)) {
@@ -94,8 +101,7 @@ final class MatchSwitchAnalyzer
                 continue;
             }
             if ($expr->var instanceof ArrayDimFetch) {
-                $arrayDimFecthName = $this->nodeNameResolver->getName($expr->var->var);
-                $assignVariableNames[] = \get_class($expr->var) . $arrayDimFecthName . '[]';
+                $assignVariableNames[] = $this->betterStandardPrinter->print($expr->var);
             } else {
                 $assignVariableNames[] = \get_class($expr->var) . $this->nodeNameResolver->getName($expr->var);
             }

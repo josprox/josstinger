@@ -5,7 +5,6 @@ namespace Rector\Privatization\Guard;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\PropertyFetch;
-use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Class_;
@@ -13,9 +12,10 @@ use PhpParser\Node\Stmt\Property;
 use PHPStan\Reflection\ClassReflection;
 use Rector\Core\Enum\ObjectReference;
 use Rector\Core\NodeAnalyzer\PropertyFetchAnalyzer;
+use Rector\Core\NodeManipulator\PropertyManipulator;
 use Rector\Core\PhpParser\AstResolver;
 use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\Core\Reflection\ReflectionResolver;
+use Rector\Core\Reflection\ClassReflectionAnalyzer;
 use Rector\NodeNameResolver\NodeNameResolver;
 final class ParentPropertyLookupGuard
 {
@@ -24,11 +24,6 @@ final class ParentPropertyLookupGuard
      * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
      */
     private $betterNodeFinder;
-    /**
-     * @readonly
-     * @var \Rector\Core\Reflection\ReflectionResolver
-     */
-    private $reflectionResolver;
     /**
      * @readonly
      * @var \Rector\NodeNameResolver\NodeNameResolver
@@ -44,47 +39,52 @@ final class ParentPropertyLookupGuard
      * @var \Rector\Core\PhpParser\AstResolver
      */
     private $astResolver;
-    public function __construct(BetterNodeFinder $betterNodeFinder, ReflectionResolver $reflectionResolver, NodeNameResolver $nodeNameResolver, PropertyFetchAnalyzer $propertyFetchAnalyzer, AstResolver $astResolver)
+    /**
+     * @readonly
+     * @var \Rector\Core\NodeManipulator\PropertyManipulator
+     */
+    private $propertyManipulator;
+    /**
+     * @readonly
+     * @var \Rector\Core\Reflection\ClassReflectionAnalyzer
+     */
+    private $classReflectionAnalyzer;
+    public function __construct(BetterNodeFinder $betterNodeFinder, NodeNameResolver $nodeNameResolver, PropertyFetchAnalyzer $propertyFetchAnalyzer, AstResolver $astResolver, PropertyManipulator $propertyManipulator, ClassReflectionAnalyzer $classReflectionAnalyzer)
     {
         $this->betterNodeFinder = $betterNodeFinder;
-        $this->reflectionResolver = $reflectionResolver;
         $this->nodeNameResolver = $nodeNameResolver;
         $this->propertyFetchAnalyzer = $propertyFetchAnalyzer;
         $this->astResolver = $astResolver;
+        $this->propertyManipulator = $propertyManipulator;
+        $this->classReflectionAnalyzer = $classReflectionAnalyzer;
     }
-    public function isLegal(Property $property) : bool
+    public function isLegal(Property $property, ?ClassReflection $classReflection) : bool
     {
-        $class = $this->betterNodeFinder->findParentType($property, Class_::class);
-        if (!$class instanceof Class_) {
-            return \false;
-        }
-        if ($class->extends === null) {
-            return \true;
-        }
-        $classReflection = $this->reflectionResolver->resolveClassReflection($property);
         if (!$classReflection instanceof ClassReflection) {
             return \false;
         }
-        $propertyName = $this->nodeNameResolver->getName($property);
-        $className = $classReflection->getName();
-        $parents = $classReflection->getParents();
-        // parent class not autoloaded
-        if ($parents === []) {
+        if ($classReflection->isAnonymous()) {
             return \false;
         }
-        foreach ($parents as $parent) {
-            if ($parent->hasProperty($propertyName)) {
-                return \false;
-            }
-            if ($this->isFoundInParentClassMethods($parent, $propertyName, $className)) {
-                return \false;
-            }
+        $propertyName = $this->nodeNameResolver->getName($property);
+        if ($this->propertyManipulator->isUsedByTrait($classReflection, $propertyName)) {
+            return \false;
         }
-        return \true;
+        $parentClassName = $this->classReflectionAnalyzer->resolveParentClassName($classReflection);
+        if ($parentClassName === null) {
+            return \true;
+        }
+        $className = $classReflection->getName();
+        $parentClassReflections = $classReflection->getParents();
+        // parent class not autoloaded
+        if ($parentClassReflections === []) {
+            return \false;
+        }
+        return $this->isGuardedByParents($parentClassReflections, $propertyName, $className);
     }
     private function isFoundInParentClassMethods(ClassReflection $parentClassReflection, string $propertyName, string $className) : bool
     {
-        $classLike = $this->astResolver->resolveClassFromName($parentClassReflection->getName());
+        $classLike = $this->astResolver->resolveClassFromClassReflection($parentClassReflection);
         if (!$classLike instanceof Class_) {
             return \false;
         }
@@ -106,7 +106,6 @@ final class ParentPropertyLookupGuard
             if (!$this->propertyFetchAnalyzer->isPropertyFetch($subNode)) {
                 return \false;
             }
-            /** @var PropertyFetch|StaticPropertyFetch $subNode */
             if ($subNode instanceof PropertyFetch) {
                 if (!$subNode->var instanceof Variable) {
                     return \false;
@@ -121,5 +120,20 @@ final class ParentPropertyLookupGuard
             }
             return $this->nodeNameResolver->isName($subNode->name, $propertyName);
         });
+    }
+    /**
+     * @param ClassReflection[] $parentClassReflections
+     */
+    private function isGuardedByParents(array $parentClassReflections, string $propertyName, string $className) : bool
+    {
+        foreach ($parentClassReflections as $parentClassReflection) {
+            if ($parentClassReflection->hasProperty($propertyName)) {
+                return \false;
+            }
+            if ($this->isFoundInParentClassMethods($parentClassReflection, $propertyName, $className)) {
+                return \false;
+            }
+        }
+        return \true;
     }
 }

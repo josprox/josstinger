@@ -3,13 +3,16 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\PhpDocManipulator;
 
+use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Param;
-use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt;
+use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\Node;
+use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ReturnTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\ArrayShapeNode;
+use PHPStan\PhpDocParser\Ast\Type\ConstTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\GenericTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
@@ -17,29 +20,18 @@ use PHPStan\Type\Constant\ConstantArrayType;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\NeverType;
 use PHPStan\Type\Type;
-use Rector\BetterPhpDocParser\Comment\CommentsMerger;
+use Rector\BetterPhpDocParser\Guard\NewPhpDocFromPHPStanTypeGuard;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\ValueObject\Type\BracketsAwareIntersectionTypeNode;
 use Rector\BetterPhpDocParser\ValueObject\Type\BracketsAwareUnionTypeNode;
 use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareArrayTypeNode;
 use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareCallableTypeNode;
-use Rector\NodeNameResolver\NodeNameResolver;
-use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
-use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\PhpDocParser\ParamPhpDocNodeFactory;
 final class PhpDocTypeChanger
 {
-    /**
-     * @var array<class-string<Node>>
-     */
-    public const ALLOWED_TYPES = [GenericTypeNode::class, SpacingAwareArrayTypeNode::class, SpacingAwareCallableTypeNode::class, ArrayShapeNode::class];
-    /**
-     * @var string[]
-     */
-    private const ALLOWED_IDENTIFIER_TYPENODE_TYPES = ['class-string'];
     /**
      * @readonly
      * @var \Rector\StaticTypeMapper\StaticTypeMapper
@@ -57,29 +49,31 @@ final class PhpDocTypeChanger
     private $paramPhpDocNodeFactory;
     /**
      * @readonly
-     * @var \Rector\NodeNameResolver\NodeNameResolver
+     * @var \Rector\BetterPhpDocParser\Guard\NewPhpDocFromPHPStanTypeGuard
      */
-    private $nodeNameResolver;
+    private $newPhpDocFromPHPStanTypeGuard;
     /**
      * @readonly
-     * @var \Rector\BetterPhpDocParser\Comment\CommentsMerger
+     * @var \Rector\Comments\NodeDocBlock\DocBlockUpdater
      */
-    private $commentsMerger;
+    private $docBlockUpdater;
     /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     * @var array<class-string<Node>>
      */
-    private $phpDocInfoFactory;
-    public function __construct(StaticTypeMapper $staticTypeMapper, TypeComparator $typeComparator, ParamPhpDocNodeFactory $paramPhpDocNodeFactory, NodeNameResolver $nodeNameResolver, CommentsMerger $commentsMerger, PhpDocInfoFactory $phpDocInfoFactory)
+    private const ALLOWED_TYPES = [GenericTypeNode::class, SpacingAwareArrayTypeNode::class, SpacingAwareCallableTypeNode::class, ArrayShapeNode::class];
+    /**
+     * @var string[]
+     */
+    private const ALLOWED_IDENTIFIER_TYPENODE_TYPES = ['class-string'];
+    public function __construct(StaticTypeMapper $staticTypeMapper, TypeComparator $typeComparator, ParamPhpDocNodeFactory $paramPhpDocNodeFactory, NewPhpDocFromPHPStanTypeGuard $newPhpDocFromPHPStanTypeGuard, DocBlockUpdater $docBlockUpdater)
     {
         $this->staticTypeMapper = $staticTypeMapper;
         $this->typeComparator = $typeComparator;
         $this->paramPhpDocNodeFactory = $paramPhpDocNodeFactory;
-        $this->nodeNameResolver = $nodeNameResolver;
-        $this->commentsMerger = $commentsMerger;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
+        $this->newPhpDocFromPHPStanTypeGuard = $newPhpDocFromPHPStanTypeGuard;
+        $this->docBlockUpdater = $docBlockUpdater;
     }
-    public function changeVarType(PhpDocInfo $phpDocInfo, Type $newType) : void
+    public function changeVarType(Stmt $stmt, PhpDocInfo $phpDocInfo, Type $newType) : void
     {
         // better skip, could crash hard
         if ($phpDocInfo->hasInvalidTag('@var')) {
@@ -93,19 +87,23 @@ final class PhpDocTypeChanger
         if (!$phpDocInfo->getVarType() instanceof MixedType && $newType instanceof ConstantArrayType && $newType->getItemType() instanceof NeverType) {
             return;
         }
+        if (!$this->newPhpDocFromPHPStanTypeGuard->isLegal($newType)) {
+            return;
+        }
         // override existing type
-        $newPHPStanPhpDocType = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType, TypeKind::PROPERTY);
+        $newPHPStanPhpDocTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType);
         $currentVarTagValueNode = $phpDocInfo->getVarTagValueNode();
-        if ($currentVarTagValueNode !== null) {
+        if ($currentVarTagValueNode instanceof VarTagValueNode) {
             // only change type
-            $currentVarTagValueNode->type = $newPHPStanPhpDocType;
+            $currentVarTagValueNode->type = $newPHPStanPhpDocTypeNode;
         } else {
             // add completely new one
-            $varTagValueNode = new VarTagValueNode($newPHPStanPhpDocType, '', '');
+            $varTagValueNode = new VarTagValueNode($newPHPStanPhpDocTypeNode, '', '');
             $phpDocInfo->addTagValueNode($varTagValueNode);
         }
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
     }
-    public function changeReturnType(PhpDocInfo $phpDocInfo, Type $newType) : bool
+    public function changeReturnType(FunctionLike $functionLike, PhpDocInfo $phpDocInfo, Type $newType) : bool
     {
         // better not touch this, can crash
         if ($phpDocInfo->hasInvalidTag('@return')) {
@@ -115,43 +113,52 @@ final class PhpDocTypeChanger
         if ($this->typeComparator->areTypesEqual($phpDocInfo->getReturnType(), $newType)) {
             return \false;
         }
+        if (!$this->newPhpDocFromPHPStanTypeGuard->isLegal($newType)) {
+            return \false;
+        }
         // override existing type
-        $newPHPStanPhpDocType = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType, TypeKind::RETURN);
+        $newPHPStanPhpDocTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType);
         $currentReturnTagValueNode = $phpDocInfo->getReturnTagValue();
-        if ($currentReturnTagValueNode !== null) {
+        if ($currentReturnTagValueNode instanceof ReturnTagValueNode) {
             // only change type
-            $currentReturnTagValueNode->type = $newPHPStanPhpDocType;
+            $currentReturnTagValueNode->type = $newPHPStanPhpDocTypeNode;
         } else {
             // add completely new one
-            $returnTagValueNode = new ReturnTagValueNode($newPHPStanPhpDocType, '');
+            $returnTagValueNode = new ReturnTagValueNode($newPHPStanPhpDocTypeNode, '');
             $phpDocInfo->addTagValueNode($returnTagValueNode);
         }
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($functionLike);
         return \true;
     }
-    public function changeParamType(PhpDocInfo $phpDocInfo, Type $newType, Param $param, string $paramName) : void
+    public function changeParamType(FunctionLike $functionLike, PhpDocInfo $phpDocInfo, Type $newType, Param $param, string $paramName) : bool
     {
         // better skip, could crash hard
         if ($phpDocInfo->hasInvalidTag('@param')) {
-            return;
+            return \false;
         }
-        $phpDocType = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType, TypeKind::PARAM);
+        if (!$this->newPhpDocFromPHPStanTypeGuard->isLegal($newType)) {
+            return \false;
+        }
+        $phpDocTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPHPStanPhpDocTypeNode($newType);
         $paramTagValueNode = $phpDocInfo->getParamTagValueByName($paramName);
         // override existing type
-        if ($paramTagValueNode !== null) {
+        if ($paramTagValueNode instanceof ParamTagValueNode) {
             // already set
             $currentType = $this->staticTypeMapper->mapPHPStanPhpDocTypeNodeToPHPStanType($paramTagValueNode->type, $param);
             // avoid overriding better type
             if ($this->typeComparator->isSubtype($currentType, $newType)) {
-                return;
+                return \false;
             }
             if ($this->typeComparator->areTypesEqual($currentType, $newType)) {
-                return;
+                return \false;
             }
-            $paramTagValueNode->type = $phpDocType;
+            $paramTagValueNode->type = $phpDocTypeNode;
         } else {
-            $paramTagValueNode = $this->paramPhpDocNodeFactory->create($phpDocType, $param);
+            $paramTagValueNode = $this->paramPhpDocNodeFactory->create($phpDocTypeNode, $param);
             $phpDocInfo->addTagValueNode($paramTagValueNode);
         }
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($functionLike);
+        return \true;
     }
     public function isAllowed(TypeNode $typeNode) : bool
     {
@@ -162,6 +169,9 @@ final class PhpDocTypeChanger
                 }
             }
         }
+        if ($typeNode instanceof ConstTypeNode && $typeNode->constExpr instanceof ConstFetchNode) {
+            return \true;
+        }
         if (\in_array(\get_class($typeNode), self::ALLOWED_TYPES, \true)) {
             return \true;
         }
@@ -170,61 +180,14 @@ final class PhpDocTypeChanger
         }
         return \in_array((string) $typeNode, self::ALLOWED_IDENTIFIER_TYPENODE_TYPES, \true);
     }
-    public function copyPropertyDocToParam(Property $property, Param $param) : void
-    {
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNode($property);
-        if (!$phpDocInfo instanceof PhpDocInfo) {
-            return;
-        }
-        $varTag = $phpDocInfo->getVarTagValueNode();
-        if (!$varTag instanceof VarTagValueNode) {
-            $this->processKeepComments($property, $param);
-            return;
-        }
-        if ($varTag->description !== '') {
-            return;
-        }
-        $parentNode = $param->getAttribute(AttributeKey::PARENT_NODE);
-        $paramVarName = $this->nodeNameResolver->getName($param->var);
-        if (!$parentNode instanceof ClassMethod) {
-            return;
-        }
-        if (!$this->isAllowed($varTag->type)) {
-            return;
-        }
-        if (!\is_string($paramVarName)) {
-            return;
-        }
-        $phpDocInfo->removeByType(VarTagValueNode::class);
-        $param->setAttribute(AttributeKey::PHP_DOC_INFO, $phpDocInfo);
-        $phpDocInfo = $parentNode->getAttribute(AttributeKey::PHP_DOC_INFO);
-        $paramType = $this->staticTypeMapper->mapPHPStanPhpDocTypeToPHPStanType($varTag, $property);
-        $this->changeParamType($phpDocInfo, $paramType, $param, $paramVarName);
-        $this->processKeepComments($property, $param);
-    }
-    public function changeVarTypeNode(PhpDocInfo $phpDocInfo, TypeNode $typeNode) : void
+    /**
+     * @api downgrade
+     */
+    public function changeVarTypeNode(Stmt $stmt, PhpDocInfo $phpDocInfo, TypeNode $typeNode) : void
     {
         // add completely new one
         $varTagValueNode = new VarTagValueNode($typeNode, '', '');
         $phpDocInfo->addTagValueNode($varTagValueNode);
-    }
-    private function processKeepComments(Property $property, Param $param) : void
-    {
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($param);
-        $varTag = $phpDocInfo->getVarTagValueNode();
-        $toBeRemoved = !$varTag instanceof VarTagValueNode;
-        $this->commentsMerger->keepComments($param, [$property]);
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($param);
-        $varTag = $phpDocInfo->getVarTagValueNode();
-        if (!$toBeRemoved) {
-            return;
-        }
-        if (!$varTag instanceof VarTagValueNode) {
-            return;
-        }
-        if ($varTag->description !== '') {
-            return;
-        }
-        $phpDocInfo->removeByType(VarTagValueNode::class);
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($stmt);
     }
 }

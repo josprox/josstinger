@@ -12,6 +12,10 @@ final class LevelSetList implements SetListInterface
     /**
      * @var string
      */
+    public const UP_TO_PHP_83 = __DIR__ . '/../../../config/set/level/up-to-php83.php';
+    /**
+     * @var string
+     */
     public const UP_TO_PHP_82 = __DIR__ . '/../../../config/set/level/up-to-php82.php';
     /**
      * @var string
@@ -53,4 +57,8 @@ final class LevelSetList implements SetListInterface
      * @var string
      */
     public const UP_TO_PHP_54 = __DIR__ . '/../../../config/set/level/up-to-php54.php';
+    /**
+     * @var string
+     */
+    public const UP_TO_PHP_53 = __DIR__ . '/../../../config/set/level/up-to-php53.php';
 }

@@ -2,6 +2,10 @@
 
 // JosSecurity, la mejor seguridad al alcance de tus manos.
 
+if(!file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".env")){
+    header("Location: ../installer.php");
+}
+
 // NO ELIMINES las lineas 6 a 9 por seguridad, si tu borras estas linea dejará de funcionar JosSecurity.
 if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php')){
     require_once (__DIR__ . DIRECTORY_SEPARATOR . 'vendor/autoload.php');
@@ -259,6 +263,11 @@ if ($_ENV['CONECT_DATABASE'] == 1){
     }
 }
 
+// Se ha configurado GranMail, como una nueva extensión de JosSecurity para dejar atrás a las funciones obsoletas.
+if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/extension/GranMail/granmail.php")){
+    include (__DIR__ . DIRECTORY_SEPARATOR . "config/extension/GranMail/granmail.php");
+}
+
 //configuración de logins, registros y cookies
 
 function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
@@ -372,7 +381,6 @@ function logins($correo,$contra,$tabla = "users",$cookies = "si", $redireccion =
         $check -> cookies = $cookies;
         $check -> redireccion = $redireccion; 
         if($resultado == 1 || $resultado == 2 || $resultado == 4){
-            $check -> compilar();
             $check -> ejecutar();
             if($check == false){
                 return false;
@@ -380,7 +388,6 @@ function logins($correo,$contra,$tabla = "users",$cookies = "si", $redireccion =
         }elseif($resultado != 1 && $resultado != 2 && $resultado != 4){
             $check -> redireccion = "users";
             $check -> modo_admin = FALSE;
-            $check -> compilar();
             $check -> ejecutar();
             if($check == false){
                 return false;
@@ -389,121 +396,7 @@ function logins($correo,$contra,$tabla = "users",$cookies = "si", $redireccion =
     }
 }
 
-class login{
-    public $correo;
-    public $contra;
-    public $tabla = "users";
-    public $redireccion ="admin";
-    public $check_user = "panel";
-    public $cookies = "si";
-    public $modo_admin = TRUE;
-    private $conexion;
-    private string $nombre_app = \NOMBRE_APP;
-    private string $fecha = \FECHA;
-    private $ip;
-    public function __construct(){
-        $this->conexion = conect_mysqli();
-        $this->ip = $_SERVER['REMOTE_ADDR'];
-    }
-    // Comprueba y retorna los datos si se ha activado o desactivado el modo admin
-    function compilar(){
-        $table = mysqli_real_escape_string($this->conexion, (string) $this->tabla);
-        $usuario = mysqli_real_escape_string($this->conexion, (string) $this->correo);
-        $consulta = consulta_mysqli_where("id_rol",$table,"email", "'$usuario'");
-        $rol = $consulta['id_rol'];
-        switch ($this->modo_admin){
-            case FALSE:
-                return "desactivado" == "desactivado";
-            break;
-            case TRUE:
-                return $rol == 1 || $rol == 2 || $rol == 4;
-            break;
-        }
-    }
-    // Ejecuta el inicio de sesión
-    public function ejecutar(){
-        $table = mysqli_real_escape_string($this->conexion, (string) $this->tabla);
-        $usuario = mysqli_real_escape_string($this->conexion, (string) $this->correo);
-        $password = mysqli_real_escape_string($this->conexion, (string) $this->contra);
-        $ip = $this->ip;
-        $location = $this->redireccion;
-        if(!isset($_ENV['CHECK_USER']) || $_ENV['CHECK_USER'] != 1){
-            $sql = "SELECT id, name, password FROM $table WHERE email = '$usuario'";
-        }else{
-            $sql = "SELECT id, name, password, checked_status FROM $table WHERE email = '$usuario'";
-        }
-        $resultado = $this->conexion->query($sql);
-        $rows = $resultado->num_rows;
-        
-        if ($rows > 0) {
-            $row = $resultado->fetch_assoc();
-            $password_encriptada = $row['password'];
-            $id = $row['id'];
-            if(!isset($_ENV['CHECK_USER']) || $_ENV['CHECK_USER'] != 1){
-                $check = TRUE;
-            }else{
-                $check = $row['checked_status'];
-            }
-            if($check == TRUE){
-                if(self::compilar()){
-                    if(password_verify($password,(string) $password_encriptada) == TRUE){
-        
-                        $_SESSION['id_usuario'] = $row['id'];
-        
-                        if ($this->cookies == "si"){
-                            //Cookie de usuario y contraseña
-                            setcookie("COOKIE_INDEFINED_SESSION", TRUE, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                            setcookie("COOKIE_DATA_INDEFINED_SESSION[user]", $usuario, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                            setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $password, ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
-                        }
-        
-                        actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$id);
-        
-                        $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $this->nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$this->ip."</p><p>Accedió el día: ".$this->fecha ."</p></div>";
-        
-                        if(mail_smtp_v1_3($row['name'],"Has iniciado sesión",$cuerpo_de_correo,$usuario) == TRUE){
-                            header("Location: $location");
-                        }
-        
-                    }else{
-                        return FALSE;
-                    }
-                }
-            }else{
-                $ssl_tls = check_http();
-                $key = generar_llave_alteratorio(16);
-                $fecha_1_day = \FECHA_1_DAY;
-                $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$this->check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
-                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
-                if(mail_smtp_v1_3($row['name'],"Activa tu cuenta",$cuerpo_de_correo,$usuario) == TRUE){
-                ?>
-                <script>
-                    Swal.fire(
-                    'Falló',
-                    'El usuario no ha sido verificado, favor de checar su correo para activarlo.',
-                    'error'
-                    )
-                </script>
-                <?php
-                header("refresh:1;");
-                }
-            }
-        }
-    }
-    // Destructor
-    public function __destruct() {
-        // Borrar los datos sensibles antes de que el objeto sea destruido
-        $this->correo = null;
-        $this->contra = null;
-        $this->conexion->close(); // Cerrar la conexión a la base de datos
-        // También puedes borrar otros datos sensibles que puedan estar almacenados en el objeto
-        unset($this->tabla);
-        unset($this->redireccion);
-        unset($this->check_user);
-        unset($this->cookies);
-        unset($this->modo_admin);
-    }
-}
+include (__DIR__ . DIRECTORY_SEPARATOR . "config/extension/logins.php");
 
 function cookie_session($sesion,$localizacion_admin,$localizacion_users){
     $consulta = consulta_mysqli_where("id_rol","users","id",$sesion);
@@ -609,7 +502,8 @@ function resetear_contra($correo){
         $name = $row['name'];
     
         if($_ENV['SMTP_ACTIVE'] == 1){
-            include (__DIR__ . "/config/correo/correo_reset_password.php");
+            $mensaje = 'Recientemente has solicitado restablecer tu contraseña es por eso que, le hemos mandado un link para poder restaurar su contraseña, podrá modificarla dentro del sistema.<br><br>Su link es: <a href="'.check_http().$_ENV['DOMINIO'].$_ENV['HOMEDIR']."panel?cambiar_contra=".$key.'">'.check_http().$_ENV['DOMINIO'].$_ENV['HOMEDIR']."panel?cambiar_contra=".$key.'</a>';
+            mail_smtp_v1_3("Soporte de " . $_ENV['NAME_APP'],"Resetea tu contraseña",$mensaje, $correo);
             return TRUE;
         }
         if($_ENV['SMTP_ACTIVE'] != 1){
@@ -738,39 +632,46 @@ function generar_llave($caracteres, $patron){
 // Jossitos de correo
 
 function mail_smtp_v1_3($nombre,$asunto,$contenido,$correo){
-    if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo/correo.php");
-        return TRUE;
-    }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        return FALSE;
-    }
+    $email = new GranMail\NewMail;
+    $email -> metodo = "basic";
+    $email -> nombre = $nombre;
+    $email -> correo = $correo;
+    $email -> asunto = $asunto;
+    $email -> contenido = $contenido;
+    $json = $email -> send();
+    return $json;
 }
 
 function mail_WP( $to, $subject, $message, $headers = '', $attachments  = [] ){
-    if($_ENV['SMTP_ACTIVE'] != 1 || !isset($_ENV['SMTP_ACTIVE'])){
-        return false;
-    }elseif($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . DIRECTORY_SEPARATOR ."config/correo/correo_wp.php");
-        return mi_mail_v2($to, $subject, $message, $headers, $attachments);
-    }
+    $email = new GranMail\NewMail;
+    $email -> metodo = "WordPress";
+    $email -> nombre = "José Luis";
+    $email -> correo = $to;
+    $email -> asunto = $subject;
+    $email -> contenido = $message;
+    $email -> headers = $headers;
+    $email -> attachments = $attachments;
+    $json = $email -> send();
+    return $json;
 }
 
 function mail_smtp_v1_3_recibir($nombre,$asunto,$contenido,$correo){
-    if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo/correo_recibir.php");
-        return TRUE;
-    }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        return FALSE;
-    }
+    $email = new GranMail\NewMail;
+    $email -> metodo = "recibir";
+    $email -> nombre = $nombre;
+    $email -> asunto = $asunto;
+    $email -> correo = $correo;
+    $email -> contenido = $contenido;
+    $json = $email -> send();
+    return $json;
 }
 
 function mail_smtp_v1_3_check($correo){
-    if($_ENV['SMTP_ACTIVE'] == 1){
-        include (__DIR__ . "/config/correo/correo_check.php");
-        return TRUE;
-    }elseif($_ENV['SMTP_ACTIVE'] != 1){
-        return FALSE;
-    }
+    $email = new GranMail\NewMail;
+    $email -> metodo = "test";
+    $email -> correo = $correo;
+    $json = $email -> send();
+    return $json;
 }
 
 //Consultas, lecturas, inserciones y eliminaciones de datos para MySQL o MariaDB, se recomienda usar estos Jossitos dentro del sistema, si vas a permitir que los usuarios registren información a tu base de datos a través de un formulario, se recomienda usar el plugin GranMySQL.

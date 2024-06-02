@@ -12,7 +12,7 @@ use Rector\Core\Rector\AbstractRector;
 use Rector\Transform\ValueObject\StaticCallToFuncCall;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202211\Webmozart\Assert\Assert;
+use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\StaticCall\StaticCallToFuncCallRector\StaticCallToFuncCallRectorTest
  */
@@ -22,13 +22,6 @@ final class StaticCallToFuncCallRector extends AbstractRector implements Configu
      * @var StaticCallToFuncCall[]
      */
     private $staticCallsToFunctions = [];
-    /**
-     * @param StaticCallToFuncCall[] $staticCallsToFunctions
-     */
-    public function __construct(array $staticCallsToFunctions = [])
-    {
-        $this->staticCallsToFunctions = $staticCallsToFunctions;
-    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Turns static call to function call.', [new ConfiguredCodeSample('OldClass::oldMethod("args");', 'new_function("args");', [new StaticCallToFuncCall('OldClass', 'oldMethod', 'new_function')])]);
@@ -46,10 +39,10 @@ final class StaticCallToFuncCallRector extends AbstractRector implements Configu
     public function refactor(Node $node) : ?Node
     {
         foreach ($this->staticCallsToFunctions as $staticCallToFunction) {
-            if (!$this->isObjectType($node->class, $staticCallToFunction->getObjectType())) {
+            if (!$this->isName($node->name, $staticCallToFunction->getMethod())) {
                 continue;
             }
-            if (!$this->isName($node->name, $staticCallToFunction->getMethod())) {
+            if (!$this->isObjectType($node->class, $staticCallToFunction->getObjectType())) {
                 continue;
             }
             return new FuncCall(new FullyQualified($staticCallToFunction->getFunction()), $node->args);

@@ -6,11 +6,13 @@ namespace Rector\Php73\Rector\FuncCall;
 use PhpParser\Node;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
+use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Expression;
 use PHPStan\Reflection\ReflectionProvider;
+use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -25,6 +27,16 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class ArrayKeyFirstLastRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
+     * @readonly
+     * @var \PHPStan\Reflection\ReflectionProvider
+     */
+    private $reflectionProvider;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
+     */
+    private $betterNodeFinder;
+    /**
      * @var string
      */
     private const ARRAY_KEY_FIRST = 'array_key_first';
@@ -36,14 +48,10 @@ final class ArrayKeyFirstLastRector extends AbstractRector implements MinPhpVers
      * @var array<string, string>
      */
     private const PREVIOUS_TO_NEW_FUNCTIONS = ['reset' => self::ARRAY_KEY_FIRST, 'end' => self::ARRAY_KEY_LAST];
-    /**
-     * @readonly
-     * @var \PHPStan\Reflection\ReflectionProvider
-     */
-    private $reflectionProvider;
-    public function __construct(ReflectionProvider $reflectionProvider)
+    public function __construct(ReflectionProvider $reflectionProvider, BetterNodeFinder $betterNodeFinder)
     {
         $this->reflectionProvider = $reflectionProvider;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -68,61 +76,115 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [FuncCall::class];
+        return [StmtsAwareInterface::class];
     }
     /**
-     * @param FuncCall $node
+     * @param StmtsAwareInterface $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactor(Node $node) : ?StmtsAwareInterface
     {
-        if ($this->shouldSkip($node)) {
-            return null;
-        }
-        $nextExpression = $this->getNextExpression($node);
-        if (!$nextExpression instanceof Node) {
-            return null;
-        }
-        $resetOrEndFuncCall = $node;
-        $keyFuncCall = $this->betterNodeFinder->findFirst($nextExpression, function (Node $node) use($resetOrEndFuncCall) : bool {
-            if (!$node instanceof FuncCall) {
-                return \false;
-            }
-            if (!$this->isName($node, 'key')) {
-                return \false;
-            }
-            return $this->nodeComparator->areNodesEqual($resetOrEndFuncCall->args[0], $node->args[0]);
-        });
-        if (!$keyFuncCall instanceof FuncCall) {
-            return null;
-        }
-        $newName = self::PREVIOUS_TO_NEW_FUNCTIONS[$this->getName($node)];
-        $keyFuncCall->name = new Name($newName);
-        $this->removeNode($node);
-        return $node;
+        return $this->processArrayKeyFirstLast($node, \false);
     }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::ARRAY_KEY_FIRST_LAST;
     }
-    private function shouldSkip(FuncCall $funcCall) : bool
+    private function processArrayKeyFirstLast(StmtsAwareInterface $stmtsAware, bool $hasChanged, int $jumpToKey = 0) : ?StmtsAwareInterface
     {
-        if (!$this->isNames($funcCall, ['reset', 'end'])) {
+        if ($stmtsAware->stmts === null) {
+            return null;
+        }
+        /** @var int $totalKeys */
+        \end($stmtsAware->stmts);
+        /** @var int $totalKeys */
+        $totalKeys = \key($stmtsAware->stmts);
+        for ($key = $jumpToKey; $key < $totalKeys; ++$key) {
+            if (!isset($stmtsAware->stmts[$key], $stmtsAware->stmts[$key + 1])) {
+                break;
+            }
+            if (!$stmtsAware->stmts[$key] instanceof Expression) {
+                continue;
+            }
+            /** @var Expression $stmt */
+            $stmt = $stmtsAware->stmts[$key];
+            if ($this->shouldSkip($stmt)) {
+                continue;
+            }
+            $nextStmt = $stmtsAware->stmts[$key + 1];
+            /** @var FuncCall $resetOrEndFuncCall */
+            $resetOrEndFuncCall = $stmt->expr;
+            $keyFuncCall = $this->resolveKeyFuncCall($nextStmt, $resetOrEndFuncCall);
+            if (!$keyFuncCall instanceof FuncCall) {
+                continue;
+            }
+            if ($this->hasInternalPointerChangeNext($stmtsAware, $key + 1, $totalKeys, $keyFuncCall)) {
+                continue;
+            }
+            $newName = self::PREVIOUS_TO_NEW_FUNCTIONS[$this->getName($stmt->expr)];
+            $keyFuncCall->name = new Name($newName);
+            unset($stmtsAware->stmts[$key]);
+            $hasChanged = \true;
+            return $this->processArrayKeyFirstLast($stmtsAware, $hasChanged, $key + 2);
+        }
+        if ($hasChanged) {
+            return $stmtsAware;
+        }
+        return null;
+    }
+    private function resolveKeyFuncCall(Stmt $nextStmt, FuncCall $resetOrEndFuncCall) : ?FuncCall
+    {
+        if ($resetOrEndFuncCall->isFirstClassCallable()) {
+            return null;
+        }
+        /** @var FuncCall|null */
+        return $this->betterNodeFinder->findFirst($nextStmt, function (Node $subNode) use($resetOrEndFuncCall) : bool {
+            if (!$subNode instanceof FuncCall) {
+                return \false;
+            }
+            if (!$this->isName($subNode, 'key')) {
+                return \false;
+            }
+            if ($subNode->isFirstClassCallable()) {
+                return \false;
+            }
+            return $this->nodeComparator->areNodesEqual($resetOrEndFuncCall->getArgs()[0], $subNode->getArgs()[0]);
+        });
+    }
+    private function hasInternalPointerChangeNext(StmtsAwareInterface $stmtsAware, int $nextKey, int $totalKeys, FuncCall $funcCall) : bool
+    {
+        for ($key = $nextKey; $key <= $totalKeys; ++$key) {
+            if (!isset($stmtsAware->stmts[$key])) {
+                continue;
+            }
+            $hasPrevCallNext = (bool) $this->betterNodeFinder->findFirst($stmtsAware->stmts[$key], function (Node $subNode) use($funcCall) : bool {
+                if (!$subNode instanceof FuncCall) {
+                    return \false;
+                }
+                if (!$this->isNames($subNode, ['prev', 'next'])) {
+                    return \false;
+                }
+                if ($subNode->isFirstClassCallable()) {
+                    return \true;
+                }
+                return $this->nodeComparator->areNodesEqual($subNode->getArgs()[0]->value, $funcCall->getArgs()[0]->value);
+            });
+            if ($hasPrevCallNext) {
+                return \true;
+            }
+        }
+        return \false;
+    }
+    private function shouldSkip(Expression $expression) : bool
+    {
+        if (!$expression->expr instanceof FuncCall) {
+            return \true;
+        }
+        if (!$this->isNames($expression->expr, ['reset', 'end'])) {
             return \true;
         }
         if (!$this->reflectionProvider->hasFunction(new Name(self::ARRAY_KEY_FIRST), null)) {
             return \true;
         }
         return !$this->reflectionProvider->hasFunction(new Name(self::ARRAY_KEY_LAST), null);
-    }
-    private function getNextExpression(FuncCall $funcCall) : ?Node
-    {
-        $currentStmt = $this->betterNodeFinder->resolveCurrentStatement($funcCall);
-        if (!$currentStmt instanceof Expression) {
-            return null;
-        }
-        if ($currentStmt->expr !== $funcCall) {
-            return null;
-        }
-        return $currentStmt->getAttribute(AttributeKey::NEXT_NODE);
     }
 }

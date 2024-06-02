@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Comments\NodeDocBlock;
 
+use PhpParser\Comment;
 use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
@@ -19,54 +20,27 @@ final class DocBlockUpdater
     {
         $this->phpDocInfoPrinter = $phpDocInfoPrinter;
     }
-    public function updateNodeWithPhpDocInfo(Node $node) : void
-    {
-        // nothing to change? don't save it
-        $phpDocInfo = $this->resolveChangedPhpDocInfo($node);
-        if (!$phpDocInfo instanceof PhpDocInfo) {
-            return;
-        }
-        $phpDoc = $this->printPhpDocInfoToString($phpDocInfo);
-        // make sure, that many separated comments are not removed
-        if ($phpDoc === '') {
-            if (\count($node->getComments()) > 1) {
-                foreach ($node->getComments() as $comment) {
-                    $phpDoc .= $comment->getText() . \PHP_EOL;
-                }
-            }
-            if ($phpDocInfo->getOriginalPhpDocNode()->children !== []) {
-                // all comments were removed → null
-                $node->setAttribute(AttributeKey::COMMENTS, null);
-            }
-            return;
-        }
-        // this is needed to remove duplicated // commentsAsText
-        $node->setDocComment(new Doc($phpDoc));
-    }
     public function updateRefactoredNodeWithPhpDocInfo(Node $node) : void
     {
         // nothing to change? don't save it
-        $phpDocInfo = $this->resolveChangedPhpDocInfo($node);
+        $phpDocInfo = $node->getAttribute(AttributeKey::PHP_DOC_INFO);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return;
         }
         $phpDocNode = $phpDocInfo->getPhpDocNode();
         if ($phpDocNode->children === []) {
-            $node->setAttribute(AttributeKey::COMMENTS, null);
+            $this->setCommentsAttribute($node);
             return;
         }
-        $node->setDocComment(new Doc((string) $phpDocNode));
+        $printedPhpDoc = $this->printPhpDocInfoToString($phpDocInfo);
+        $node->setDocComment(new Doc($printedPhpDoc));
     }
-    private function resolveChangedPhpDocInfo(Node $node) : ?PhpDocInfo
+    private function setCommentsAttribute(Node $node) : void
     {
-        $phpDocInfo = $node->getAttribute(AttributeKey::PHP_DOC_INFO);
-        if (!$phpDocInfo instanceof PhpDocInfo) {
-            return null;
-        }
-        if (!$phpDocInfo->hasChanged()) {
-            return null;
-        }
-        return $phpDocInfo;
+        $comments = \array_filter($node->getComments(), static function (Comment $comment) : bool {
+            return !$comment instanceof Doc;
+        });
+        $node->setAttribute(AttributeKey::COMMENTS, $comments);
     }
     private function printPhpDocInfoToString(PhpDocInfo $phpDocInfo) : string
     {

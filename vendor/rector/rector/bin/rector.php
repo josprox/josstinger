@@ -1,19 +1,19 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202211;
+namespace RectorPrefix202312;
 
-use RectorPrefix202211\Nette\Utils\Json;
+use RectorPrefix202312\Nette\Utils\Json;
 use Rector\ChangesReporting\Output\JsonOutputFormatter;
 use Rector\Core\Bootstrap\RectorConfigsResolver;
 use Rector\Core\Configuration\Option;
-use Rector\Core\Console\ConsoleApplication;
-use Rector\Core\Console\Style\RectorConsoleOutputStyleFactory;
+use Rector\Core\Console\Style\SymfonyStyleFactory;
+use Rector\Core\DependencyInjection\LazyContainerFactory;
 use Rector\Core\DependencyInjection\RectorContainerFactory;
-use Rector\Core\Kernel\RectorKernel;
 use Rector\Core\Util\Reflection\PrivatesAccessor;
-use RectorPrefix202211\Symfony\Component\Console\Command\Command;
-use RectorPrefix202211\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202312\Symfony\Component\Console\Application;
+use RectorPrefix202312\Symfony\Component\Console\Command\Command;
+use RectorPrefix202312\Symfony\Component\Console\Input\ArgvInput;
 // @ intentionally: continue anyway
 @\ini_set('memory_limit', '-1');
 // Performance boost
@@ -33,7 +33,7 @@ final class AutoloadIncluder
     public function includeDependencyOrRepositoryVendorAutoloadIfExists() : void
     {
         // Rector's vendor is already loaded
-        if (\class_exists(RectorKernel::class)) {
+        if (\class_exists(LazyContainerFactory::class)) {
             return;
         }
         // in Rector develop repository
@@ -87,10 +87,8 @@ final class AutoloadIncluder
         if (\in_array($filePath, $this->alreadyLoadedAutoloadFiles, \true)) {
             return;
         }
+        /** @var string $realPath always string after file_exists() check */
         $realPath = \realpath($filePath);
-        if (!\is_string($realPath)) {
-            return;
-        }
         $this->alreadyLoadedAutoloadFiles[] = $realPath;
         require_once $filePath;
     }
@@ -98,7 +96,10 @@ final class AutoloadIncluder
 if (\file_exists(__DIR__ . '/../preload.php') && \is_dir(__DIR__ . '/../vendor')) {
     require_once __DIR__ . '/../preload.php';
 }
-require_once __DIR__ . '/../src/constants.php';
+// require rector-src on split packages
+if (\file_exists(__DIR__ . '/../preload-split-package.php') && \is_dir(__DIR__ . '/../../../../vendor')) {
+    require_once __DIR__ . '/../preload-split-package.php';
+}
 $autoloadIncluder->loadIfExistsAndNotLoadedYet(__DIR__ . '/../vendor/scoper-autoload.php');
 $autoloadIncluder->autoloadProjectAutoloaderFile();
 $autoloadIncluder->autoloadRectorInstalledAsGlobalDependency();
@@ -117,12 +118,12 @@ try {
         echo Json::encode(['fatal_errors' => [$throwable->getMessage()]]);
     } else {
         // report fatal errors in console format
-        $rectorConsoleOutputStyleFactory = new RectorConsoleOutputStyleFactory(new PrivatesAccessor());
-        $rectorConsoleOutputStyle = $rectorConsoleOutputStyleFactory->create();
-        $rectorConsoleOutputStyle->error($throwable->getMessage());
+        $symfonyStyleFactory = new SymfonyStyleFactory(new PrivatesAccessor());
+        $symfonyStyle = $symfonyStyleFactory->create();
+        $symfonyStyle->error($throwable->getMessage());
     }
     exit(Command::FAILURE);
 }
-/** @var ConsoleApplication $application */
-$application = $container->get(ConsoleApplication::class);
+/** @var Application $application */
+$application = $container->get(Application::class);
 exit($application->run());

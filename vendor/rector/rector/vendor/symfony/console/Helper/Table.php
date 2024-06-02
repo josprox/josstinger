@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Helper;
+namespace RectorPrefix202312\Symfony\Component\Console\Helper;
 
-use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\WrappableOutputFormatterInterface;
-use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\WrappableOutputFormatterInterface;
+use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Provides helpers to display a table.
  *
@@ -100,6 +100,8 @@ class Table
     }
     /**
      * Sets a style definition.
+     *
+     * @return void
      */
     public static function setStyleDefinition(string $name, TableStyle $style)
     {
@@ -201,12 +203,15 @@ class Table
     public function setHeaders(array $headers)
     {
         $headers = \array_values($headers);
-        if (!empty($headers) && !\is_array($headers[0])) {
+        if ($headers && !\is_array($headers[0])) {
             $headers = [$headers];
         }
         $this->headers = $headers;
         return $this;
     }
+    /**
+     * @return $this
+     */
     public function setRows(array $rows)
     {
         $this->rows = [];
@@ -306,6 +311,8 @@ class Table
      *     | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
      *     | 960-425-059-0 | The Lord of the Rings | J. R. R. Tolkien |
      *     +---------------+-----------------------+------------------+
+     *
+     * @return void
      */
     public function render()
     {
@@ -354,10 +361,17 @@ class Table
                 $maxRows = \max(\count($headers), \count($row));
                 for ($i = 0; $i < $maxRows; ++$i) {
                     $cell = (string) ($row[$i] ?? '');
-                    if ($headers && !$containsColspan) {
-                        $rows[] = [\sprintf('<comment>%s</>: %s', \str_pad($headers[$i] ?? '', $maxHeaderLength, ' ', \STR_PAD_LEFT), $cell)];
-                    } elseif ('' !== $cell) {
-                        $rows[] = [$cell];
+                    $parts = \explode("\n", $cell);
+                    foreach ($parts as $idx => $part) {
+                        if ($headers && !$containsColspan) {
+                            if (0 === $idx) {
+                                $rows[] = [\sprintf('<comment>%s</>: %s', \str_pad($headers[$i] ?? '', $maxHeaderLength, ' ', \STR_PAD_LEFT), $part)];
+                            } else {
+                                $rows[] = [\sprintf('%s  %s', \str_pad('', $maxHeaderLength, ' ', \STR_PAD_LEFT), $part)];
+                            }
+                        } elseif ('' !== $cell) {
+                            $rows[] = [$part];
+                        }
                     }
                 }
             }
@@ -386,12 +400,12 @@ class Table
                     continue;
                 }
                 if ($isHeader && !$isHeaderSeparatorRendered) {
-                    $this->renderRowSeparator($isHeader ? self::SEPARATOR_TOP : self::SEPARATOR_TOP_BOTTOM, $hasTitle ? $this->headerTitle : null, $hasTitle ? $this->style->getHeaderTitleFormat() : null);
+                    $this->renderRowSeparator(self::SEPARATOR_TOP, $hasTitle ? $this->headerTitle : null, $hasTitle ? $this->style->getHeaderTitleFormat() : null);
                     $hasTitle = \false;
                     $isHeaderSeparatorRendered = \true;
                 }
                 if ($isFirstRow) {
-                    $this->renderRowSeparator($isHeader ? self::SEPARATOR_TOP : self::SEPARATOR_TOP_BOTTOM, $hasTitle ? $this->headerTitle : null, $hasTitle ? $this->style->getHeaderTitleFormat() : null);
+                    $this->renderRowSeparator($horizontal ? self::SEPARATOR_TOP : self::SEPARATOR_TOP_BOTTOM, $hasTitle ? $this->headerTitle : null, $hasTitle ? $this->style->getHeaderTitleFormat() : null);
                     $isFirstRow = \false;
                     $hasTitle = \false;
                 }
@@ -417,7 +431,7 @@ class Table
      *
      *     +-----+-----------+-------+
      */
-    private function renderRowSeparator(int $type = self::SEPARATOR_MID, string $title = null, string $titleFormat = null)
+    private function renderRowSeparator(int $type = self::SEPARATOR_MID, string $title = null, string $titleFormat = null) : void
     {
         if (!($count = $this->numberOfColumns)) {
             return;
@@ -473,7 +487,7 @@ class Table
      *
      *     | 9971-5-0210-0 | A Tale of Two Cities  | Charles Dickens  |
      */
-    private function renderRow(array $row, string $cellFormat, string $firstCellFormat = null)
+    private function renderRow(array $row, string $cellFormat, string $firstCellFormat = null) : void
     {
         $rowContent = $this->renderColumnSeparator(self::BORDER_OUTSIDE);
         $columns = $this->getRowColumns($row);
@@ -536,7 +550,7 @@ class Table
     /**
      * Calculate number of columns for this table.
      */
-    private function calculateNumberOfColumns(array $rows)
+    private function calculateNumberOfColumns(array $rows) : void
     {
         $columns = [0];
         foreach ($rows as $row) {
@@ -563,7 +577,7 @@ class Table
                 if (\strpos($cell ?? '', "\n") === \false) {
                     continue;
                 }
-                $escaped = \implode("\n", \array_map([OutputFormatter::class, 'escapeTrailingBackslash'], \explode("\n", $cell)));
+                $escaped = \implode("\n", \array_map(\Closure::fromCallable([OutputFormatter::class, 'escapeTrailingBackslash']), \explode("\n", $cell)));
                 $cell = $cell instanceof TableCell ? new TableCell($escaped, ['colspan' => $cell->getColspan()]) : $escaped;
                 $lines = \explode("\n", \str_replace("\n", "<fg=default;bg=default></>\n", $cell));
                 foreach ($lines as $lineKey => $line) {
@@ -660,7 +674,7 @@ class Table
     /**
      * fill cells for a row that contains colspan > 1.
      */
-    private function fillCells(iterable $row)
+    private function fillCells(iterable $row) : iterable
     {
         $newRow = [];
         foreach ($row as $column => $cell) {
@@ -713,7 +727,7 @@ class Table
     /**
      * Calculates columns widths.
      */
-    private function calculateColumnsWidth(iterable $groups)
+    private function calculateColumnsWidth(iterable $groups) : void
     {
         for ($column = 0; $column < $this->numberOfColumns; ++$column) {
             $lengths = [];
@@ -727,7 +741,7 @@ class Table
                             $textContent = Helper::removeDecoration($this->output->getFormatter(), $cell);
                             $textLength = Helper::width($textContent);
                             if ($textLength > 0) {
-                                $contentColumns = \str_split($textContent, \ceil($textLength / $cell->getColspan()));
+                                $contentColumns = \mb_str_split($textContent, \ceil($textLength / $cell->getColspan()));
                                 foreach ($contentColumns as $position => $content) {
                                     $row[$i + $position] = $content;
                                 }
@@ -758,7 +772,7 @@ class Table
     /**
      * Called after rendering to cleanup cache data.
      */
-    private function cleanup()
+    private function cleanup() : void
     {
         $this->effectiveColumnWidths = [];
         unset($this->numberOfColumns);

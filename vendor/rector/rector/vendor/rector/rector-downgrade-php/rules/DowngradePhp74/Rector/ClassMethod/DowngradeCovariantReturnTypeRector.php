@@ -17,13 +17,17 @@ use PHPStan\Type\MixedType;
 use PHPStan\Type\StaticType;
 use PHPStan\Type\ThisType;
 use PHPStan\Type\Type;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
+use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\Reflection\ReflectionResolver;
 use Rector\Core\Util\Reflection\PrivatesAccessor;
 use Rector\DeadCode\PhpDoc\TagRemover\ReturnTagRemover;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
+use Rector\PHPStanStaticTypeMapper\TypeAnalyzer\UnionTypeAnalyzer;
+use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\StaticTypeMapper\ValueObject\Type\ParentStaticType;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -54,12 +58,36 @@ final class DowngradeCovariantReturnTypeRector extends AbstractRector
      * @var \Rector\Core\Util\Reflection\PrivatesAccessor
      */
     private $privatesAccessor;
-    public function __construct(PhpDocTypeChanger $phpDocTypeChanger, ReturnTagRemover $returnTagRemover, ReflectionResolver $reflectionResolver, PrivatesAccessor $privatesAccessor)
+    /**
+     * @readonly
+     * @var \Rector\PHPStanStaticTypeMapper\TypeAnalyzer\UnionTypeAnalyzer
+     */
+    private $unionTypeAnalyzer;
+    /**
+     * @readonly
+     * @var \Rector\Comments\NodeDocBlock\DocBlockUpdater
+     */
+    private $docBlockUpdater;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     */
+    private $phpDocInfoFactory;
+    /**
+     * @readonly
+     * @var \Rector\StaticTypeMapper\StaticTypeMapper
+     */
+    private $staticTypeMapper;
+    public function __construct(PhpDocTypeChanger $phpDocTypeChanger, ReturnTagRemover $returnTagRemover, ReflectionResolver $reflectionResolver, PrivatesAccessor $privatesAccessor, UnionTypeAnalyzer $unionTypeAnalyzer, DocBlockUpdater $docBlockUpdater, PhpDocInfoFactory $phpDocInfoFactory, StaticTypeMapper $staticTypeMapper)
     {
         $this->phpDocTypeChanger = $phpDocTypeChanger;
         $this->returnTagRemover = $returnTagRemover;
         $this->reflectionResolver = $reflectionResolver;
         $this->privatesAccessor = $privatesAccessor;
+        $this->unionTypeAnalyzer = $unionTypeAnalyzer;
+        $this->docBlockUpdater = $docBlockUpdater;
+        $this->phpDocInfoFactory = $phpDocInfoFactory;
+        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -175,8 +203,9 @@ CODE_SAMPLE
         /** @var Node $returnType */
         $returnType = $classMethod->returnType;
         $type = $this->staticTypeMapper->mapPhpParserNodePHPStanType($returnType);
-        $this->phpDocTypeChanger->changeReturnType($phpDocInfo, $type);
+        $this->phpDocTypeChanger->changeReturnType($classMethod, $phpDocInfo, $type);
         $this->returnTagRemover->removeReturnTagIfUseless($phpDocInfo, $classMethod);
+        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($classMethod);
     }
     /**
      * @param ClassReflection[] $parentClassesAndInterfaces
@@ -195,7 +224,7 @@ CODE_SAMPLE
                 continue;
             }
             /** @var Type $parentReturnType */
-            $parentReturnType = $this->privatesAccessor->callPrivateMethod($parameterMethodReflection, 'getReturnType', []);
+            $parentReturnType = $this->privatesAccessor->callPrivateMethod($parameterMethodReflection, 'getNativeReturnType', []);
             // skip "parent" reference if correct
             if ($returnType instanceof ParentStaticType && $parentReturnType->accepts($returnType, \true)->yes()) {
                 continue;
@@ -206,9 +235,27 @@ CODE_SAMPLE
             if ($parentReturnType->equals($returnType)) {
                 continue;
             }
+            if ($this->isNullable($parentReturnType, $returnType)) {
+                continue;
+            }
             // This is an ancestor class with a different return type
             return $parentReturnType;
         }
         return new MixedType();
+    }
+    private function isNullable(Type $parentReturnType, Type $returnType) : bool
+    {
+        if (!$parentReturnType instanceof \PHPStan\Type\UnionType) {
+            return \false;
+        }
+        if (!$this->unionTypeAnalyzer->isNullable($parentReturnType)) {
+            return \false;
+        }
+        foreach ($parentReturnType->getTypes() as $type) {
+            if ($type->equals($returnType)) {
+                return \true;
+            }
+        }
+        return \false;
     }
 }

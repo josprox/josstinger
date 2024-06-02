@@ -10,6 +10,9 @@ use PHPStan\Type\ObjectType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeWithClassName;
 use Rector\NodeTypeResolver\Node\AttributeKey;
+/**
+ * @api
+ */
 final class AliasedObjectType extends ObjectType
 {
     /**
@@ -26,11 +29,17 @@ final class AliasedObjectType extends ObjectType
     {
         return $this->fullyQualifiedClass;
     }
-    public function getUseNode() : Use_
+    /**
+     * @param Use_::TYPE_* $useType
+     */
+    public function getUseNode(int $useType) : Use_
     {
         $name = new Name($this->fullyQualifiedClass);
+        $name->setAttribute(AttributeKey::IS_USEUSE_NAME, \true);
         $useUse = new UseUse($name, $this->getClassName());
-        return new Use_([$useUse]);
+        $use = new Use_([$useUse]);
+        $use->type = $useType;
+        return $use;
     }
     public function getShortName() : string
     {
@@ -42,15 +51,6 @@ final class AliasedObjectType extends ObjectType
     public function areShortNamesEqual($comparedObjectType) : bool
     {
         return $this->getShortName() === $comparedObjectType->getShortName();
-    }
-    public function getFunctionUseNode() : Use_
-    {
-        $name = new Name($this->fullyQualifiedClass);
-        $useUse = new UseUse($name, $this->getClassName());
-        $name->setAttribute(AttributeKey::PARENT_NODE, $useUse);
-        $use = new Use_([$useUse]);
-        $use->type = Use_::TYPE_FUNCTION;
-        return $use;
     }
     public function equals(Type $type) : bool
     {

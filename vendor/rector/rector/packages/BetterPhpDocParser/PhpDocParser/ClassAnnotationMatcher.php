@@ -18,10 +18,6 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 final class ClassAnnotationMatcher
 {
     /**
-     * @var array<string, string>
-     */
-    private $fullyQualifiedNameByHash = [];
-    /**
      * @readonly
      * @var \Rector\CodingStyle\NodeAnalyzer\UseImportNameMatcher
      */
@@ -36,36 +32,29 @@ final class ClassAnnotationMatcher
      * @var \PHPStan\Reflection\ReflectionProvider
      */
     private $reflectionProvider;
+    /**
+     * @var array<string, string>
+     */
+    private $fullyQualifiedNameByHash = [];
     public function __construct(UseImportNameMatcher $useImportNameMatcher, UseImportsResolver $useImportsResolver, ReflectionProvider $reflectionProvider)
     {
         $this->useImportNameMatcher = $useImportNameMatcher;
         $this->useImportsResolver = $useImportsResolver;
         $this->reflectionProvider = $reflectionProvider;
     }
-    public function resolveTagToKnownFullyQualifiedName(string $tag, Node $node) : ?string
+    public function resolveTagFullyQualifiedName(string $tag, Node $node) : string
     {
-        return $this->_resolveTagFullyQualifiedName($tag, $node, \true);
-    }
-    public function resolveTagFullyQualifiedName(string $tag, Node $node) : ?string
-    {
-        return $this->_resolveTagFullyQualifiedName($tag, $node, \false);
-    }
-    private function _resolveTagFullyQualifiedName(string $tag, Node $node, bool $returnNullOnUnknownClass) : ?string
-    {
-        $uniqueHash = $tag . \spl_object_hash($node);
-        if (isset($this->fullyQualifiedNameByHash[$uniqueHash])) {
-            return $this->fullyQualifiedNameByHash[$uniqueHash];
+        $uniqueId = $tag . \spl_object_id($node);
+        if (isset($this->fullyQualifiedNameByHash[$uniqueId])) {
+            return $this->fullyQualifiedNameByHash[$uniqueId];
         }
         $tag = \ltrim($tag, '@');
-        $uses = $this->useImportsResolver->resolveForNode($node);
-        $fullyQualifiedClass = $this->resolveFullyQualifiedClass($uses, $node, $tag, $returnNullOnUnknownClass);
+        $uses = $this->useImportsResolver->resolve();
+        $fullyQualifiedClass = $this->resolveFullyQualifiedClass($uses, $node, $tag, \false);
         if ($fullyQualifiedClass === null) {
-            if ($returnNullOnUnknownClass) {
-                return null;
-            }
             $fullyQualifiedClass = $tag;
         }
-        $this->fullyQualifiedNameByHash[$uniqueHash] = $fullyQualifiedClass;
+        $this->fullyQualifiedNameByHash[$uniqueId] = $fullyQualifiedClass;
         return $fullyQualifiedClass;
     }
     /**

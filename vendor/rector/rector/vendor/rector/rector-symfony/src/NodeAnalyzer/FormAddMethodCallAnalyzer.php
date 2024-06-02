@@ -3,16 +3,13 @@
 declare (strict_types=1);
 namespace Rector\Symfony\NodeAnalyzer;
 
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\MethodCall;
 use PHPStan\Type\ObjectType;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 final class FormAddMethodCallAnalyzer
 {
-    /**
-     * @var ObjectType[]
-     */
-    private $formObjectTypes = [];
     /**
      * @readonly
      * @var \Rector\NodeTypeResolver\NodeTypeResolver
@@ -23,6 +20,10 @@ final class FormAddMethodCallAnalyzer
      * @var \Rector\NodeNameResolver\NodeNameResolver
      */
     private $nodeNameResolver;
+    /**
+     * @var ObjectType[]
+     */
+    private $formObjectTypes = [];
     public function __construct(NodeTypeResolver $nodeTypeResolver, NodeNameResolver $nodeNameResolver)
     {
         $this->nodeTypeResolver = $nodeTypeResolver;
@@ -31,10 +32,10 @@ final class FormAddMethodCallAnalyzer
     }
     public function isMatching(MethodCall $methodCall) : bool
     {
-        if (!$this->nodeTypeResolver->isObjectTypes($methodCall->var, $this->formObjectTypes)) {
+        if (!$this->nodeNameResolver->isName($methodCall->name, 'add')) {
             return \false;
         }
-        if (!$this->nodeNameResolver->isName($methodCall->name, 'add')) {
+        if (!$this->nodeTypeResolver->isObjectTypes($methodCall->var, $this->formObjectTypes)) {
             return \false;
         }
         // just one argument
@@ -43,6 +44,6 @@ final class FormAddMethodCallAnalyzer
             return \false;
         }
         $firstArg = $args[1];
-        return $firstArg->value !== null;
+        return $firstArg->value instanceof Expr;
     }
 }

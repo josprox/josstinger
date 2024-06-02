@@ -11,10 +11,14 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\VariadicPlaceholder;
-use Rector\Core\Rector\AbstractRector;
+use PHPStan\Analyser\Scope;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
+use Rector\Core\Rector\AbstractScopeAwareRector;
 use Rector\Core\ValueObject\PhpVersion;
 use Rector\NodeCollector\NodeAnalyzer\ArrayCallableMethodMatcher;
 use Rector\NodeCollector\ValueObject\ArrayCallable;
+use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -23,16 +27,22 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Tests\Php81\Rector\Array_\FirstClassCallableRector\FirstClassCallableRectorTest
  */
-final class FirstClassCallableRector extends AbstractRector implements MinPhpVersionInterface
+final class FirstClassCallableRector extends AbstractScopeAwareRector implements MinPhpVersionInterface
 {
     /**
      * @readonly
      * @var \Rector\NodeCollector\NodeAnalyzer\ArrayCallableMethodMatcher
      */
     private $arrayCallableMethodMatcher;
-    public function __construct(ArrayCallableMethodMatcher $arrayCallableMethodMatcher)
+    /**
+     * @readonly
+     * @var \PHPStan\Reflection\ReflectionProvider
+     */
+    private $reflectionProvider;
+    public function __construct(ArrayCallableMethodMatcher $arrayCallableMethodMatcher, ReflectionProvider $reflectionProvider)
     {
         $this->arrayCallableMethodMatcher = $arrayCallableMethodMatcher;
+        $this->reflectionProvider = $reflectionProvider;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -73,10 +83,11 @@ CODE_SAMPLE
     }
     /**
      * @param Array_ $node
+     * @return null|\PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall
      */
-    public function refactor(Node $node) : ?Node
+    public function refactorWithScope(Node $node, Scope $scope)
     {
-        $arrayCallable = $this->arrayCallableMethodMatcher->match($node);
+        $arrayCallable = $this->arrayCallableMethodMatcher->match($node, $scope);
         if (!$arrayCallable instanceof ArrayCallable) {
             return null;
         }
@@ -86,6 +97,10 @@ CODE_SAMPLE
         }
         $args = [new VariadicPlaceholder()];
         if ($callerExpr instanceof ClassConstFetch) {
+            $type = $this->getType($callerExpr->class);
+            if ($type instanceof FullyQualifiedObjectType && $this->isNonStaticOtherObject($type, $arrayCallable, $scope)) {
+                return null;
+            }
             return new StaticCall($callerExpr->class, $arrayCallable->getMethod(), $args);
         }
         return new MethodCall($callerExpr, $arrayCallable->getMethod(), $args);
@@ -93,5 +108,25 @@ CODE_SAMPLE
     public function provideMinPhpVersion() : int
     {
         return PhpVersion::PHP_81;
+    }
+    private function isNonStaticOtherObject(FullyQualifiedObjectType $fullyQualifiedObjectType, ArrayCallable $arrayCallable, Scope $scope) : bool
+    {
+        $classReflection = $scope->getClassReflection();
+        if (!$classReflection instanceof ClassReflection) {
+            return \false;
+        }
+        if ($classReflection->getName() === $fullyQualifiedObjectType->getClassName()) {
+            return \false;
+        }
+        $arrayClassReflection = $this->reflectionProvider->getClass($arrayCallable->getClass());
+        // we're unable to find it
+        if (!$arrayClassReflection->hasMethod($arrayCallable->getMethod())) {
+            return \false;
+        }
+        $extendedMethodReflection = $arrayClassReflection->getMethod($arrayCallable->getMethod(), $scope);
+        if (!$extendedMethodReflection->isStatic()) {
+            return \true;
+        }
+        return !$extendedMethodReflection->isPublic();
     }
 }

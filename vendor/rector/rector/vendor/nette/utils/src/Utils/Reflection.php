@@ -5,35 +5,34 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202211\Nette\Utils;
+namespace RectorPrefix202312\Nette\Utils;
 
-use RectorPrefix202211\Nette;
+use RectorPrefix202312\Nette;
 /**
  * PHP reflection helpers.
  */
 final class Reflection
 {
     use Nette\StaticClass;
-    private const BuiltinTypes = ['string' => 1, 'int' => 1, 'float' => 1, 'bool' => 1, 'array' => 1, 'object' => 1, 'callable' => 1, 'iterable' => 1, 'void' => 1, 'null' => 1, 'mixed' => 1, 'false' => 1, 'never' => 1];
-    private const ClassKeywords = ['self' => 1, 'parent' => 1, 'static' => 1];
     /**
      * Determines if type is PHP built-in type. Otherwise, it is the class name.
      */
     public static function isBuiltinType(string $type) : bool
     {
-        return isset(self::BuiltinTypes[\strtolower($type)]);
+        return Validators::isBuiltinType($type);
     }
     /**
      * Determines if type is special class name self/parent/static.
      */
     public static function isClassKeyword(string $name) : bool
     {
-        return isset(self::ClassKeywords[\strtolower($name)]);
+        return Validators::isClassKeyword($name);
     }
     /**
      * Returns the type of return value of given function or method and normalizes `self`, `static`, and `parent` to actual class names.
      * If the function does not have a return type, it returns null.
      * If the function has union or intersection type, it throws Nette\InvalidStateException.
+     * @deprecated use Nette\Utils\Type::fromReflection()
      */
     public static function getReturnType(\ReflectionFunctionAbstract $func) : ?string
     {
@@ -52,6 +51,7 @@ final class Reflection
      * Returns the type of given parameter and normalizes `self` and `parent` to the actual class names.
      * If the parameter does not have a type, it returns null.
      * If the parameter has union or intersection type, it throws Nette\InvalidStateException.
+     * @deprecated use Nette\Utils\Type::fromReflection()
      */
     public static function getParameterType(\ReflectionParameter $param) : ?string
     {
@@ -69,6 +69,7 @@ final class Reflection
      * Returns the type of given property and normalizes `self` and `parent` to the actual class names.
      * If the property does not have a type, it returns null.
      * If the property has union or intersection type, it throws Nette\InvalidStateException.
+     * @deprecated use Nette\Utils\Type::fromReflection()
      */
     public static function getPropertyType(\ReflectionProperty $prop) : ?string
     {
@@ -195,7 +196,7 @@ final class Reflection
         $lower = \strtolower($name);
         if (empty($name)) {
             throw new Nette\InvalidArgumentException('Class name must not be empty.');
-        } elseif (isset(self::BuiltinTypes[$lower])) {
+        } elseif (Validators::isBuiltinType($lower)) {
             return $lower;
         } elseif ($lower === 'self' || $lower === 'static') {
             return $context->name;
@@ -216,7 +217,7 @@ final class Reflection
             return $name;
         }
     }
-    /** @return array of [alias => class] */
+    /** @return array<string, class-string> of [alias => class] */
     public static function getUseStatements(\ReflectionClass $class) : array
     {
         if ($class->isAnonymous()) {
@@ -244,7 +245,8 @@ final class Reflection
             \trigger_error($e->getMessage(), \E_USER_NOTICE);
             $tokens = [];
         }
-        $namespace = $class = $classLevel = $level = null;
+        $namespace = $class = null;
+        $classLevel = $level = 0;
         $res = $uses = [];
         $nameTokens = \PHP_VERSION_ID < 80000 ? [\T_STRING, \T_NS_SEPARATOR] : [\T_STRING, \T_NS_SEPARATOR, \T_NAME_QUALIFIED, \T_NAME_FULLY_QUALIFIED];
         while ($token = \current($tokens)) {
@@ -300,7 +302,7 @@ final class Reflection
                     break;
                 case '}':
                     if ($level === $classLevel) {
-                        $class = $classLevel = null;
+                        $class = $classLevel = 0;
                     }
                     $level--;
             }

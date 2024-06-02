@@ -8,7 +8,9 @@ use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Nop;
+use PhpParser\NodeTraverser;
 use PHPStan\Reflection\Php\PhpPropertyReflection;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Core\NodeAnalyzer\PropertyFetchAnalyzer;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\Reflection\ReflectionResolver;
@@ -36,11 +38,17 @@ final class RemoveDeadStmtRector extends AbstractRector
      * @var \Rector\Core\Reflection\ReflectionResolver
      */
     private $reflectionResolver;
-    public function __construct(LivingCodeManipulator $livingCodeManipulator, PropertyFetchAnalyzer $propertyFetchAnalyzer, ReflectionResolver $reflectionResolver)
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     */
+    private $phpDocInfoFactory;
+    public function __construct(LivingCodeManipulator $livingCodeManipulator, PropertyFetchAnalyzer $propertyFetchAnalyzer, ReflectionResolver $reflectionResolver, PhpDocInfoFactory $phpDocInfoFactory)
     {
         $this->livingCodeManipulator = $livingCodeManipulator;
         $this->propertyFetchAnalyzer = $propertyFetchAnalyzer;
         $this->reflectionResolver = $reflectionResolver;
+        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -62,7 +70,7 @@ CODE_SAMPLE
     }
     /**
      * @param Expression $node
-     * @return Node[]|Node|null
+     * @return Node[]|Node|null|int
      */
     public function refactor(Node $node)
     {
@@ -98,7 +106,10 @@ CODE_SAMPLE
          */
         return !$phpPropertyReflection instanceof PhpPropertyReflection;
     }
-    private function removeNodeAndKeepComments(Expression $expression) : ?Node
+    /**
+     * @return int|\PhpParser\Node
+     */
+    private function removeNodeAndKeepComments(Expression $expression)
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($expression);
         if ($expression->getComments() !== []) {
@@ -106,7 +117,6 @@ CODE_SAMPLE
             $nop->setAttribute(AttributeKey::PHP_DOC_INFO, $phpDocInfo);
             return $nop;
         }
-        $this->removeNode($expression);
-        return null;
+        return NodeTraverser::REMOVE_NODE;
     }
 }

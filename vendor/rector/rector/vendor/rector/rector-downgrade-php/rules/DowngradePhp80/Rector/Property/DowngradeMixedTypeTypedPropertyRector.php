@@ -4,10 +4,10 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp80\Rector\Property;
 
 use PhpParser\Node;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt\Property;
-use PHPStan\Type\MixedType;
-use Rector\CodeQuality\NodeFactory\PropertyTypeDecorator;
 use Rector\Core\Rector\AbstractRector;
+use Rector\NodeManipulator\PropertyDecorator;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -17,12 +17,12 @@ final class DowngradeMixedTypeTypedPropertyRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\CodeQuality\NodeFactory\PropertyTypeDecorator
+     * @var \Rector\NodeManipulator\PropertyDecorator
      */
-    private $propertyTypeDecorator;
-    public function __construct(PropertyTypeDecorator $propertyTypeDecorator)
+    private $PropertyDecorator;
+    public function __construct(PropertyDecorator $PropertyDecorator)
     {
-        $this->propertyTypeDecorator = $propertyTypeDecorator;
+        $this->PropertyDecorator = $PropertyDecorator;
     }
     /**
      * @return array<class-string<Node>>
@@ -55,25 +55,14 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->type === null) {
+        if (!$node->type instanceof Identifier) {
             return null;
         }
-        if ($this->shouldSkip($node)) {
+        if ($node->type->toString() !== 'mixed') {
             return null;
         }
-        $this->propertyTypeDecorator->decoratePropertyWithDocBlock($node, $node->type);
+        $this->PropertyDecorator->decorateWithDocBlock($node, $node->type);
         $node->type = null;
         return $node;
-    }
-    private function shouldSkip(Property $property) : bool
-    {
-        if ($property->type === null) {
-            return \true;
-        }
-        $type = $this->staticTypeMapper->mapPhpParserNodePHPStanType($property->type);
-        if (!$type instanceof MixedType) {
-            return \true;
-        }
-        return !$type->isExplicitMixed();
     }
 }

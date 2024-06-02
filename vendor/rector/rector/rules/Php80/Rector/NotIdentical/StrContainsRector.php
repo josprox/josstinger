@@ -4,11 +4,17 @@ declare (strict_types=1);
 namespace Rector\Php80\Rector\NotIdentical;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Identical;
+use PhpParser\Node\Expr\BinaryOp\NotEqual;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Name;
+use PhpParser\Node\Scalar\LNumber;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -22,9 +28,18 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class StrContainsRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     */
+    private $valueResolver;
+    /**
      * @var string[]
      */
     private const OLD_STR_NAMES = ['strpos', 'strstr'];
+    public function __construct(ValueResolver $valueResolver)
+    {
+        $this->valueResolver = $valueResolver;
+    }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::STR_CONTAINS;
@@ -56,10 +71,10 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Identical::class, NotIdentical::class];
+        return [Identical::class, NotIdentical::class, Equal::class, NotEqual::class];
     }
     /**
-     * @param Identical|NotIdentical $node
+     * @param Identical|NotIdentical|Equal|NotEqual $node
      */
     public function refactor(Node $node) : ?Node
     {
@@ -67,14 +82,24 @@ CODE_SAMPLE
         if (!$funcCall instanceof FuncCall) {
             return null;
         }
+        if ($funcCall->isFirstClassCallable()) {
+            return null;
+        }
+        if (isset($funcCall->getArgs()[2])) {
+            $secondArg = $funcCall->getArgs()[2];
+            if ($this->isName($funcCall->name, 'strpos') && !$this->isIntegerZero($secondArg->value)) {
+                $funcCall->args[0] = new Arg($this->nodeFactory->createFuncCall('substr', [$funcCall->args[0], $secondArg]));
+            }
+            unset($funcCall->args[2]);
+        }
         $funcCall->name = new Name('str_contains');
-        if ($node instanceof Identical) {
+        if ($node instanceof Identical || $node instanceof Equal) {
             return new BooleanNot($funcCall);
         }
         return $funcCall;
     }
     /**
-     * @param \PhpParser\Node\Expr\BinaryOp\Identical|\PhpParser\Node\Expr\BinaryOp\NotIdentical $expr
+     * @param \PhpParser\Node\Expr\BinaryOp\Identical|\PhpParser\Node\Expr\BinaryOp\NotIdentical|\PhpParser\Node\Expr\BinaryOp\Equal|\PhpParser\Node\Expr\BinaryOp\NotEqual $expr
      */
     private function matchIdenticalOrNotIdenticalToFalse($expr) : ?FuncCall
     {
@@ -101,5 +126,12 @@ CODE_SAMPLE
             return $funcCall;
         }
         return null;
+    }
+    private function isIntegerZero(Expr $expr) : bool
+    {
+        if (!$expr instanceof LNumber) {
+            return \false;
+        }
+        return $expr->value === 0;
     }
 }

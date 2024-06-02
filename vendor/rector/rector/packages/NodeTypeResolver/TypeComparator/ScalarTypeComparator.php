@@ -3,11 +3,7 @@
 declare (strict_types=1);
 namespace Rector\NodeTypeResolver\TypeComparator;
 
-use PHPStan\Type\BooleanType;
 use PHPStan\Type\ClassStringType;
-use PHPStan\Type\FloatType;
-use PHPStan\Type\IntegerType;
-use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 /**
  * @see \Rector\Tests\NodeTypeResolver\TypeComparator\ScalarTypeComparatorTest
@@ -16,57 +12,50 @@ final class ScalarTypeComparator
 {
     public function areEqualScalar(Type $firstType, Type $secondType) : bool
     {
-        if ($firstType instanceof StringType && $secondType instanceof StringType) {
+        if ($firstType->isString()->yes() && $secondType->isString()->yes()) {
             // prevents "class-string" vs "string"
             $firstTypeClass = \get_class($firstType);
             $secondTypeClass = \get_class($secondType);
             return $firstTypeClass === $secondTypeClass;
         }
-        if ($firstType instanceof IntegerType && $secondType instanceof IntegerType) {
+        if ($firstType->isInteger()->yes() && $secondType->isInteger()->yes()) {
+            // prevents "int<min, max>" vs "int"
+            $firstTypeClass = \get_class($firstType);
+            $secondTypeClass = \get_class($secondType);
+            return $firstTypeClass === $secondTypeClass;
+        }
+        if ($firstType->isFloat()->yes() && $secondType->isFloat()->yes()) {
             return \true;
         }
-        if ($firstType instanceof FloatType && $secondType instanceof FloatType) {
-            return \true;
-        }
-        if (!$firstType instanceof BooleanType) {
+        if (!$firstType->isBoolean()->yes()) {
             return \false;
         }
-        return $secondType instanceof BooleanType;
+        return $secondType->isBoolean()->yes();
     }
     /**
      * E.g. first is string, second is bool
      */
     public function areDifferentScalarTypes(Type $firstType, Type $secondType) : bool
     {
-        if (!$this->isScalarType($firstType)) {
+        if (!$firstType->isScalar()->yes()) {
             return \false;
         }
-        if (!$this->isScalarType($secondType)) {
+        if (!$secondType->isScalar()->yes()) {
             return \false;
         }
         // treat class-string and string the same
-        if ($firstType instanceof ClassStringType && $secondType instanceof StringType) {
+        if ($firstType->isString()->yes() && $secondType->isString()->yes()) {
             return \false;
         }
-        if (!$firstType instanceof StringType) {
+        if ($firstType->isInteger()->yes() && $secondType->isInteger()->yes()) {
+            return \false;
+        }
+        if (!$firstType->isString()->yes()) {
             return \get_class($firstType) !== \get_class($secondType);
         }
         if (!$secondType instanceof ClassStringType) {
             return \get_class($firstType) !== \get_class($secondType);
         }
         return \false;
-    }
-    private function isScalarType(Type $type) : bool
-    {
-        if ($type instanceof StringType) {
-            return \true;
-        }
-        if ($type instanceof FloatType) {
-            return \true;
-        }
-        if ($type instanceof IntegerType) {
-            return \true;
-        }
-        return $type instanceof BooleanType;
     }
 }

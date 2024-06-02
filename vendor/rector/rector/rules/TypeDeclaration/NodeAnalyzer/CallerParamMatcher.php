@@ -3,8 +3,10 @@
 declare (strict_types=1);
 namespace Rector\TypeDeclaration\NodeAnalyzer;
 
+use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\ComplexType;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -19,6 +21,8 @@ use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use Rector\Core\PhpParser\AstResolver;
 use Rector\NodeNameResolver\NodeNameResolver;
+use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
+use Rector\StaticTypeMapper\StaticTypeMapper;
 final class CallerParamMatcher
 {
     /**
@@ -31,10 +35,22 @@ final class CallerParamMatcher
      * @var \Rector\Core\PhpParser\AstResolver
      */
     private $astResolver;
-    public function __construct(NodeNameResolver $nodeNameResolver, AstResolver $astResolver)
+    /**
+     * @readonly
+     * @var \Rector\StaticTypeMapper\StaticTypeMapper
+     */
+    private $staticTypeMapper;
+    /**
+     * @readonly
+     * @var \Rector\NodeTypeResolver\TypeComparator\TypeComparator
+     */
+    private $typeComparator;
+    public function __construct(NodeNameResolver $nodeNameResolver, AstResolver $astResolver, StaticTypeMapper $staticTypeMapper, TypeComparator $typeComparator)
     {
         $this->nodeNameResolver = $nodeNameResolver;
         $this->astResolver = $astResolver;
+        $this->staticTypeMapper = $staticTypeMapper;
+        $this->typeComparator = $typeComparator;
     }
     /**
      * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\FuncCall $call
@@ -46,22 +62,21 @@ final class CallerParamMatcher
         if (!$callParam instanceof Param) {
             return null;
         }
-        return $callParam->type;
-    }
-    /**
-     * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\FuncCall $call
-     */
-    public function matchCallParam($call, Param $param, Scope $scope) : ?Param
-    {
-        $callArgPosition = $this->matchCallArgPosition($call, $param);
-        if ($callArgPosition === null) {
+        if (!$param->default instanceof Expr) {
+            return $callParam->type;
+        }
+        if (!$callParam->type instanceof Node) {
             return null;
         }
-        $classMethodOrFunction = $this->astResolver->resolveClassMethodOrFunctionFromCall($call, $scope);
-        if ($classMethodOrFunction === null) {
-            return null;
+        $callParamType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($callParam->type);
+        $defaultType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($param->default);
+        if ($this->typeComparator->areTypesEqual($callParamType, $defaultType)) {
+            return $callParam->type;
         }
-        return $classMethodOrFunction->params[$callArgPosition] ?? null;
+        if ($this->typeComparator->isSubtype($defaultType, $callParamType)) {
+            return $callParam->type;
+        }
+        return null;
     }
     public function matchParentParam(StaticCall $parentStaticCall, Param $param, Scope $scope) : ?Param
     {
@@ -75,6 +90,21 @@ final class CallerParamMatcher
             return null;
         }
         return $this->resolveParentMethodParam($scope, $methodName, $parentStaticCallArgPosition);
+    }
+    /**
+     * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\FuncCall $call
+     */
+    private function matchCallParam($call, Param $param, Scope $scope) : ?Param
+    {
+        $callArgPosition = $this->matchCallArgPosition($call, $param);
+        if ($callArgPosition === null) {
+            return null;
+        }
+        $classMethodOrFunction = $this->astResolver->resolveClassMethodOrFunctionFromCall($call, $scope);
+        if ($classMethodOrFunction === null) {
+            return null;
+        }
+        return $classMethodOrFunction->params[$callArgPosition] ?? null;
     }
     /**
      * @param \PhpParser\Node\Expr\StaticCall|\PhpParser\Node\Expr\MethodCall|\PhpParser\Node\Expr\FuncCall $call

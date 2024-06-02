@@ -8,49 +8,51 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console;
+namespace RectorPrefix202312\Symfony\Component\Console;
 
-use RectorPrefix202211\Symfony\Component\Console\Command\Command;
-use RectorPrefix202211\Symfony\Component\Console\Command\CompleteCommand;
-use RectorPrefix202211\Symfony\Component\Console\Command\DumpCompletionCommand;
-use RectorPrefix202211\Symfony\Component\Console\Command\HelpCommand;
-use RectorPrefix202211\Symfony\Component\Console\Command\LazyCommand;
-use RectorPrefix202211\Symfony\Component\Console\Command\ListCommand;
-use RectorPrefix202211\Symfony\Component\Console\Command\SignalableCommandInterface;
-use RectorPrefix202211\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
-use RectorPrefix202211\Symfony\Component\Console\Completion\CompletionInput;
-use RectorPrefix202211\Symfony\Component\Console\Completion\CompletionSuggestions;
-use RectorPrefix202211\Symfony\Component\Console\Event\ConsoleCommandEvent;
-use RectorPrefix202211\Symfony\Component\Console\Event\ConsoleErrorEvent;
-use RectorPrefix202211\Symfony\Component\Console\Event\ConsoleSignalEvent;
-use RectorPrefix202211\Symfony\Component\Console\Event\ConsoleTerminateEvent;
-use RectorPrefix202211\Symfony\Component\Console\Exception\CommandNotFoundException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\ExceptionInterface;
-use RectorPrefix202211\Symfony\Component\Console\Exception\LogicException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\NamespaceNotFoundException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202211\Symfony\Component\Console\Helper\DebugFormatterHelper;
-use RectorPrefix202211\Symfony\Component\Console\Helper\FormatterHelper;
-use RectorPrefix202211\Symfony\Component\Console\Helper\Helper;
-use RectorPrefix202211\Symfony\Component\Console\Helper\HelperSet;
-use RectorPrefix202211\Symfony\Component\Console\Helper\ProcessHelper;
-use RectorPrefix202211\Symfony\Component\Console\Helper\QuestionHelper;
-use RectorPrefix202211\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202211\Symfony\Component\Console\Input\ArrayInput;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputAwareInterface;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleOutput;
-use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202211\Symfony\Component\Console\SignalRegistry\SignalRegistry;
-use RectorPrefix202211\Symfony\Component\Console\Style\SymfonyStyle;
-use RectorPrefix202211\Symfony\Component\ErrorHandler\ErrorHandler;
-use RectorPrefix202211\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
-use RectorPrefix202211\Symfony\Contracts\Service\ResetInterface;
+use RectorPrefix202312\Symfony\Component\Console\Command\Command;
+use RectorPrefix202312\Symfony\Component\Console\Command\CompleteCommand;
+use RectorPrefix202312\Symfony\Component\Console\Command\DumpCompletionCommand;
+use RectorPrefix202312\Symfony\Component\Console\Command\HelpCommand;
+use RectorPrefix202312\Symfony\Component\Console\Command\LazyCommand;
+use RectorPrefix202312\Symfony\Component\Console\Command\ListCommand;
+use RectorPrefix202312\Symfony\Component\Console\Command\SignalableCommandInterface;
+use RectorPrefix202312\Symfony\Component\Console\CommandLoader\CommandLoaderInterface;
+use RectorPrefix202312\Symfony\Component\Console\Completion\CompletionInput;
+use RectorPrefix202312\Symfony\Component\Console\Completion\CompletionSuggestions;
+use RectorPrefix202312\Symfony\Component\Console\Completion\Suggestion;
+use RectorPrefix202312\Symfony\Component\Console\Event\ConsoleCommandEvent;
+use RectorPrefix202312\Symfony\Component\Console\Event\ConsoleErrorEvent;
+use RectorPrefix202312\Symfony\Component\Console\Event\ConsoleSignalEvent;
+use RectorPrefix202312\Symfony\Component\Console\Event\ConsoleTerminateEvent;
+use RectorPrefix202312\Symfony\Component\Console\Exception\CommandNotFoundException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\ExceptionInterface;
+use RectorPrefix202312\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\NamespaceNotFoundException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202312\Symfony\Component\Console\Helper\DebugFormatterHelper;
+use RectorPrefix202312\Symfony\Component\Console\Helper\DescriptorHelper;
+use RectorPrefix202312\Symfony\Component\Console\Helper\FormatterHelper;
+use RectorPrefix202312\Symfony\Component\Console\Helper\Helper;
+use RectorPrefix202312\Symfony\Component\Console\Helper\HelperSet;
+use RectorPrefix202312\Symfony\Component\Console\Helper\ProcessHelper;
+use RectorPrefix202312\Symfony\Component\Console\Helper\QuestionHelper;
+use RectorPrefix202312\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202312\Symfony\Component\Console\Input\ArrayInput;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputAwareInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleOutput;
+use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\SignalRegistry\SignalRegistry;
+use RectorPrefix202312\Symfony\Component\Console\Style\SymfonyStyle;
+use RectorPrefix202312\Symfony\Component\ErrorHandler\ErrorHandler;
+use RectorPrefix202312\Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
+use RectorPrefix202312\Symfony\Contracts\Service\ResetInterface;
 /**
  * An Application is the container for a collection of commands.
  *
@@ -99,6 +101,10 @@ class Application implements ResetInterface
     /**
      * @var bool
      */
+    private $catchErrors = \false;
+    /**
+     * @var bool
+     */
     private $autoExit = \true;
     /**
      * @var \Symfony\Component\Console\Input\InputDefinition
@@ -129,7 +135,7 @@ class Application implements ResetInterface
      */
     private $initialized = \false;
     /**
-     * @var \Symfony\Component\Console\SignalRegistry\SignalRegistry
+     * @var \Symfony\Component\Console\SignalRegistry\SignalRegistry|null
      */
     private $signalRegistry;
     /**
@@ -150,10 +156,13 @@ class Application implements ResetInterface
     /**
      * @final
      */
-    public function setDispatcher(EventDispatcherInterface $dispatcher)
+    public function setDispatcher(EventDispatcherInterface $dispatcher) : void
     {
         $this->dispatcher = $dispatcher;
     }
+    /**
+     * @return void
+     */
     public function setCommandLoader(CommandLoaderInterface $commandLoader)
     {
         $this->commandLoader = $commandLoader;
@@ -161,10 +170,13 @@ class Application implements ResetInterface
     public function getSignalRegistry() : SignalRegistry
     {
         if (!$this->signalRegistry) {
-            throw new RuntimeException('Signals are not supported. Make sure that the `pcntl` extension is installed and that "pcntl_*" functions are not disabled by your php.ini\'s "disable_functions" directive.');
+            throw new RuntimeException('Signals are not supported. Make sure that the "pcntl" extension is installed and that "pcntl_*" functions are not disabled by your php.ini\'s "disable_functions" directive.');
         }
         return $this->signalRegistry;
     }
+    /**
+     * @return void
+     */
     public function setSignalsToDispatchEvent(int ...$signalsToDispatchEvent)
     {
         $this->signalsToDispatchEvent = $signalsToDispatchEvent;
@@ -182,12 +194,8 @@ class Application implements ResetInterface
             @\putenv('LINES=' . $this->terminal->getHeight());
             @\putenv('COLUMNS=' . $this->terminal->getWidth());
         }
-        if (null === $input) {
-            $input = new ArgvInput();
-        }
-        if (null === $output) {
-            $output = new ConsoleOutput();
-        }
+        $input = $input ?? new ArgvInput();
+        $output = $output ?? new ConsoleOutput();
         $renderException = function (\Throwable $e) use($output) {
             if ($output instanceof ConsoleOutputInterface) {
                 $this->renderThrowable($e, $output->getErrorOutput());
@@ -206,8 +214,11 @@ class Application implements ResetInterface
         $this->configureIO($input, $output);
         try {
             $exitCode = $this->doRun($input, $output);
-        } catch (\Exception $e) {
-            if (!$this->catchExceptions) {
+        } catch (\Throwable $e) {
+            if ($e instanceof \Exception && !$this->catchExceptions) {
+                throw $e;
+            }
+            if (!$e instanceof \Exception && !$this->catchErrors) {
                 throw $e;
             }
             $renderException($e);
@@ -279,7 +290,22 @@ class Application implements ResetInterface
             // the command name MUST be the first element of the input
             $command = $this->find($name);
         } catch (\Throwable $e) {
-            if (!($e instanceof CommandNotFoundException && !$e instanceof NamespaceNotFoundException) || 1 !== \count($alternatives = $e->getAlternatives()) || !$input->isInteractive()) {
+            if ($e instanceof CommandNotFoundException && !$e instanceof NamespaceNotFoundException && 1 === \count($alternatives = $e->getAlternatives()) && $input->isInteractive()) {
+                $alternative = $alternatives[0];
+                $style = new SymfonyStyle($input, $output);
+                $output->writeln('');
+                $formattedBlock = (new FormatterHelper())->formatBlock(\sprintf('Command "%s" is not defined.', $name), 'error', \true);
+                $output->writeln($formattedBlock);
+                if (!$style->confirm(\sprintf('Do you want to run "%s" instead? ', $alternative), \false)) {
+                    if (null !== $this->dispatcher) {
+                        $event = new ConsoleErrorEvent($input, $output, $e);
+                        $this->dispatcher->dispatch($event, ConsoleEvents::ERROR);
+                        return $event->getExitCode();
+                    }
+                    return 1;
+                }
+                $command = $this->find($alternative);
+            } else {
                 if (null !== $this->dispatcher) {
                     $event = new ConsoleErrorEvent($input, $output, $e);
                     $this->dispatcher->dispatch($event, ConsoleEvents::ERROR);
@@ -288,22 +314,17 @@ class Application implements ResetInterface
                     }
                     $e = $event->getError();
                 }
-                throw $e;
-            }
-            $alternative = $alternatives[0];
-            $style = new SymfonyStyle($input, $output);
-            $output->writeln('');
-            $formattedBlock = (new FormatterHelper())->formatBlock(\sprintf('Command "%s" is not defined.', $name), 'error', \true);
-            $output->writeln($formattedBlock);
-            if (!$style->confirm(\sprintf('Do you want to run "%s" instead? ', $alternative), \false)) {
-                if (null !== $this->dispatcher) {
-                    $event = new ConsoleErrorEvent($input, $output, $e);
-                    $this->dispatcher->dispatch($event, ConsoleEvents::ERROR);
-                    return $event->getExitCode();
+                try {
+                    if ($e instanceof CommandNotFoundException && ($namespace = $this->findNamespace($name))) {
+                        $helper = new DescriptorHelper();
+                        $helper->describe($output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output, $this, ['format' => 'txt', 'raw_text' => \false, 'namespace' => $namespace, 'short' => \false]);
+                        return isset($event) ? $event->getExitCode() : 1;
+                    }
+                    throw $e;
+                } catch (NamespaceNotFoundException $exception) {
+                    throw $e;
                 }
-                return 1;
             }
-            $command = $this->find($alternative);
         }
         if ($command instanceof LazyCommand) {
             $command = $command->getCommand();
@@ -314,11 +335,14 @@ class Application implements ResetInterface
         return $exitCode;
     }
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function reset()
     {
     }
+    /**
+     * @return void
+     */
     public function setHelperSet(HelperSet $helperSet)
     {
         $this->helperSet = $helperSet;
@@ -330,6 +354,9 @@ class Application implements ResetInterface
     {
         return $this->helperSet = $this->helperSet ?? $this->getDefaultHelperSet();
     }
+    /**
+     * @return void
+     */
     public function setDefinition(InputDefinition $definition)
     {
         $this->definition = $definition;
@@ -353,18 +380,16 @@ class Application implements ResetInterface
     public function complete(CompletionInput $input, CompletionSuggestions $suggestions) : void
     {
         if (CompletionInput::TYPE_ARGUMENT_VALUE === $input->getCompletionType() && 'command' === $input->getCompletionName()) {
-            $commandNames = [];
             foreach ($this->all() as $name => $command) {
                 // skip hidden commands and aliased commands as they already get added below
                 if ($command->isHidden() || $command->getName() !== $name) {
                     continue;
                 }
-                $commandNames[] = $command->getName();
+                $suggestions->suggestValue(new Suggestion($command->getName(), $command->getDescription()));
                 foreach ($command->getAliases() as $name) {
-                    $commandNames[] = $name;
+                    $suggestions->suggestValue(new Suggestion($name, $command->getDescription()));
                 }
             }
-            $suggestions->suggestValues(\array_filter($commandNames));
             return;
         }
         if (CompletionInput::TYPE_OPTION_NAME === $input->getCompletionType()) {
@@ -388,10 +413,19 @@ class Application implements ResetInterface
     }
     /**
      * Sets whether to catch exceptions or not during commands execution.
+     *
+     * @return void
      */
     public function setCatchExceptions(bool $boolean)
     {
         $this->catchExceptions = $boolean;
+    }
+    /**
+     * Sets whether to catch errors or not during commands execution.
+     */
+    public function setCatchErrors(bool $catchErrors = \true) : void
+    {
+        $this->catchErrors = $catchErrors;
     }
     /**
      * Gets whether to automatically exit after a command execution or not.
@@ -402,6 +436,8 @@ class Application implements ResetInterface
     }
     /**
      * Sets whether to automatically exit after a command execution or not.
+     *
+     * @return void
      */
     public function setAutoExit(bool $boolean)
     {
@@ -416,7 +452,9 @@ class Application implements ResetInterface
     }
     /**
      * Sets the application name.
-     **/
+     *
+     * @return void
+     */
     public function setName(string $name)
     {
         $this->name = $name;
@@ -430,6 +468,8 @@ class Application implements ResetInterface
     }
     /**
      * Sets the application version.
+     *
+     * @return void
      */
     public function setVersion(string $version)
     {
@@ -463,6 +503,8 @@ class Application implements ResetInterface
      * If a Command is not enabled it will not be added.
      *
      * @param Command[] $commands An array of commands
+     *
+     * @return void
      */
     public function addCommands(array $commands)
     {
@@ -531,7 +573,7 @@ class Application implements ResetInterface
     public function has(string $name) : bool
     {
         $this->init();
-        return isset($this->commands[$name]) || (($commandLoader = $this->commandLoader) ? $commandLoader->has($name) : null) && $this->add($this->commandLoader->get($name));
+        return isset($this->commands[$name]) || (($nullsafeVariable1 = $this->commandLoader) ? $nullsafeVariable1->has($name) : null) && $this->add($this->commandLoader->get($name));
     }
     /**
      * Returns an array of all unique namespaces used by currently registered commands.
@@ -792,6 +834,8 @@ class Application implements ResetInterface
     }
     /**
      * Configures the input and output instances based on the user arguments and options.
+     *
+     * @return void
      */
     protected function configureIO(InputInterface $input, OutputInterface $output)
     {
@@ -859,37 +903,57 @@ class Application implements ResetInterface
                 $helper->setInput($input);
             }
         }
-        if ($this->signalsToDispatchEvent) {
-            $commandSignals = $command instanceof SignalableCommandInterface ? $command->getSubscribedSignals() : [];
-            if ($commandSignals || null !== $this->dispatcher) {
-                if (!$this->signalRegistry) {
-                    throw new RuntimeException('Unable to subscribe to signal events. Make sure that the `pcntl` extension is installed and that "pcntl_*" functions are not disabled by your php.ini\'s "disable_functions" directive.');
-                }
-                if (Terminal::hasSttyAvailable()) {
-                    $sttyMode = \shell_exec('stty -g');
-                    foreach ([\SIGINT, \SIGTERM] as $signal) {
-                        $this->signalRegistry->register($signal, static function () use($sttyMode) {
-                            \shell_exec('stty ' . $sttyMode);
-                        });
-                    }
-                }
-                foreach ($commandSignals as $signal) {
-                    $this->signalRegistry->register($signal, [$command, 'handleSignal']);
+        $commandSignals = $command instanceof SignalableCommandInterface ? $command->getSubscribedSignals() : [];
+        if ($commandSignals || $this->dispatcher && $this->signalsToDispatchEvent) {
+            if (!$this->signalRegistry) {
+                throw new RuntimeException('Unable to subscribe to signal events. Make sure that the "pcntl" extension is installed and that "pcntl_*" functions are not disabled by your php.ini\'s "disable_functions" directive.');
+            }
+            if (Terminal::hasSttyAvailable()) {
+                $sttyMode = \shell_exec('stty -g');
+                foreach ([\SIGINT, \SIGTERM] as $signal) {
+                    $this->signalRegistry->register($signal, static function () use($sttyMode) {
+                        return \shell_exec('stty ' . $sttyMode);
+                    });
                 }
             }
-            if (null !== $this->dispatcher) {
+            if ($this->dispatcher) {
+                // We register application signals, so that we can dispatch the event
                 foreach ($this->signalsToDispatchEvent as $signal) {
                     $event = new ConsoleSignalEvent($command, $input, $output, $signal);
-                    $this->signalRegistry->register($signal, function ($signal, $hasNext) use($event) {
+                    $this->signalRegistry->register($signal, function ($signal) use($event, $command, $commandSignals) {
                         $this->dispatcher->dispatch($event, ConsoleEvents::SIGNAL);
-                        // No more handlers, we try to simulate PHP default behavior
-                        if (!$hasNext) {
-                            if (!\in_array($signal, [\SIGUSR1, \SIGUSR2], \true)) {
-                                exit(0);
+                        $exitCode = $event->getExitCode();
+                        // If the command is signalable, we call the handleSignal() method
+                        if (\in_array($signal, $commandSignals, \true)) {
+                            $exitCode = $command->handleSignal($signal, $exitCode);
+                            // BC layer for Symfony <= 5
+                            if (null === $exitCode) {
+                                // \trigger_deprecation('symfony/console', '6.3', 'Not returning an exit code from "%s::handleSignal()" is deprecated, return "false" to keep the command running or "0" to exit successfully.', \get_debug_type($command));
+                                $exitCode = 0;
                             }
+                        }
+                        if (\false !== $exitCode) {
+                            $event = new ConsoleTerminateEvent($command, $event->getInput(), $event->getOutput(), $exitCode, $signal);
+                            $this->dispatcher->dispatch($event, ConsoleEvents::TERMINATE);
+                            exit($event->getExitCode());
                         }
                     });
                 }
+                // then we register command signals, but not if already handled after the dispatcher
+                $commandSignals = \array_diff($commandSignals, $this->signalsToDispatchEvent);
+            }
+            foreach ($commandSignals as $signal) {
+                $this->signalRegistry->register($signal, function (int $signal) use($command) : void {
+                    $exitCode = $command->handleSignal($signal);
+                    // BC layer for Symfony <= 5
+                    if (null === $exitCode) {
+                        // \trigger_deprecation('symfony/console', '6.3', 'Not returning an exit code from "%s::handleSignal()" is deprecated, return "false" to keep the command running or "0" to exit successfully.', \get_debug_type($command));
+                        $exitCode = 0;
+                    }
+                    if (\false !== $exitCode) {
+                        exit($exitCode);
+                    }
+                });
             }
         }
         if (null === $this->dispatcher) {
@@ -1086,7 +1150,7 @@ class Application implements ResetInterface
         }
         return $namespaces;
     }
-    private function init()
+    private function init() : void
     {
         if ($this->initialized) {
             return;

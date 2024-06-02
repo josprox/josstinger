@@ -13,7 +13,7 @@ use Rector\Core\Rector\AbstractRector;
 use Rector\Transform\ValueObject\PropertyFetchToMethodCall;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202211\Webmozart\Assert\Assert;
+use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\Assign\PropertyFetchToMethodCallRector\PropertyFetchToMethodCallRectorTest
  */
@@ -85,15 +85,15 @@ CODE_SAMPLE
     }
     private function processGetter(PropertyFetch $propertyFetch) : ?Node
     {
-        $propertyToMethodCall = $this->matchPropertyFetchCandidate($propertyFetch);
-        if (!$propertyToMethodCall instanceof PropertyFetchToMethodCall) {
+        $propertyFetchToMethodCall = $this->matchPropertyFetchCandidate($propertyFetch);
+        if (!$propertyFetchToMethodCall instanceof PropertyFetchToMethodCall) {
             return null;
         }
         // simple method name
-        if ($propertyToMethodCall->getNewGetMethod() !== '') {
-            $methodCall = $this->nodeFactory->createMethodCall($propertyFetch->var, $propertyToMethodCall->getNewGetMethod());
-            if ($propertyToMethodCall->getNewGetArguments() !== []) {
-                $methodCall->args = $this->nodeFactory->createArgs($propertyToMethodCall->getNewGetArguments());
+        if ($propertyFetchToMethodCall->getNewGetMethod() !== '') {
+            $methodCall = $this->nodeFactory->createMethodCall($propertyFetch->var, $propertyFetchToMethodCall->getNewGetMethod());
+            if ($propertyFetchToMethodCall->getNewGetArguments() !== []) {
+                $methodCall->args = $this->nodeFactory->createArgs($propertyFetchToMethodCall->getNewGetArguments());
             }
             return $methodCall;
         }
@@ -102,10 +102,10 @@ CODE_SAMPLE
     private function matchPropertyFetchCandidate(PropertyFetch $propertyFetch) : ?PropertyFetchToMethodCall
     {
         foreach ($this->propertiesToMethodCalls as $propertyToMethodCall) {
-            if (!$this->isObjectType($propertyFetch->var, $propertyToMethodCall->getOldObjectType())) {
+            if (!$this->isName($propertyFetch, $propertyToMethodCall->getOldProperty())) {
                 continue;
             }
-            if (!$this->isName($propertyFetch, $propertyToMethodCall->getOldProperty())) {
+            if (!$this->isObjectType($propertyFetch->var, $propertyToMethodCall->getOldObjectType())) {
                 continue;
             }
             return $propertyToMethodCall;

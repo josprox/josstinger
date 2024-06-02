@@ -4,40 +4,42 @@ declare (strict_types=1);
 namespace Rector\TypeDeclaration\TypeAnalyzer;
 
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\BinaryOp\Concat;
+use PhpParser\Node\Expr\Cast;
 use PhpParser\Node\Expr\ConstFetch;
-use PhpParser\Node\Expr\FuncCall;
-use PhpParser\Node\Name;
 use PhpParser\Node\Scalar;
 use PhpParser\Node\Scalar\DNumber;
+use PhpParser\Node\Scalar\Encapsed;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\MagicConst;
 use PhpParser\Node\Scalar\MagicConst\Line;
 use PhpParser\Node\Scalar\String_;
-use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\Native\NativeFunctionReflection;
-use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\BooleanType;
-use PHPStan\Type\Constant\ConstantStringType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\NullType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
-use Rector\NodeTypeResolver\Node\AttributeKey;
-use Rector\NodeTypeResolver\PHPStan\ParametersAcceptorSelectorVariantsWrapper;
+use Rector\NodeTypeResolver\NodeTypeResolver;
 final class AlwaysStrictScalarExprAnalyzer
 {
     /**
      * @readonly
-     * @var \PHPStan\Reflection\ReflectionProvider
+     * @var \Rector\NodeTypeResolver\NodeTypeResolver
      */
-    private $reflectionProvider;
-    public function __construct(ReflectionProvider $reflectionProvider)
+    private $nodeTypeResolver;
+    public function __construct(NodeTypeResolver $nodeTypeResolver)
     {
-        $this->reflectionProvider = $reflectionProvider;
+        $this->nodeTypeResolver = $nodeTypeResolver;
     }
     public function matchStrictScalarExpr(Expr $expr) : ?Type
     {
+        if ($expr instanceof Concat) {
+            return new StringType();
+        }
+        if ($expr instanceof Cast) {
+            return $this->resolveCastType($expr);
+        }
         if ($expr instanceof Scalar) {
             return $this->resolveTypeFromScalar($expr);
         }
@@ -51,33 +53,25 @@ final class AlwaysStrictScalarExprAnalyzer
             }
             return null;
         }
-        if ($expr instanceof FuncCall) {
-            $returnType = $this->resolveFuncCallType($expr);
-            if (!$returnType instanceof Type) {
-                return null;
-            }
-            if (!$this->isScalarType($returnType)) {
-                return null;
-            }
-            return $returnType;
+        $exprType = $this->nodeTypeResolver->getNativeType($expr);
+        if ($exprType->isScalar()->yes()) {
+            return $exprType;
         }
         return null;
     }
-    private function isScalarType(Type $type) : bool
+    private function resolveCastType(Cast $cast) : ?Type
     {
-        if ($type instanceof StringType && !$type instanceof ConstantStringType) {
-            return \true;
+        $type = $this->nodeTypeResolver->getNativeType($cast);
+        if ($type->isScalar()->yes()) {
+            return $type;
         }
-        if ($type instanceof FloatType) {
-            return \true;
-        }
-        if ($type instanceof IntegerType) {
-            return \true;
-        }
-        return $type instanceof BooleanType;
+        return null;
     }
     private function resolveTypeFromScalar(Scalar $scalar) : ?\PHPStan\Type\Type
     {
+        if ($scalar instanceof Encapsed) {
+            return new StringType();
+        }
         if ($scalar instanceof String_) {
             return new StringType();
         }
@@ -94,24 +88,5 @@ final class AlwaysStrictScalarExprAnalyzer
             return new StringType();
         }
         return null;
-    }
-    private function resolveFuncCallType(FuncCall $funcCall) : ?Type
-    {
-        if (!$funcCall->name instanceof Name) {
-            return null;
-        }
-        if (!$this->reflectionProvider->hasFunction($funcCall->name, null)) {
-            return null;
-        }
-        $functionReflection = $this->reflectionProvider->getFunction($funcCall->name, null);
-        if (!$functionReflection instanceof NativeFunctionReflection) {
-            return null;
-        }
-        $scope = $funcCall->getAttribute(AttributeKey::SCOPE);
-        if (!$scope instanceof Scope) {
-            return null;
-        }
-        $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($functionReflection, $funcCall, $scope);
-        return $parametersAcceptor->getReturnType();
     }
 }

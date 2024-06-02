@@ -3,23 +3,33 @@
 declare (strict_types=1);
 namespace Rector\Testing\Fixture;
 
-use RectorPrefix202211\Nette\Utils\FileSystem;
-use RectorPrefix202211\Nette\Utils\Strings;
-use RectorPrefix202211\Webmozart\Assert\Assert;
+use RectorPrefix202312\Nette\Utils\FileSystem;
+/**
+ * @api
+ */
 final class FixtureSplitter
 {
-    /**
-     * @var string
-     * @see https://regex101.com/r/zZDoyy/1
-     */
-    public const SPLIT_LINE_REGEX = '#\\-\\-\\-\\-\\-\\r?\\n#';
-    /**
-     * @return array<string, string>
-     */
-    public static function loadFileAndSplitInputAndExpected(string $filePath) : array
+    public static function containsSplit(string $fixtureFileContent) : bool
     {
-        Assert::fileExists($filePath);
+        return \strpos($fixtureFileContent, "-----\n") !== \false || \strpos($fixtureFileContent, "-----\r\n") !== \false;
+    }
+    /**
+     * @return array<int, string>
+     */
+    public static function split(string $filePath) : array
+    {
         $fixtureFileContents = FileSystem::read($filePath);
-        return Strings::split($fixtureFileContents, self::SPLIT_LINE_REGEX);
+        return self::splitFixtureFileContents($fixtureFileContents);
+    }
+    /**
+     * @return array<int, string>
+     */
+    public static function splitFixtureFileContents(string $fixtureFileContents) : array
+    {
+        $posixContents = \explode("-----\n", $fixtureFileContents);
+        if (isset($posixContents[1])) {
+            return $posixContents;
+        }
+        return \explode("-----\r\n", $fixtureFileContents);
     }
 }

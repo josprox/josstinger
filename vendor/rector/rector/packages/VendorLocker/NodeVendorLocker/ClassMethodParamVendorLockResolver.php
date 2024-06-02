@@ -38,22 +38,6 @@ final class ClassMethodParamVendorLockResolver
         $this->reflectionResolver = $reflectionResolver;
         $this->filePathHelper = $filePathHelper;
     }
-    /**
-     * Includes non-vendor classes
-     */
-    public function isSoftLocked(ClassMethod $classMethod) : bool
-    {
-        if ($this->isVendorLocked($classMethod)) {
-            return \true;
-        }
-        $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
-        if (!$classReflection instanceof ClassReflection) {
-            return \false;
-        }
-        /** @var string $methodName */
-        $methodName = $this->nodeNameResolver->getName($classMethod);
-        return $this->hasClassMethodLockMatchingFileName($classReflection, $methodName, '');
-    }
     public function isVendorLocked(ClassMethod $classMethod) : bool
     {
         if ($classMethod->isMagic()) {
@@ -72,8 +56,6 @@ final class ClassMethodParamVendorLockResolver
         if ($this->hasParentInterfaceMethod($classReflection, $methodName)) {
             return \true;
         }
-        /** @var string $methodName */
-        $methodName = $this->nodeNameResolver->getName($classMethod);
         return $this->hasClassMethodLockMatchingFileName($classReflection, $methodName, '/vendor/');
     }
     private function hasTraitMethodVendorLock(ClassReflection $classReflection, string $methodName) : bool

@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
-use PhpParser\Node\Name;
-use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PhpParser\Node\Identifier;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\Type;
 use PHPStan\Type\VoidType;
@@ -19,14 +18,14 @@ use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 final class VoidTypeMapper implements TypeMapperInterface
 {
     /**
-     * @var string
-     */
-    private const VOID = 'void';
-    /**
      * @readonly
      * @var \Rector\Core\Php\PhpVersionProvider
      */
     private $phpVersionProvider;
+    /**
+     * @var string
+     */
+    private const VOID = 'void';
     public function __construct(PhpVersionProvider $phpVersionProvider)
     {
         $this->phpVersionProvider = $phpVersionProvider;
@@ -41,9 +40,9 @@ final class VoidTypeMapper implements TypeMapperInterface
     /**
      * @param VoidType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
     {
-        return new IdentifierTypeNode(self::VOID);
+        return $type->toPhpDocNode();
     }
     /**
      * @param TypeKind::* $typeKind
@@ -57,6 +56,6 @@ final class VoidTypeMapper implements TypeMapperInterface
         if (\in_array($typeKind, [TypeKind::PARAM, TypeKind::PROPERTY], \true)) {
             return null;
         }
-        return new Name(self::VOID);
+        return new Identifier(self::VOID);
     }
 }

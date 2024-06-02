@@ -159,9 +159,10 @@ CREATE TABLE `servicios` (
 --
 
 INSERT INTO `servicios` (`id`, `nombre`, `descripcion`, `descripcion_text`, `precio`, `created_at`, `updated_at`) VALUES
-(1, 'Startup', '<span class=\"excerpt d-block\">Este hosting es el Startup, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>3 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>3 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>2GB.</strong></li>\r\n<li>Control de DNS: <strong>1 disponible.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>5 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>1 disponible.</strong></li>\r\n<li>Respaldos: <strong>1 disponible.</strong></li>\r\n</ul>', 'Con el plan startup tu podrás alojar sitios web pequeños sin tener lentitudes de carga, podrás usar en tu host 3 dominios web con 3 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 2GB y podrás alojar 1 dominio web con registros dns ilimitados, contarás con 5 bases de datos, podrás programar 1 tarea y dispones de 1 respaldo.', 5.99, NULL, '2022-12-04 23:54:13'),
-(2, 'Premium', '<span class=\"excerpt d-block\">Este hosting es el Premium, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>6 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>10 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>5GB.</strong></li>\r\n<li>Control de DNS: <strong>3 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>8 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>2 disponibles.</strong></li>\r\n<li>Respaldos: <strong>3 disponibles.</strong></li>\r\n</ul>', 'Con el plan Premium tu podrás alojar sitios web pequeños/medianos sin tener lentitudes de carga, podrás usar en tu host 6 dominios web con 10 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 5GB y podrás alojar 3 dominios web con registros dns ilimitados, contarás con 8 bases de datos, podrás programar 2 tareas y dispones de 3 respaldos.', 8.25, NULL, '2022-12-04 23:54:18'),
-(3, 'Pro', '<span class=\"excerpt d-block\">Este hosting es el Pro, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>10 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>20 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>8GB.</strong></li>\r\n<li>Control de DNS: <strong>6 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>10 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>5 disponibles.</strong></li>\r\n<li>Respaldos: <strong>6 disponibles.</strong></li>\r\n</ul>', 'Con el plan Pro tu podrás alojar sitios web medianos/grandes sin tener lentitudes de carga, podrás usar en tu host 10 dominios web con 20 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 8GB y podrás alojar 6 dominios web con registros dns ilimitados, contarás con 10 bases de datos, podrás programar 5 tareas y dispones de 6 respaldos.', 12, NULL, '2022-12-04 23:54:22');
+(1, 'Junior', '<span class=\"excerpt d-block\">Este hosting es el Junior, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>1 dominio.</strong></li>\r\n<li>Alias por cada web: <strong>5 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>12MB.</strong></li>\r\n<li>Control de DNS: <strong>0 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>Ninguno.</strong></li>\r\n<li>Base de datos: <strong>1 disponible.</strong></li>\r\n<li>Tareas programadas: <strong>0 disponibles.</strong></li>\r\n<li>Respaldos: <strong>0 disponibles.</strong></li>\r\n</ul>', 'Con el plan Junior tu podrás alojar sitios web super pequeños sin tener lentitudes de carga, podrás usar en tu host 1 dominio web con 5 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 12MB, no podrás alojar ningún dns, contarás con 1 base de datos, no podrás programar tareas ni respaldos.', 1, '2023-01-06 20:33:28', '2023-05-05 21:26:18'),
+(2, 'Startup', '<span class=\"excerpt d-block\">Este hosting es el Startup, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>3 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>3 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>2GB.</strong></li>\r\n<li>Control de DNS: <strong>1 disponible.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>5 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>1 disponible.</strong></li>\r\n<li>Respaldos: <strong>1 disponible.</strong></li>\r\n</ul>', 'Con el plan startup tu podrás alojar sitios web pequeños sin tener lentitudes de carga, podrás usar en tu host 3 dominios web con 3 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 2GB y podrás alojar 1 dominio web con registros dns ilimitados, contarás con 5 bases de datos, podrás programar 1 tarea y dispones de 1 respaldo.', 4.1, NULL, '2023-05-05 21:26:32'),
+(3, 'Premium', '<span class=\"excerpt d-block\">Este hosting es el Premium, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>6 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>10 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>5GB.</strong></li>\r\n<li>Control de DNS: <strong>3 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>8 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>2 disponibles.</strong></li>\r\n<li>Respaldos: <strong>3 disponibles.</strong></li>\r\n</ul>', 'Con el plan Premium tu podrás alojar sitios web pequeños/medianos sin tener lentitudes de carga, podrás usar en tu host 6 dominios web con 10 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 5GB y podrás alojar 3 dominios web con registros dns ilimitados, contarás con 8 bases de datos, podrás programar 2 tareas y dispones de 3 respaldos.', 6.3, NULL, '2023-05-05 21:26:39'),
+(4, 'Pro', '<span class=\"excerpt d-block\">Este hosting es el Pro, obtienes los siguientes beneficios:</span>\r\n<ul class=\"pricing-text mb-4\">\r\n<li>Dominios a usar: <strong>10 dominios.</strong></li>\r\n<li>Alias por cada web: <strong>20 alias.</strong></li>\r\n<li>SSL/TLS: <strong>ilimitado.</strong></li>\r\n<li>Espacio disponible: <strong>8GB.</strong></li>\r\n<li>Control de DNS: <strong>6 disponibles.</strong></li>\r\n<li>Registros DNS: <strong>ilimitados.</strong></li>\r\n<li>Base de datos: <strong>10 disponibles.</strong></li>\r\n<li>Tareas programadas: <strong>5 disponibles.</strong></li>\r\n<li>Respaldos: <strong>6 disponibles.</strong></li>\r\n</ul>', 'Con el plan Pro tu podrás alojar sitios web medianos/grandes sin tener lentitudes de carga, podrás usar en tu host 10 dominios web con 20 alias máximo, tendrás la oportunidad de generar cualquier SSL/TLS de manera gratuita, tienes un espacio disponible de 8GB y podrás alojar 6 dominios web con registros dns ilimitados, contarás con 10 bases de datos, podrás programar 5 tareas y dispones de 6 respaldos.', 8.4, NULL, '2023-05-05 21:26:46');
 
 -- --------------------------------------------------------
 
@@ -197,12 +198,12 @@ CREATE TABLE `users` (
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `id_rol` bigint(21) NOT NULL,
-  `phone` varchar(21) DEFAULT NULL,
-  `checked_status` varchar(5) DEFAULT NULL,
-  `last_ip` varchar(255) DEFAULT NULL,
-  `fa` varchar(1) NOT NULL,
-  `type_fa` varchar(15) DEFAULT NULL,
-  `two_fa` varchar(32) DEFAULT NULL,
+  `phone` varchar(21) NULL DEFAULT NULL,
+  `checked_status` varchar(5) NULL DEFAULT NULL,
+  `last_ip` varchar(255) NULL DEFAULT NULL,
+  `fa` varchar(1) NULL NOT NULL,
+  `type_fa` varchar(15) NULL DEFAULT NULL,
+  `two_fa` varchar(32) NULL DEFAULT NULL,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -212,7 +213,7 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `name`, `email`, `password`, `id_rol`, `phone`, `checked_status`, `last_ip`, `fa`, `type_fa`, `created_at`, `updated_at`) VALUES
-(1, 'Admin', 'joss@int.josprox.com', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, NULL, 'TRUE', '::1', 'D', 'correo','2022-10-04 00:39:35', '2022-10-04 01:08:27');
+(1, 'Admin', 'joss@tecnotech.ovh', '$2y$10$cS/2ZbYc.scMD8bJdxGG1ObsLgQxVJy/cHX3hH/NRSWxScfHq.kMO', 1, NULL, 'TRUE', '::1', 'D', 'correo','2022-10-04 00:39:35', '2022-10-04 01:08:27');
 
 --
 -- Índices para tablas volcadas
@@ -330,7 +331,7 @@ ALTER TABLE `tareas`
 -- AUTO_INCREMENT de la tabla `servicios`
 --
 ALTER TABLE `servicios`
-  MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(21) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT de la tabla `tokens_pays`

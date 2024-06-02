@@ -106,7 +106,7 @@ CODE_SAMPLE
                 continue;
             }
             $match = $matchResult->getMatch();
-            if ($matchResult->shouldRemoveNextStmt()) {
+            if ($matchResult->shouldRemoveNextStmt() && $isReturn) {
                 unset($node->stmts[$key + 1]);
             }
             $assignVar = $this->resolveAssignVar($condAndExprs);
@@ -117,6 +117,7 @@ CODE_SAMPLE
                 }
                 $assign = new Assign($assignVar, $match);
                 $node->stmts[$key] = new Expression($assign);
+                $this->mirrorComments($node->stmts[$key], $stmt);
                 $hasChanged = \true;
                 continue;
             }
@@ -124,6 +125,7 @@ CODE_SAMPLE
                 continue;
             }
             $node->stmts[$key] = $isReturn ? new Return_($match) : new Expression($match);
+            $this->mirrorComments($node->stmts[$key], $stmt);
             $hasChanged = \true;
         }
         if ($hasChanged) {

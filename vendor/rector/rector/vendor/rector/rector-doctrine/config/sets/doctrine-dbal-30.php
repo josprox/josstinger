@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202211;
+namespace RectorPrefix202312;
 
 use PHPStan\Type\VoidType;
 use Rector\Config\RectorConfig;

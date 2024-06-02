@@ -1,8 +1,11 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202211\Symplify\EasyParallel\Enum;
+namespace RectorPrefix202312\Symplify\EasyParallel\Enum;
 
+/**
+ * @api
+ */
 final class ReactCommand
 {
     /**

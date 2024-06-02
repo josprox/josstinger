@@ -8,7 +8,6 @@ use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Cast\String_;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\Encapsed;
-use PHPStan\Type\StringType;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -64,13 +63,7 @@ CODE_SAMPLE
         // is argument string?
         $needleArgValue = $node->args[1]->value;
         $needleType = $this->getType($needleArgValue);
-        if ($needleType instanceof StringType) {
-            return null;
-        }
         if ($needleType->isString()->yes()) {
-            return null;
-        }
-        if ($needleArgValue instanceof String_) {
             return null;
         }
         if ($needleArgValue instanceof Encapsed) {

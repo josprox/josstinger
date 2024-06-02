@@ -2,7 +2,7 @@
 
 $name_app_default = "Josstinger";
 
-$version_app_default = "2.3";
+$version_app_default = "2.5";
 
 if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . ".env")){
   header("Location: ./public/panel");
@@ -204,44 +204,44 @@ if(isset($_POST['instalar'])){
   fwrite($env_create, "CHECK_USER=".$CHECK_USER."\n\n");
   
   fwrite($env_create, "# Conexión a la base de datos MySQL.\n");
-  fwrite($env_create, "USUARIO=".$usuariodb."\n");
-  fwrite($env_create, "CONTRA=".$password_db."\n");
-  fwrite($env_create, "BASE_DE_DATOS=".$db."\n");
-  fwrite($env_create, "HOST=".$servidor_db."\n");
+  fwrite($env_create, "USUARIO='".$usuariodb."'\n");
+  fwrite($env_create, "CONTRA='".$password_db."'\n");
+  fwrite($env_create, "BASE_DE_DATOS='".$db."'\n");
+  fwrite($env_create, "HOST='".$servidor_db."'\n");
   fwrite($env_create, "PUERTO=".$puerto."\n\n");
   
   fwrite($env_create, "# Conexión a la base de datos PostgreSQL.\n");
-  fwrite($env_create, "USUARIO_PSG=".$usuariodb_psg."\n");
-  fwrite($env_create, "CONTRA_PSG=".$password_db_psg."\n");
-  fwrite($env_create, "BASE_DE_DATOS_PSG=".$db_psg."\n");
-  fwrite($env_create, "HOST_PSG=".$servidor_db_psg."\n");
+  fwrite($env_create, "USUARIO_PSG='".$usuariodb_psg."'\n");
+  fwrite($env_create, "CONTRA_PSG='".$password_db_psg."'\n");
+  fwrite($env_create, "BASE_DE_DATOS_PSG='".$db_psg."'\n");
+  fwrite($env_create, "HOST_PSG='".$servidor_db_psg."'\n");
   fwrite($env_create, "PUERTO_PSG=".$puerto_psg."\n\n");
 
   fwrite($env_create, "# Funcion de recaptcha.\n");
   fwrite($env_create, "RECAPTCHA=1\n");
-  fwrite($env_create, "RECAPTCHA_CODE_PUBLIC=".$RCP."\n");
-  fwrite($env_create, "RECAPTCHA_CODE_SECRET=".$RCS."\n\n");
+  fwrite($env_create, "RECAPTCHA_CODE_PUBLIC='".$RCP."'\n");
+  fwrite($env_create, "RECAPTCHA_CODE_SECRET='".$RCS."'\n\n");
 
   fwrite($env_create, "# Onesignal.\n");
   fwrite($env_create, "ONESIGNAL=".$ONESIGNAL."\n");
-  fwrite($env_create, "ONESIGNAL_APP_ID=".$ONESIGNAL_APP_ID."\n");
-  fwrite($env_create, "ONESIGNAL_API_KEY=".$ONESIGNAL_API_KEY."\n\n");
+  fwrite($env_create, "ONESIGNAL_APP_ID='".$ONESIGNAL_APP_ID."'\n");
+  fwrite($env_create, "ONESIGNAL_API_KEY='".$ONESIGNAL_API_KEY."'\n\n");
 
   fwrite($env_create, "# Llaves de Twilio.\n");
   fwrite($env_create, "TWILIO=".$twilio."\n");
-  fwrite($env_create, "TWILIO_PHONE=".$twilio_tel."\n");
-  fwrite($env_create, "TWILIO_SID=".$twilio_sid."\n");
-  fwrite($env_create, "TWILIO_AUTH=".$twilio_auth."\n\n");
+  fwrite($env_create, "TWILIO_PHONE='".$twilio_tel."'\n");
+  fwrite($env_create, "TWILIO_SID='".$twilio_sid."'\n");
+  fwrite($env_create, "TWILIO_AUTH='".$twilio_auth."'\n\n");
 
   fwrite($env_create, "# Activador de Mercado Pago.\n");
   fwrite($env_create, "MERCADO_PAGO=1\n");
-  fwrite($env_create, "MERCADO_PAGO_PUBLIC_KEY=".$MPPK."\n");
-  fwrite($env_create, "MERCADO_PAGO_ACCESS_TOKEN=".$MPAT."\n\n");
+  fwrite($env_create, "MERCADO_PAGO_PUBLIC_KEY='".$MPPK."'\n");
+  fwrite($env_create, "MERCADO_PAGO_ACCESS_TOKEN='".$MPAT."'\n\n");
   
   fwrite($env_create, "# Acceso smtp para enviar correos.\n");
   fwrite($env_create, "SMTP_ACTIVE=1\n");
-  fwrite($env_create, "SMTP_SERVER=".$server_smtp."\n");
-  fwrite($env_create, "SMTP_USERNAME=".$user_smtp."\n");
+  fwrite($env_create, "SMTP_SERVER='".$server_smtp."'\n");
+  fwrite($env_create, "SMTP_USERNAME='".$user_smtp."'\n");
   fwrite($env_create, "SMTP_PASSWORD='".$pass_smtp."'\n");
   fwrite($env_create, "SMTP_PORT=".$smtp_port."\n\n");
 
@@ -518,7 +518,7 @@ if(isset($_POST['instalar'])){
                   <div class="mb-3">
                     <label for="smtp_port" class="form-label">Puerto del servidor</label>
                     <input type="text"
-                      class="form-control" name="smtp_port" id="smtp_port" aria-describedby="smtp_port" placeholder="587" required>
+                      class="form-control" name="smtp_port" id="smtp_port" aria-describedby="smtp_port" placeholder="465" required>
                     <small id="smtp_port" class="form-text text-muted">Pon el puero que escucha el servidor.</small>
                   </div>
                 </div>

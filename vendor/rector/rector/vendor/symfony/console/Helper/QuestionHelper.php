@@ -8,22 +8,22 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Helper;
+namespace RectorPrefix202312\Symfony\Component\Console\Helper;
 
-use RectorPrefix202211\Symfony\Component\Console\Cursor;
-use RectorPrefix202211\Symfony\Component\Console\Exception\MissingInputException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatterStyle;
-use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Input\StreamableInputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleSectionOutput;
-use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202211\Symfony\Component\Console\Question\ChoiceQuestion;
-use RectorPrefix202211\Symfony\Component\Console\Question\Question;
-use RectorPrefix202211\Symfony\Component\Console\Terminal;
-use function RectorPrefix202211\Symfony\Component\String\s;
+use RectorPrefix202312\Symfony\Component\Console\Cursor;
+use RectorPrefix202312\Symfony\Component\Console\Exception\MissingInputException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Input\StreamableInputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleSectionOutput;
+use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202312\Symfony\Component\Console\Question\ChoiceQuestion;
+use RectorPrefix202312\Symfony\Component\Console\Question\Question;
+use RectorPrefix202312\Symfony\Component\Console\Terminal;
+use function RectorPrefix202312\Symfony\Component\String\s;
 /**
  * The QuestionHelper class provides helpers to interact with the user.
  *
@@ -77,15 +77,14 @@ class QuestionHelper extends Helper
             return $fallbackOutput;
         }
     }
-    /**
-     * {@inheritdoc}
-     */
     public function getName() : string
     {
         return 'question';
     }
     /**
      * Prevents usage of stty.
+     *
+     * @return void
      */
     public static function disableStty()
     {
@@ -115,7 +114,14 @@ class QuestionHelper extends Helper
                 }
             }
             if (\false === $ret) {
+                $isBlocked = \stream_get_meta_data($inputStream)['blocked'] ?? \true;
+                if (!$isBlocked) {
+                    \stream_set_blocking($inputStream, \true);
+                }
                 $ret = $this->readInput($inputStream, $question);
+                if (!$isBlocked) {
+                    \stream_set_blocking($inputStream, \false);
+                }
                 if (\false === $ret) {
                     throw new MissingInputException('Aborted.');
                 }
@@ -128,6 +134,8 @@ class QuestionHelper extends Helper
             $ret = $question->isTrimmable() ? \trim($autocomplete) : $autocomplete;
         }
         if ($output instanceof ConsoleSectionOutput) {
+            $output->addContent('');
+            // add EOL to the question
             $output->addContent($ret);
         }
         $ret = \strlen($ret) > 0 ? $ret : $question->getDefault();
@@ -146,7 +154,7 @@ class QuestionHelper extends Helper
             return $default;
         }
         if ($validator = $question->getValidator()) {
-            return \call_user_func($question->getValidator(), $default);
+            return \call_user_func($validator, $default);
         } elseif ($question instanceof ChoiceQuestion) {
             $choices = $question->getChoices();
             if (!$question->isMultiselect()) {
@@ -162,6 +170,8 @@ class QuestionHelper extends Helper
     }
     /**
      * Outputs the question prompt.
+     *
+     * @return void
      */
     protected function writePrompt(OutputInterface $output, Question $question)
     {
@@ -187,6 +197,8 @@ class QuestionHelper extends Helper
     }
     /**
      * Outputs an error message.
+     *
+     * @return void
      */
     protected function writeError(OutputInterface $output, \Exception $error)
     {
@@ -361,6 +373,10 @@ class QuestionHelper extends Helper
             throw new RuntimeException('Unable to hide the response.');
         }
         $value = \fgets($inputStream, 4096);
+        if (4095 === \strlen($value)) {
+            $errOutput = $output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output;
+            $errOutput->warning('The value was possibly truncated by your shell or terminal emulator');
+        }
         if (self::$stty && Terminal::hasSttyAvailable()) {
             \shell_exec('stty ' . $sttyMode);
         }
@@ -412,18 +428,17 @@ class QuestionHelper extends Helper
         if (\function_exists('posix_isatty')) {
             return self::$stdinIsInteractive = @\posix_isatty(\fopen('php://stdin', 'r'));
         }
-        if (!\function_exists('exec')) {
+        if (!\function_exists('shell_exec')) {
             return self::$stdinIsInteractive = \true;
         }
-        \exec('stty 2> /dev/null', $output, $status);
-        return self::$stdinIsInteractive = 1 !== $status;
+        return self::$stdinIsInteractive = (bool) \shell_exec('stty 2> ' . ('\\' === \DIRECTORY_SEPARATOR ? 'NUL' : '/dev/null'));
     }
     /**
      * Reads one or more lines of input and returns what is read.
      *
      * @param resource $inputStream The handler resource
      * @param Question $question    The question being asked
-     * @return string|true
+     * @return string|false
      */
     private function readInput($inputStream, Question $question)
     {
@@ -457,8 +472,8 @@ class QuestionHelper extends Helper
     }
     /**
      * Sets console I/O to the specified code page and converts the user input.
-     * @param string|true $input
-     * @return string|true
+     * @param string|false $input
+     * @return string|false
      */
     private function resetIOCodepage(int $cp, $input)
     {

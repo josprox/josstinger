@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Output;
+namespace RectorPrefix202312\Symfony\Component\Console\Output;
 
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * OutputInterface is the interface implemented by all Output classes.
  *
@@ -29,24 +29,36 @@ interface OutputInterface
     /**
      * Writes a message to the output.
      *
-     * @param $newline Whether to add a newline
-     * @param $options A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
-     * @param string|mixed[] $messages
+     * @param bool $newline Whether to add a newline
+     * @param int  $options A bitmask of options (one of the OUTPUT or VERBOSITY constants),
+     *                      0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     *
+     * @return void
+     * @param string|iterable $messages
      */
     public function write($messages, bool $newline = \false, int $options = 0);
     /**
      * Writes a message to the output and adds a newline at the end.
      *
-     * @param $options A bitmask of options (one of the OUTPUT or VERBOSITY constants), 0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
-     * @param string|mixed[] $messages
+     * @param int $options A bitmask of options (one of the OUTPUT or VERBOSITY constants),
+     *                     0 is considered the same as self::OUTPUT_NORMAL | self::VERBOSITY_NORMAL
+     *
+     * @return void
+     * @param string|iterable $messages
      */
     public function writeln($messages, int $options = 0);
     /**
      * Sets the verbosity of the output.
+     *
+     * @param self::VERBOSITY_* $level
+     *
+     * @return void
      */
     public function setVerbosity(int $level);
     /**
      * Gets the current verbosity of the output.
+     *
+     * @return self::VERBOSITY_*
      */
     public function getVerbosity() : int;
     /**
@@ -67,12 +79,17 @@ interface OutputInterface
     public function isDebug() : bool;
     /**
      * Sets the decorated flag.
+     *
+     * @return void
      */
     public function setDecorated(bool $decorated);
     /**
      * Gets the decorated flag.
      */
     public function isDecorated() : bool;
+    /**
+     * @return void
+     */
     public function setFormatter(OutputFormatterInterface $formatter);
     /**
      * Returns current output formatter instance.

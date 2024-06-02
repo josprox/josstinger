@@ -8,7 +8,7 @@ Rector instantly upgrades and refactors the PHP code of your application.  It ca
 
 ### 1. Instant Upgrades
 
-Rector now supports upgrades from PHP 5.3 to 8.1 and major open-source projects like [Symfony](https://github.com/rectorphp/rector-symfony), [PHPUnit](https://github.com/rectorphp/rector-phpunit), and [Doctrine](https://github.com/rectorphp/rector-doctrine). Do you want to **be constantly on the latest PHP and Framework without effort**?
+Rector now supports upgrades from PHP 5.3 to 8.2 and major open-source projects like [Symfony](https://github.com/rectorphp/rector-symfony), [PHPUnit](https://github.com/rectorphp/rector-phpunit), and [Doctrine](https://github.com/rectorphp/rector-doctrine). Do you want to **be constantly on the latest PHP and Framework without effort**?
 
 Use Rector to handle **instant upgrades** for you.
 
@@ -18,49 +18,13 @@ Do you have code quality you need, but struggle to keep it with new developers i
 
 Add Rector to your CI and let it **continuously refactor your code** and keep the code quality high.
 
-<br>
-
-## Read a First Book About Rector
-
-Are you curious, how Rector works internally, how to create your own rules and test them and why Rector was born? In May 2021 we've released the very first book: *Rector - The Power of Automated Refactoring*.
-
-<a href="https://leanpub.com/rector-the-power-of-automated-refactoring">
-<img src="https://github.com/rectorphp/the-power-of-automated-refactoring-feedback/raw/main/images/book_title.png">
-</a>
-
-By [buying a book](https://leanpub.com/rector-the-power-of-automated-refactoring) you directly support maintainers who are working on Rector.
-
-<br>
-
-## Documentation
-
-- [Explore Rector Rules](/docs/rector_rules_overview.md)
-- [How to Ignore Rule or Paths](/docs/how_to_ignore_rule_or_paths.md)
-- [Static Reflection and Autoload](/docs/static_reflection_and_autoload.md)
-- [How to Configure Rule](/docs/how_to_configure_rules.md)
-- [Auto Import Names](/docs/auto_import_names.md)
-- [How to Troubleshoot Parallel Issues](/docs/how_to_troubleshoot_parallel_issues.md)
-
-### For Rule Developers and Contributors
-
-- [How Does Rector Work?](/docs/how_it_works.md)
-- [PHP Parser Nodes](https://github.com/rectorphp/php-parser-nodes-docs/)
-- [How to Work with Doc Block and Comments](/docs/how_to_work_with_doc_block_and_comments.md)
-- [How to Create Own Rector Rule](/docs/create_own_rule.md)
-- [How to add Test for Rector Rule](/docs/how_to_add_test_for_rector_rule.md)
-- [How to Persist Cache Between CI Runs](/docs/how_to_persist_cache_between_ci_runs.md)
-
-See [the full documentation](/docs).
-
-<br>
+Read our [blogpost](https://getrector.com/blog/new-setup-ci-command-to-let-rector-work-for-you) to see how to set up automated refactoring.
 
 ## Install
 
 ```bash
 composer require rector/rector --dev
 ```
-
-<br>
 
 ## Running Rector
 
@@ -72,25 +36,25 @@ There are 2 main ways to use Rector:
 To use them, create a `rector.php` in your root directory:
 
 ```bash
-vendor/bin/rector init
+vendor/bin/rector
 ```
 
 And modify it:
 
 ```php
-use Rector\Php74\Rector\Property\TypedPropertyRector;
-use Rector\Set\ValueObject\SetList;
 use Rector\Config\RectorConfig;
+use Rector\Set\ValueObject\SetList;
+use Rector\TypeDeclaration\Rector\Property\TypedPropertyFromStrictConstructorRector;
 
 return static function (RectorConfig $rectorConfig): void {
+    // register single rule
+    $rectorConfig->rule(TypedPropertyFromStrictConstructorRector::class);
+
     // here we can define, what sets of rules will be applied
-    // tip: use "SetList" class to autocomplete sets
+    // tip: use "SetList" class to autocomplete sets with your IDE
     $rectorConfig->sets([
         SetList::CODE_QUALITY
     ]);
-
-    // register single rule
-    $rectorConfig->rule(TypedPropertyRector::class);
 };
 ```
 
@@ -106,34 +70,21 @@ Rector will show you diff of files that it *would* change. To *make* the changes
 vendor/bin/rector process src
 ```
 
-*Note: `rector.php` is loaded by default. For different location, use `--config` option.*
+## Documentation
 
-*Note: Rector will only update legacy code to utilize new features which are supported by the PHP version defined in your `composer.json` file.  For instance, if require.php is `>=7.2.5`, Rector will not make changes which are only available for PHP versions after 7.2.5.*
-
-<br>
-
-## Configuration
-
-```php
-// rector.php
-use Rector\Core\ValueObject\PhpVersion;
-use Rector\Config\RectorConfig;
-
-return static function (RectorConfig $rectorConfig): void {
-    // paths to refactor; solid alternative to CLI arguments
-    $rectorConfig->paths([__DIR__ . '/src', __DIR__ . '/tests']);
-
-    // is your PHP version different from the one you refactor to? [default: your PHP version], uses PHP_VERSION_ID format
-    $rectorConfig->phpVersion(PhpVersion::PHP_72);
-
-    // Path to PHPStan with extensions, that PHPStan in Rector uses to determine types
-    $rectorConfig->phpstanConfig(__DIR__ . '/phpstan-for-config.neon');
-};
-```
+* Find [full documentation here](https://getrector.com/documentation/).
+* [Explore Rector Rules](/docs/rector_rules_overview.md)
 
 <br>
 
-## Empowered by Rector Community :heart:
+## Learn Faster with a Book
+
+Are you curious, how Rector works internally, how to create your own rules and test them and why Rector was born?
+Read [Rector - The Power of Automated Refactoring](https://leanpub.com/rector-the-power-of-automated-refactoring) that will take you step by step through the Rector setup and how to create your own rules.
+
+<br>
+
+## Empowered by Community :heart:
 
 The Rector community is powerful thanks to active maintainers who take care of Rector sets for particular projects.
 
@@ -155,9 +106,9 @@ Among there projects belong:
 
 ## Hire us to get Job Done :muscle:
 
-Rector is a tool that [we develop](https://getrector.org/) and share for free, so anyone can automate their refactoring. But not everyone has dozens of hours to understand complexity of abstract-syntax-tree in their own time. **That's why we provide commercial support - to save your time**.
+Rector is a tool that [we develop](https://getrector.com/) and share for free, so anyone can automate their refactoring. But not everyone has dozens of hours to understand complexity of abstract-syntax-tree in their own time. **That's why we provide commercial support - to save your time**.
 
-Would you like to apply Rector on your code base but don't have time for the struggle with your project? [Hire us](https://getrector.org/contact) to get there faster.
+Would you like to apply Rector on your code base but don't have time for the struggle with your project? [Hire us](https://getrector.com/contact) to get there faster.
 
 <br>
 
@@ -184,10 +135,36 @@ Or with Xdebug:
 vendor/bin/rector process src/Controller --dry-run --xdebug
 ```
 
+To assist with simple debugging Rector provides 2 helpers to pretty-print AST-nodes:
+
+```php
+use PhpParser\Node\Scalar\String_;
+$node = new String_('hello world!');
+
+// prints node to string, as PHP code displays it
+print_node($node);
+
+// dump nested node object with nested properties
+dump_node($node);
+
+// 2nd argument is how deep the nesting is - this makes sure the dump is short and useful
+dump_node($node, 1);
+```
+
+<br>
+
 ## Known Drawbacks
+
+* Rector uses [nikic/php-parser](https://github.com/nikic/PHP-Parser/), built on technology called an *abstract syntax tree* (AST). An AST doesn't know about spaces and when written to a file it produces poorly formatted code in both PHP and docblock annotations.
+
+* Rector in parallel mode will work most of the times for most OS. On Windows, you may encounter issues unresolvable despite of following the [Troubleshooting Parallel](https://getrector.com/documentation/troubleshooting-parallel) guide. In such case, check if you are using Powershell 7 (pwsh). Change your terminal to command prompt (cmd) or bash for Windows. 
 
 ### How to Apply Coding Standards?
 
-Rector uses [nikic/php-parser](https://github.com/nikic/PHP-Parser/), built on technology called an *abstract syntax tree* (AST). An AST doesn't know about spaces and when written to a file it produces poorly formatted code in both PHP and docblock annotations. **That's why your project needs to have a coding standard tool** and a set of formatting rules, so it can make Rector's output code nice and shiny again.
+**Your project needs to have a coding standard tool** and a set of formatting rules, so it can make Rector's output code nice and shiny again.
 
 We're using [ECS](https://github.com/symplify/easy-coding-standard) with [this setup](https://github.com/rectorphp/rector-src/blob/main/ecs.php).
+
+### May cause unexpected output on File with mixed PHP+HTML content
+
+When you apply changes to File(s) thas has mixed PHP+HTML content, you may need to manually verify the changed file after apply the changes.

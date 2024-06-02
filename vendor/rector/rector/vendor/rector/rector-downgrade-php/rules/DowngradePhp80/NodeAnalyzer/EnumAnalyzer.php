@@ -12,7 +12,6 @@ use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
 use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
-use Rector\Core\Exception\ShouldNotHappenException;
 use Rector\Core\PhpParser\AstResolver;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 final class EnumAnalyzer
@@ -36,7 +35,7 @@ final class EnumAnalyzer
     {
         $class = $this->astResolver->resolveClassFromClassReflection($classReflection);
         if (!$class instanceof Enum_) {
-            throw new ShouldNotHappenException();
+            return null;
         }
         $scalarType = $class->scalarType;
         if ($scalarType instanceof Identifier) {

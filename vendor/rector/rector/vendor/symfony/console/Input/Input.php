@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Input;
+namespace RectorPrefix202312\Symfony\Component\Console\Input;
 
-use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202312\Symfony\Component\Console\Exception\RuntimeException;
 /**
  * Input is the base class for all concrete Input classes.
  *
@@ -26,6 +26,7 @@ use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
 abstract class Input implements InputInterface, StreamableInputInterface
 {
     protected $definition;
+    /** @var resource */
     protected $stream;
     protected $options = [];
     protected $arguments = [];
@@ -40,7 +41,7 @@ abstract class Input implements InputInterface, StreamableInputInterface
         }
     }
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function bind(InputDefinition $definition)
     {
@@ -51,45 +52,40 @@ abstract class Input implements InputInterface, StreamableInputInterface
     }
     /**
      * Processes command line arguments.
+     *
+     * @return void
      */
     protected abstract function parse();
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function validate()
     {
         $definition = $this->definition;
         $givenArguments = $this->arguments;
-        $missingArguments = \array_filter(\array_keys($definition->getArguments()), function ($argument) use($definition, $givenArguments) {
+        $missingArguments = \array_filter(\array_keys($definition->getArguments()), function ($argument) use($givenArguments, $definition) {
             return !\array_key_exists($argument, $givenArguments) && $definition->getArgument($argument)->isRequired();
         });
         if (\count($missingArguments) > 0) {
             throw new RuntimeException(\sprintf('Not enough arguments (missing: "%s").', \implode(', ', $missingArguments)));
         }
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isInteractive() : bool
     {
         return $this->interactive;
     }
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function setInteractive(bool $interactive)
     {
         $this->interactive = $interactive;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function getArguments() : array
     {
         return \array_merge($this->definition->getArgumentDefaults(), $this->arguments);
     }
     /**
-     * {@inheritdoc}
      * @return mixed
      */
     public function getArgument(string $name)
@@ -100,7 +96,7 @@ abstract class Input implements InputInterface, StreamableInputInterface
         return $this->arguments[$name] ?? $this->definition->getArgument($name)->getDefault();
     }
     /**
-     * {@inheritdoc}
+     * @return void
      * @param mixed $value
      */
     public function setArgument(string $name, $value)
@@ -110,22 +106,15 @@ abstract class Input implements InputInterface, StreamableInputInterface
         }
         $this->arguments[$name] = $value;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function hasArgument(string $name) : bool
     {
         return $this->definition->hasArgument($name);
     }
-    /**
-     * {@inheritdoc}
-     */
     public function getOptions() : array
     {
         return \array_merge($this->definition->getOptionDefaults(), $this->options);
     }
     /**
-     * {@inheritdoc}
      * @return mixed
      */
     public function getOption(string $name)
@@ -142,7 +131,7 @@ abstract class Input implements InputInterface, StreamableInputInterface
         return \array_key_exists($name, $this->options) ? $this->options[$name] : $this->definition->getOption($name)->getDefault();
     }
     /**
-     * {@inheritdoc}
+     * @return void
      * @param mixed $value
      */
     public function setOption(string $name, $value)
@@ -155,9 +144,6 @@ abstract class Input implements InputInterface, StreamableInputInterface
         }
         $this->options[$name] = $value;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function hasOption(string $name) : bool
     {
         return $this->definition->hasOption($name) || $this->definition->hasNegation($name);
@@ -170,14 +156,16 @@ abstract class Input implements InputInterface, StreamableInputInterface
         return \preg_match('{^[\\w-]+$}', $token) ? $token : \escapeshellarg($token);
     }
     /**
-     * {@inheritdoc}
+     * @param resource $stream
+     *
+     * @return void
      */
     public function setStream($stream)
     {
         $this->stream = $stream;
     }
     /**
-     * {@inheritdoc}
+     * @return resource
      */
     public function getStream()
     {

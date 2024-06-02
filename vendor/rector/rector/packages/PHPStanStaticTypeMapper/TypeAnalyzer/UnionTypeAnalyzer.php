@@ -4,27 +4,17 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeAnalyzer;
 
 use PHPStan\Type\ArrayType;
-use PHPStan\Type\BooleanType;
-use PHPStan\Type\ClassStringType;
-use PHPStan\Type\Constant\ConstantStringType;
-use PHPStan\Type\FloatType;
-use PHPStan\Type\Generic\GenericClassStringType;
-use PHPStan\Type\IntegerType;
 use PHPStan\Type\IterableType;
 use PHPStan\Type\NullType;
 use PHPStan\Type\ObjectType;
-use PHPStan\Type\ObjectWithoutClassType;
-use PHPStan\Type\StringType;
 use PHPStan\Type\TypeWithClassName;
 use PHPStan\Type\UnionType;
 use Rector\PHPStanStaticTypeMapper\ValueObject\UnionTypeAnalysis;
-use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 use Traversable;
 final class UnionTypeAnalyzer
 {
-    public function analyseForNullableAndIterable(UnionType $unionType) : ?UnionTypeAnalysis
+    public function analyseForArrayAndIterable(UnionType $unionType) : ?UnionTypeAnalysis
     {
-        $isNullableType = \false;
         $hasIterable = \false;
         $hasArray = \false;
         foreach ($unionType->getTypes() as $unionedType) {
@@ -36,17 +26,13 @@ final class UnionTypeAnalyzer
                 $hasArray = \true;
                 continue;
             }
-            if ($unionedType instanceof NullType) {
-                $isNullableType = \true;
-                continue;
-            }
             if ($unionedType instanceof ObjectType && $unionedType->getClassName() === Traversable::class) {
                 $hasIterable = \true;
                 continue;
             }
             return null;
         }
-        return new UnionTypeAnalysis($isNullableType, $hasIterable, $hasArray);
+        return new UnionTypeAnalysis($hasIterable, $hasArray);
     }
     /**
      * @return TypeWithClassName[]
@@ -62,52 +48,6 @@ final class UnionTypeAnalyzer
         }
         return $typesWithClassNames;
     }
-    public function hasObjectWithoutClassType(UnionType $unionType) : bool
-    {
-        $types = $unionType->getTypes();
-        foreach ($types as $type) {
-            if ($type instanceof ObjectWithoutClassType) {
-                return \true;
-            }
-        }
-        return \false;
-    }
-    public function hasObjectWithoutClassTypeWithOnlyFullyQualifiedObjectType(UnionType $unionType) : bool
-    {
-        $types = $unionType->getTypes();
-        foreach ($types as $type) {
-            if ($type instanceof ObjectWithoutClassType) {
-                continue;
-            }
-            if (!$type instanceof FullyQualifiedObjectType) {
-                return \false;
-            }
-        }
-        return \true;
-    }
-    public function isScalar(UnionType $unionType) : bool
-    {
-        $types = $unionType->getTypes();
-        if (\count($types) !== 4) {
-            return \false;
-        }
-        foreach ($types as $type) {
-            if ($type instanceof StringType && !$type instanceof ConstantStringType) {
-                continue;
-            }
-            if ($type instanceof FloatType) {
-                continue;
-            }
-            if ($type instanceof IntegerType) {
-                continue;
-            }
-            if ($type instanceof BooleanType) {
-                continue;
-            }
-            return \false;
-        }
-        return \true;
-    }
     public function isNullable(UnionType $unionType, bool $checkTwoTypes = \false) : bool
     {
         $types = $unionType->getTypes();
@@ -120,15 +60,5 @@ final class UnionTypeAnalyzer
             }
         }
         return \false;
-    }
-    public function mapGenericToClassStringType(UnionType $unionType) : UnionType
-    {
-        $types = $unionType->getTypes();
-        foreach ($types as $key => $type) {
-            if ($type instanceof GenericClassStringType) {
-                $types[$key] = new ClassStringType();
-            }
-        }
-        return new UnionType($types);
     }
 }

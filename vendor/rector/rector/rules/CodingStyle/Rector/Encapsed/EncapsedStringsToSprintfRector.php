@@ -3,8 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\Encapsed;
 
-use RectorPrefix202211\Nette\Utils\Strings;
-use const PHP_EOL;
+use RectorPrefix202312\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
@@ -40,23 +39,15 @@ final class EncapsedStringsToSprintfRector extends AbstractRector
     private $argumentVariables = [];
     public function getRuleDefinition() : RuleDefinition
     {
-        return new RuleDefinition('Convert enscaped {$string} to more readable sprintf', [new CodeSample(<<<'CODE_SAMPLE'
-final class SomeClass
-{
-    public function run(string $format)
-    {
-        return "Unsupported format {$format}";
-    }
-}
+        return new RuleDefinition('Convert enscaped {$string} to more readable sprintf or concat, if no mask is used', [new CodeSample(<<<'CODE_SAMPLE'
+echo "Unsupported format {$format} - use another";
+
+echo "Try {$allowed}";
 CODE_SAMPLE
 , <<<'CODE_SAMPLE'
-final class SomeClass
-{
-    public function run(string $format)
-    {
-        return sprintf('Unsupported format %s', $format);
-    }
-}
+echo sprintf('Unsupported format %s - use another', $format);
+
+echo 'Try ' . $allowed;
 CODE_SAMPLE
 )]);
     }
@@ -88,14 +79,7 @@ CODE_SAMPLE
     }
     private function shouldSkip(Encapsed $encapsed) : bool
     {
-        $parentNode = $encapsed->getAttribute(AttributeKey::PARENT_NODE);
-        if ($parentNode instanceof Arg) {
-            $node = $parentNode->getAttribute(AttributeKey::PARENT_NODE);
-            if ($node instanceof FuncCall && $this->isNames($node, ['_', 'dcgettext', 'dcngettext', 'dgettext', 'dngettext', 'gettext', 'ngettext'])) {
-                return \true;
-            }
-        }
-        return \false;
+        return $encapsed->hasAttribute(AttributeKey::DOC_LABEL);
     }
     private function collectEncapsedStringPart(EncapsedStringPart $encapsedStringPart) : void
     {
@@ -129,19 +113,26 @@ CODE_SAMPLE
     }
     /**
      * @param Expr[] $argumentVariables
-     * @return Concat|FuncCall|null
+     * @return \PhpParser\Node\Expr\BinaryOp\Concat|\PhpParser\Node\Expr\FuncCall|\PhpParser\Node\Expr|null
      */
-    private function createSprintfFuncCallOrConcat(string $string, array $argumentVariables) : ?Node
+    private function createSprintfFuncCallOrConcat(string $mask, array $argumentVariables)
     {
-        // special case for variable with PHP_EOL
-        if ($string === '%s%s' && \count($argumentVariables) === 2 && $this->hasEndOfLine($argumentVariables)) {
-            return new Concat($argumentVariables[0], $argumentVariables[1]);
+        $bareMask = \str_repeat('%s', \count($argumentVariables));
+        if ($mask === $bareMask) {
+            if (\count($argumentVariables) === 1) {
+                return $argumentVariables[0];
+            }
+            return $this->nodeFactory->createConcat($argumentVariables);
+        }
+        $singleValueConcat = $this->createSingleValueEdgeConcat($argumentVariables, $mask);
+        if ($singleValueConcat instanceof Concat) {
+            return $singleValueConcat;
         }
         // checks for windows or linux line ending. \n is contained in both.
-        if (\strpos($string, "\n") !== \false) {
+        if (\strpos($mask, "\n") !== \false) {
             return null;
         }
-        $arguments = [new Arg(new String_($string))];
+        $arguments = [new Arg(new String_($mask))];
         foreach ($argumentVariables as $argumentVariable) {
             $arguments[] = new Arg($argumentVariable);
         }
@@ -150,16 +141,23 @@ CODE_SAMPLE
     /**
      * @param Expr[] $argumentVariables
      */
-    private function hasEndOfLine(array $argumentVariables) : bool
+    private function createSingleValueEdgeConcat(array $argumentVariables, string $mask) : ?Concat
     {
-        foreach ($argumentVariables as $argumentVariable) {
-            if (!$argumentVariable instanceof ConstFetch) {
-                continue;
-            }
-            if ($this->isName($argumentVariable, 'PHP_EOL')) {
-                return \true;
-            }
+        if (\count($argumentVariables) !== 1) {
+            return null;
         }
-        return \false;
+        if (\substr_count($mask, '%s') !== 1 && \substr_count($mask, '%d') !== 1) {
+            return null;
+        }
+        $cleanMask = Strings::replace($mask, '#\\%\\%#', '%');
+        if (\substr_compare($mask, '%s', -\strlen('%s')) === 0 || \substr_compare($mask, '%d', -\strlen('%d')) === 0) {
+            $bareString = new String_(\substr($cleanMask, 0, -2));
+            return new Concat($bareString, $argumentVariables[0]);
+        }
+        if (\strncmp($mask, '%s', \strlen('%s')) === 0 || \strncmp($mask, '%d', \strlen('%d')) === 0) {
+            $bareString = new String_(\substr($cleanMask, 2));
+            return new Concat($argumentVariables[0], $bareString);
+        }
+        return null;
     }
 }

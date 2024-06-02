@@ -6,7 +6,9 @@ namespace Rector\Privatization\Rector\Property;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
+use PHPStan\Reflection\ClassReflection;
 use Rector\Core\Rector\AbstractRector;
+use Rector\Core\Reflection\ReflectionResolver;
 use Rector\Privatization\Guard\ParentPropertyLookupGuard;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -26,10 +28,16 @@ final class PrivatizeFinalClassPropertyRector extends AbstractRector
      * @var \Rector\Privatization\Guard\ParentPropertyLookupGuard
      */
     private $parentPropertyLookupGuard;
-    public function __construct(VisibilityManipulator $visibilityManipulator, ParentPropertyLookupGuard $parentPropertyLookupGuard)
+    /**
+     * @readonly
+     * @var \Rector\Core\Reflection\ReflectionResolver
+     */
+    private $reflectionResolver;
+    public function __construct(VisibilityManipulator $visibilityManipulator, ParentPropertyLookupGuard $parentPropertyLookupGuard, ReflectionResolver $reflectionResolver)
     {
         $this->visibilityManipulator = $visibilityManipulator;
         $this->parentPropertyLookupGuard = $parentPropertyLookupGuard;
+        $this->reflectionResolver = $reflectionResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -52,28 +60,35 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Property::class];
+        return [Class_::class];
     }
     /**
-     * @param Property $node
+     * @param Class_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $classLike = $this->betterNodeFinder->findParentType($node, Class_::class);
-        if (!$classLike instanceof Class_) {
+        if (!$node->isFinal()) {
             return null;
         }
-        if (!$classLike->isFinal()) {
-            return null;
+        $hasChanged = \false;
+        $classReflection = null;
+        foreach ($node->getProperties() as $property) {
+            if ($this->shouldSkipProperty($property)) {
+                continue;
+            }
+            if (!$classReflection instanceof ClassReflection) {
+                $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+            }
+            if (!$this->parentPropertyLookupGuard->isLegal($property, $classReflection)) {
+                continue;
+            }
+            $this->visibilityManipulator->makePrivate($property);
+            $hasChanged = \true;
         }
-        if ($this->shouldSkipProperty($node)) {
-            return null;
+        if ($hasChanged) {
+            return $node;
         }
-        if (!$this->parentPropertyLookupGuard->isLegal($node)) {
-            return null;
-        }
-        $this->visibilityManipulator->makePrivate($node);
-        return $node;
+        return null;
     }
     private function shouldSkipProperty(Property $property) : bool
     {

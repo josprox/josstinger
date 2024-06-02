@@ -3,8 +3,8 @@
 declare (strict_types=1);
 namespace Rector\Core\ValueObject\Error;
 
-use Rector\Parallel\ValueObject\Name;
-use RectorPrefix202211\Symplify\EasyParallel\Contract\SerializableInterface;
+use Rector\Parallel\ValueObject\BridgeItem;
+use RectorPrefix202312\Symplify\EasyParallel\Contract\SerializableInterface;
 final class SystemError implements SerializableInterface
 {
     /**
@@ -46,10 +46,6 @@ final class SystemError implements SerializableInterface
     {
         return $this->line;
     }
-    public function getFileWithLine() : string
-    {
-        return $this->relativeFilePath . ':' . $this->line;
-    }
     public function getRelativeFilePath() : ?string
     {
         return $this->relativeFilePath;
@@ -59,14 +55,15 @@ final class SystemError implements SerializableInterface
      */
     public function jsonSerialize() : array
     {
-        return [Name::MESSAGE => $this->message, Name::RELATIVE_FILE_PATH => $this->relativeFilePath, Name::LINE => $this->line, Name::RECTOR_CLASS => $this->rectorClass];
+        return [BridgeItem::MESSAGE => $this->message, BridgeItem::RELATIVE_FILE_PATH => $this->relativeFilePath, BridgeItem::LINE => $this->line, BridgeItem::RECTOR_CLASS => $this->rectorClass];
     }
     /**
      * @param mixed[] $json
+     * @return $this
      */
-    public static function decode(array $json) : SerializableInterface
+    public static function decode(array $json) : \RectorPrefix202312\Symplify\EasyParallel\Contract\SerializableInterface
     {
-        return new self($json[Name::MESSAGE], $json[Name::RELATIVE_FILE_PATH], $json[Name::LINE], $json[Name::RECTOR_CLASS]);
+        return new self($json[BridgeItem::MESSAGE], $json[BridgeItem::RELATIVE_FILE_PATH], $json[BridgeItem::LINE], $json[BridgeItem::RECTOR_CLASS]);
     }
     public function getRectorClass() : ?string
     {

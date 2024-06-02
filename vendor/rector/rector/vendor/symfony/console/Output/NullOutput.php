@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Output;
+namespace RectorPrefix202312\Symfony\Component\Console\Output;
 
-use RectorPrefix202211\Symfony\Component\Console\Formatter\NullOutputFormatter;
-use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\NullOutputFormatter;
+use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * NullOutput suppresses all output.
  *
@@ -27,87 +27,66 @@ class NullOutput implements OutputInterface
      */
     private $formatter;
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function setFormatter(OutputFormatterInterface $formatter)
     {
         // do nothing
     }
-    /**
-     * {@inheritdoc}
-     */
     public function getFormatter() : OutputFormatterInterface
     {
         // to comply with the interface we must return a OutputFormatterInterface
         return $this->formatter = $this->formatter ?? new NullOutputFormatter();
     }
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function setDecorated(bool $decorated)
     {
         // do nothing
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isDecorated() : bool
     {
         return \false;
     }
     /**
-     * {@inheritdoc}
+     * @return void
      */
     public function setVerbosity(int $level)
     {
         // do nothing
     }
-    /**
-     * {@inheritdoc}
-     */
     public function getVerbosity() : int
     {
         return self::VERBOSITY_QUIET;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isQuiet() : bool
     {
         return \true;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isVerbose() : bool
     {
         return \false;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isVeryVerbose() : bool
     {
         return \false;
     }
-    /**
-     * {@inheritdoc}
-     */
     public function isDebug() : bool
     {
         return \false;
     }
     /**
-     * {@inheritdoc}
-     * @param string|mixed[] $messages
+     * @return void
+     * @param string|iterable $messages
      */
     public function writeln($messages, int $options = self::OUTPUT_NORMAL)
     {
         // do nothing
     }
     /**
-     * {@inheritdoc}
-     * @param string|mixed[] $messages
+     * @return void
+     * @param string|iterable $messages
      */
     public function write($messages, bool $newline = \false, int $options = self::OUTPUT_NORMAL)
     {

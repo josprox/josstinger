@@ -3,18 +3,33 @@
 declare (strict_types=1);
 namespace Rector\Core\PhpParser\Parser;
 
-use RectorPrefix202211\Nette\Utils\FileSystem;
-use RectorPrefix202211\Nette\Utils\Strings;
+use RectorPrefix202312\Nette\Utils\FileSystem;
+use RectorPrefix202312\Nette\Utils\Strings;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Concat;
 use PhpParser\Node\Scalar\Encapsed;
 use PhpParser\Node\Scalar\String_;
 use PhpParser\Node\Stmt;
-use Rector\Core\Contract\PhpParser\NodePrinterInterface;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
+use Rector\Core\PhpParser\Printer\BetterStandardPrinter;
 use Rector\Core\Util\StringUtils;
-use Rector\NodeTypeResolver\NodeScopeAndMetadataDecorator;
 final class InlineCodeParser
 {
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Printer\BetterStandardPrinter
+     */
+    private $betterStandardPrinter;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Parser\SimplePhpParser
+     */
+    private $simplePhpParser;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     */
+    private $valueResolver;
     /**
      * @var string
      * @see https://regex101.com/r/dwe4OW/1
@@ -46,25 +61,15 @@ final class InlineCodeParser
      */
     private const BACKREFERENCE_NO_QUOTE_REGEX = '#(?<!")(?<backreference>\\\\\\d+)(?!")#';
     /**
-     * @readonly
-     * @var \Rector\Core\Contract\PhpParser\NodePrinterInterface
+     * @var string
+     * @see https://regex101.com/r/nSO3Eq/1
      */
-    private $nodePrinter;
-    /**
-     * @readonly
-     * @var \Rector\NodeTypeResolver\NodeScopeAndMetadataDecorator
-     */
-    private $nodeScopeAndMetadataDecorator;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Parser\SimplePhpParser
-     */
-    private $simplePhpParser;
-    public function __construct(NodePrinterInterface $nodePrinter, NodeScopeAndMetadataDecorator $nodeScopeAndMetadataDecorator, \Rector\Core\PhpParser\Parser\SimplePhpParser $simplePhpParser)
+    private const BACKREFERENCE_NO_DOUBLE_QUOTE_START_REGEX = '#(?<!")(?<backreference>\\$\\d+)#';
+    public function __construct(BetterStandardPrinter $betterStandardPrinter, \Rector\Core\PhpParser\Parser\SimplePhpParser $simplePhpParser, ValueResolver $valueResolver)
     {
-        $this->nodePrinter = $nodePrinter;
-        $this->nodeScopeAndMetadataDecorator = $nodeScopeAndMetadataDecorator;
+        $this->betterStandardPrinter = $betterStandardPrinter;
         $this->simplePhpParser = $simplePhpParser;
+        $this->valueResolver = $valueResolver;
     }
     /**
      * @return Stmt[]
@@ -78,33 +83,59 @@ final class InlineCodeParser
         // wrap code so php-parser can interpret it
         $content = StringUtils::isMatch($content, self::OPEN_PHP_TAG_REGEX) ? $content : '<?php ' . $content;
         $content = StringUtils::isMatch($content, self::ENDING_SEMI_COLON_REGEX) ? $content : $content . ';';
-        $stmts = $this->simplePhpParser->parseString($content);
-        return $this->nodeScopeAndMetadataDecorator->decorateStmtsFromString($stmts);
+        return $this->simplePhpParser->parseString($content);
     }
     public function stringify(Expr $expr) : string
     {
         if ($expr instanceof String_) {
             if (!StringUtils::isMatch($expr->value, self::BACKREFERENCE_NO_QUOTE_REGEX)) {
-                return $expr->value;
+                return Strings::replace($expr->value, self::BACKREFERENCE_NO_DOUBLE_QUOTE_START_REGEX, static function (array $match) : string {
+                    return '"' . $match['backreference'] . '"';
+                });
             }
             return Strings::replace($expr->value, self::BACKREFERENCE_NO_QUOTE_REGEX, static function (array $match) : string {
                 return '"\\' . $match['backreference'] . '"';
             });
         }
         if ($expr instanceof Encapsed) {
-            // remove "
-            $expr = \trim($this->nodePrinter->print($expr), '""');
-            // use \$ → $
-            $expr = Strings::replace($expr, self::PRESLASHED_DOLLAR_REGEX, '$');
-            // use \'{$...}\' → $...
-            return Strings::replace($expr, self::CURLY_BRACKET_WRAPPER_REGEX, '$1');
+            return $this->resolveEncapsedValue($expr);
         }
         if ($expr instanceof Concat) {
-            $string = $this->stringify($expr->left) . $this->stringify($expr->right);
-            return Strings::replace($string, self::VARIABLE_IN_SINGLE_QUOTED_REGEX, static function (array $match) {
-                return $match['variable'];
-            });
+            return $this->resolveConcatValue($expr);
         }
-        return $this->nodePrinter->print($expr);
+        return $this->betterStandardPrinter->print($expr);
+    }
+    private function resolveEncapsedValue(Encapsed $encapsed) : string
+    {
+        $value = '';
+        $isRequirePrint = \false;
+        foreach ($encapsed->parts as $part) {
+            $partValue = (string) $this->valueResolver->getValue($part);
+            if (\substr_compare($partValue, "'", -\strlen("'")) === 0) {
+                $isRequirePrint = \true;
+                break;
+            }
+            $value .= $partValue;
+        }
+        $printedExpr = $isRequirePrint ? $this->betterStandardPrinter->print($encapsed) : $value;
+        // remove "
+        $printedExpr = \trim($printedExpr, '""');
+        // use \$ → $
+        $printedExpr = Strings::replace($printedExpr, self::PRESLASHED_DOLLAR_REGEX, '$');
+        // use \'{$...}\' → $...
+        return Strings::replace($printedExpr, self::CURLY_BRACKET_WRAPPER_REGEX, '$1');
+    }
+    private function resolveConcatValue(Concat $concat) : string
+    {
+        if ($concat->left instanceof Concat && $concat->right instanceof String_ && \strncmp($concat->right->value, '$', \strlen('$')) === 0) {
+            $concat->right->value = '.' . $concat->right->value;
+        }
+        if ($concat->right instanceof String_ && \strncmp($concat->right->value, '($', \strlen('($')) === 0) {
+            $concat->right->value .= '.';
+        }
+        $string = $this->stringify($concat->left) . $this->stringify($concat->right);
+        return Strings::replace($string, self::VARIABLE_IN_SINGLE_QUOTED_REGEX, static function (array $match) {
+            return $match['variable'];
+        });
     }
 }

@@ -4,8 +4,7 @@ declare (strict_types=1);
 namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
-use PhpParser\Node\Name;
-use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
+use PhpParser\Node\Identifier;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\Accessory\AccessoryLiteralStringType;
 use PHPStan\Type\Type;
@@ -36,9 +35,9 @@ final class AccessoryLiteralStringTypeMapper implements TypeMapperInterface
     /**
      * @param AccessoryLiteralStringType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
     {
-        return new IdentifierTypeNode('string');
+        return $type->toPhpDocNode();
     }
     /**
      * @param AccessoryLiteralStringType $type
@@ -48,6 +47,6 @@ final class AccessoryLiteralStringTypeMapper implements TypeMapperInterface
         if (!$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::SCALAR_TYPES)) {
             return null;
         }
-        return new Name('string');
+        return new Identifier('string');
     }
 }

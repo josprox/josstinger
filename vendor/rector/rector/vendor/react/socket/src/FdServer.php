@@ -1,10 +1,10 @@
 <?php
 
-namespace RectorPrefix202211\React\Socket;
+namespace RectorPrefix202312\React\Socket;
 
-use RectorPrefix202211\Evenement\EventEmitter;
-use RectorPrefix202211\React\EventLoop\Loop;
-use RectorPrefix202211\React\EventLoop\LoopInterface;
+use RectorPrefix202312\Evenement\EventEmitter;
+use RectorPrefix202312\React\EventLoop\Loop;
+use RectorPrefix202312\React\EventLoop\LoopInterface;
 /**
  * [Internal] The `FdServer` class implements the `ServerInterface` and
  * is responsible for accepting connections from an existing file descriptor.
@@ -79,7 +79,7 @@ final class FdServer extends EventEmitter implements ServerInterface
             $fd = (int) $m[1];
         }
         if (!\is_int($fd) || $fd < 0 || $fd >= \PHP_INT_MAX) {
-            throw new \InvalidArgumentException('Invalid FD number given (EINVAL)', \defined('SOCKET_EINVAL') ? \SOCKET_EINVAL : 22);
+            throw new \InvalidArgumentException('Invalid FD number given (EINVAL)', \defined('SOCKET_EINVAL') ? \SOCKET_EINVAL : (\defined('PCNTL_EINVAL') ? \PCNTL_EINVAL : 22));
         }
         $this->loop = $loop ?: Loop::get();
         $errno = 0;

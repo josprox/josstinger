@@ -4,6 +4,8 @@ declare (strict_types=1);
 namespace Rector\Php80\Rector\Class_;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Param;
@@ -12,28 +14,34 @@ use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\UnionType;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
-use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
-use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
-use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Type\MixedType;
+use PHPStan\Type\TypeCombinator;
+use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
+use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Core\NodeAnalyzer\ParamAnalyzer;
-use Rector\Core\NodeAnalyzer\PropertyAnalyzer;
 use Rector\Core\Rector\AbstractRector;
+use Rector\Core\Reflection\ReflectionResolver;
 use Rector\Core\ValueObject\MethodName;
 use Rector\Core\ValueObject\PhpVersionFeature;
-use Rector\DeadCode\PhpDoc\TagRemover\VarTagRemover;
+use Rector\Naming\PropertyRenamer\PropertyPromotionRenamer;
 use Rector\Naming\VariableRenamer;
 use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
+use Rector\Php80\DocBlock\PropertyPromotionDocBlockMerger;
+use Rector\Php80\Guard\MakePropertyPromotionGuard;
 use Rector\Php80\NodeAnalyzer\PromotedPropertyCandidateResolver;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
+use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
-use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
+use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @changelog https://wiki.php.net/rfc/constructor_promotion https://github.com/php/php-src/pull/5291
  *
  * @see \Rector\Tests\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector\ClassPropertyAssignToConstructorPromotionRectorTest
  */
-final class ClassPropertyAssignToConstructorPromotionRector extends AbstractRector implements MinPhpVersionInterface
+final class ClassPropertyAssignToConstructorPromotionRector extends AbstractRector implements MinPhpVersionInterface, ConfigurableRectorInterface
 {
     /**
      * @readonly
@@ -47,36 +55,75 @@ final class ClassPropertyAssignToConstructorPromotionRector extends AbstractRect
     private $variableRenamer;
     /**
      * @readonly
-     * @var \Rector\DeadCode\PhpDoc\TagRemover\VarTagRemover
-     */
-    private $varTagRemover;
-    /**
-     * @readonly
      * @var \Rector\Core\NodeAnalyzer\ParamAnalyzer
      */
     private $paramAnalyzer;
     /**
      * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger
+     * @var \Rector\Php80\DocBlock\PropertyPromotionDocBlockMerger
      */
-    private $phpDocTypeChanger;
+    private $propertyPromotionDocBlockMerger;
     /**
      * @readonly
-     * @var \Rector\Core\NodeAnalyzer\PropertyAnalyzer
+     * @var \Rector\Php80\Guard\MakePropertyPromotionGuard
      */
-    private $propertyAnalyzer;
-    public function __construct(PromotedPropertyCandidateResolver $promotedPropertyCandidateResolver, VariableRenamer $variableRenamer, VarTagRemover $varTagRemover, ParamAnalyzer $paramAnalyzer, PhpDocTypeChanger $phpDocTypeChanger, PropertyAnalyzer $propertyAnalyzer)
+    private $makePropertyPromotionGuard;
+    /**
+     * @readonly
+     * @var \Rector\NodeTypeResolver\TypeComparator\TypeComparator
+     */
+    private $typeComparator;
+    /**
+     * @readonly
+     * @var \Rector\Core\Reflection\ReflectionResolver
+     */
+    private $reflectionResolver;
+    /**
+     * @readonly
+     * @var \Rector\Naming\PropertyRenamer\PropertyPromotionRenamer
+     */
+    private $propertyPromotionRenamer;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     */
+    private $phpDocInfoFactory;
+    /**
+     * @readonly
+     * @var \Rector\StaticTypeMapper\StaticTypeMapper
+     */
+    private $staticTypeMapper;
+    /**
+     * @api
+     * @var string
+     */
+    public const INLINE_PUBLIC = 'inline_public';
+    /**
+     * Default to false, which only apply changes:
+     *
+     *  – private modifier property
+     *  - protected/public modifier property when property typed
+     *
+     * Set to true will allow change whether property is typed or not as far as not forbidden, eg: callable type, null type, etc.
+     * @var bool
+     */
+    private $inlinePublic = \false;
+    public function __construct(PromotedPropertyCandidateResolver $promotedPropertyCandidateResolver, VariableRenamer $variableRenamer, ParamAnalyzer $paramAnalyzer, PropertyPromotionDocBlockMerger $propertyPromotionDocBlockMerger, MakePropertyPromotionGuard $makePropertyPromotionGuard, TypeComparator $typeComparator, ReflectionResolver $reflectionResolver, PropertyPromotionRenamer $propertyPromotionRenamer, PhpDocInfoFactory $phpDocInfoFactory, StaticTypeMapper $staticTypeMapper)
     {
         $this->promotedPropertyCandidateResolver = $promotedPropertyCandidateResolver;
         $this->variableRenamer = $variableRenamer;
-        $this->varTagRemover = $varTagRemover;
         $this->paramAnalyzer = $paramAnalyzer;
-        $this->phpDocTypeChanger = $phpDocTypeChanger;
-        $this->propertyAnalyzer = $propertyAnalyzer;
+        $this->propertyPromotionDocBlockMerger = $propertyPromotionDocBlockMerger;
+        $this->makePropertyPromotionGuard = $makePropertyPromotionGuard;
+        $this->typeComparator = $typeComparator;
+        $this->reflectionResolver = $reflectionResolver;
+        $this->propertyPromotionRenamer = $propertyPromotionRenamer;
+        $this->phpDocInfoFactory = $phpDocInfoFactory;
+        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
-        return new RuleDefinition('Change simple property init and assign to constructor promotion', [new CodeSample(<<<'CODE_SAMPLE'
+        return new RuleDefinition('Change simple property init and assign to constructor promotion', [new ConfiguredCodeSample(<<<'CODE_SAMPLE'
 class SomeClass
 {
     public float $someVariable;
@@ -97,7 +144,11 @@ class SomeClass
     }
 }
 CODE_SAMPLE
-)]);
+, [\Rector\Php80\Rector\Class_\ClassPropertyAssignToConstructorPromotionRector::INLINE_PUBLIC => \false])]);
+    }
+    public function configure(array $configuration) : void
+    {
+        $this->inlinePublic = $configuration[self::INLINE_PUBLIC] ?? (bool) \current($configuration);
     }
     /**
      * @return array<class-string<Node>>
@@ -111,46 +162,54 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $promotionCandidates = $this->promotedPropertyCandidateResolver->resolveFromClass($node);
+        $constructClassMethod = $node->getMethod(MethodName::CONSTRUCT);
+        if (!$constructClassMethod instanceof ClassMethod) {
+            return null;
+        }
+        $promotionCandidates = $this->promotedPropertyCandidateResolver->resolveFromClass($node, $constructClassMethod);
         if ($promotionCandidates === []) {
             return null;
         }
-        /** @var ClassMethod $constructClassMethod */
-        $constructClassMethod = $node->getMethod(MethodName::CONSTRUCT);
-        $classMethodPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($constructClassMethod);
+        $constructorPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($constructClassMethod);
+        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$classReflection instanceof ClassReflection) {
+            return null;
+        }
         foreach ($promotionCandidates as $promotionCandidate) {
-            // does property have some useful annotations?
-            $property = $promotionCandidate->getProperty();
             $param = $promotionCandidate->getParam();
             if ($this->shouldSkipParam($param)) {
                 continue;
             }
-            if ($this->propertyAnalyzer->hasForbiddenType($property)) {
+            $property = $promotionCandidate->getProperty();
+            if (!$this->makePropertyPromotionGuard->isLegal($node, $classReflection, $property, $param, $this->inlinePublic)) {
                 continue;
             }
-            $this->removeNode($property);
-            $this->removeNode($promotionCandidate->getAssign());
-            $property = $promotionCandidate->getProperty();
+            // remove property from class
+            $propertyStmtKey = $property->getAttribute(AttributeKey::STMT_KEY);
+            unset($node->stmts[$propertyStmtKey]);
+            // remove assign in constructor
+            $assignStmtPosition = $promotionCandidate->getStmtPosition();
+            unset($constructClassMethod->stmts[$assignStmtPosition]);
             $paramName = $this->getName($param);
             // rename also following calls
             $propertyName = $this->getName($property->props[0]);
             /** @var string $oldName */
             $oldName = $this->getName($param->var);
             $this->variableRenamer->renameVariableInFunctionLike($constructClassMethod, $oldName, $propertyName, null);
-            $paramTagValueNode = $classMethodPhpDocInfo->getParamTagValueByName($paramName);
+            $paramTagValueNode = $constructorPhpDocInfo->getParamTagValueByName($paramName);
             if (!$paramTagValueNode instanceof ParamTagValueNode) {
-                $this->decorateParamWithPropertyPhpDocInfo($constructClassMethod, $property, $param, $paramName);
+                $this->propertyPromotionDocBlockMerger->decorateParamWithPropertyPhpDocInfo($constructClassMethod, $property, $param, $paramName);
             } elseif ($paramTagValueNode->parameterName !== '$' . $propertyName) {
-                $paramTagValueNode->parameterName = '$' . $propertyName;
-                $paramTagValueNode->setAttribute(PhpDocAttributeKey::ORIG_NODE, null);
+                $this->propertyPromotionRenamer->renameParamDoc($constructorPhpDocInfo, $constructClassMethod, $param, $paramTagValueNode->parameterName, $propertyName);
             }
             // property name has higher priority
-            $param->var->name = $this->getName($property);
+            $paramName = $this->getName($property);
+            $param->var = new Variable($paramName);
             $param->flags = $property->flags;
-            // Copy over attributes of the "old" property
-            $param->attrGroups = $property->attrGroups;
-            $this->processNullableType($property, $param);
-            $this->phpDocTypeChanger->copyPropertyDocToParam($property, $param);
+            // copy attributes of the old property
+            $param->attrGroups = \array_merge($param->attrGroups, $property->attrGroups);
+            $this->processUnionType($property, $param);
+            $this->propertyPromotionDocBlockMerger->mergePropertyAndParamDocBlocks($property, $param, $paramTagValueNode);
         }
         return $node;
     }
@@ -158,31 +217,31 @@ CODE_SAMPLE
     {
         return PhpVersionFeature::PROPERTY_PROMOTION;
     }
-    private function processNullableType(Property $property, Param $param) : void
+    private function processUnionType(Property $property, Param $param) : void
     {
-        if ($this->nodeTypeResolver->isNullableType($property)) {
-            $objectType = $this->getType($property);
-            $param->type = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($objectType, TypeKind::PARAM);
+        if ($property->type instanceof Node) {
+            $param->type = $property->type;
+            return;
         }
-    }
-    private function decorateParamWithPropertyPhpDocInfo(ClassMethod $classMethod, Property $property, Param $param, string $paramName) : void
-    {
-        $propertyPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($property);
-        $propertyPhpDocInfo->markAsChanged();
-        $param->setAttribute(AttributeKey::PHP_DOC_INFO, $propertyPhpDocInfo);
-        // make sure the docblock is useful
-        if ($param->type === null) {
-            $varTagValueNode = $propertyPhpDocInfo->getVarTagValueNode();
-            if (!$varTagValueNode instanceof VarTagValueNode) {
-                return;
-            }
-            $paramType = $this->staticTypeMapper->mapPHPStanPhpDocTypeToPHPStanType($varTagValueNode, $property);
-            $classMethodPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($classMethod);
-            $this->phpDocTypeChanger->changeParamType($classMethodPhpDocInfo, $paramType, $param, $paramName);
-        } else {
-            $paramType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($param->type);
+        if (!$param->default instanceof Expr) {
+            return;
         }
-        $this->varTagRemover->removeVarPhpTagValueNodeIfNotComment($param, $paramType);
+        if (!$param->type instanceof Node) {
+            return;
+        }
+        $defaultType = $this->getType($param->default);
+        $paramType = $this->getType($param->type);
+        if ($this->typeComparator->isSubtype($defaultType, $paramType)) {
+            return;
+        }
+        if ($this->typeComparator->areTypesEqual($defaultType, $paramType)) {
+            return;
+        }
+        if ($paramType instanceof MixedType) {
+            return;
+        }
+        $paramType = TypeCombinator::union($paramType, $defaultType);
+        $param->type = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($paramType, TypeKind::PARAM);
     }
     private function shouldSkipParam(Param $param) : bool
     {

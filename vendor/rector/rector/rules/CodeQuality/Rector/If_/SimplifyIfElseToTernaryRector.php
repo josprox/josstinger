@@ -3,15 +3,16 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\If_;
 
-use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Ternary;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\If_;
-use Rector\Core\Contract\PhpParser\NodePrinterInterface;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
+use Rector\Core\PhpParser\Printer\BetterStandardPrinter;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -21,17 +22,23 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class SimplifyIfElseToTernaryRector extends AbstractRector
 {
     /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Printer\BetterStandardPrinter
+     */
+    private $betterStandardPrinter;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
+     */
+    private $betterNodeFinder;
+    /**
      * @var int
      */
     private const LINE_LENGTH_LIMIT = 120;
-    /**
-     * @readonly
-     * @var \Rector\Core\Contract\PhpParser\NodePrinterInterface
-     */
-    private $nodePrinter;
-    public function __construct(NodePrinterInterface $nodePrinter)
+    public function __construct(BetterStandardPrinter $betterStandardPrinter, BetterNodeFinder $betterNodeFinder)
     {
-        $this->nodePrinter = $nodePrinter;
+        $this->betterStandardPrinter = $betterStandardPrinter;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -71,37 +78,37 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->else === null) {
+        if (!$node->else instanceof Else_) {
             return null;
         }
         if ($node->elseifs !== []) {
             return null;
         }
-        $ifAssignVar = $this->resolveOnlyStmtAssignVar($node->stmts);
-        if (!$ifAssignVar instanceof Expr) {
+        $ifAssignVarExpr = $this->resolveOnlyStmtAssignVar($node->stmts);
+        if (!$ifAssignVarExpr instanceof Expr) {
             return null;
         }
-        $elseAssignVar = $this->resolveOnlyStmtAssignVar($node->else->stmts);
-        if (!$elseAssignVar instanceof Expr) {
+        $elseAssignExpr = $this->resolveOnlyStmtAssignVar($node->else->stmts);
+        if (!$elseAssignExpr instanceof Expr) {
             return null;
         }
-        if (!$this->nodeComparator->areNodesEqual($ifAssignVar, $elseAssignVar)) {
+        if (!$this->nodeComparator->areNodesEqual($ifAssignVarExpr, $elseAssignExpr)) {
             return null;
         }
-        $ternaryIf = $this->resolveOnlyStmtAssignExpr($node->stmts);
-        $ternaryElse = $this->resolveOnlyStmtAssignExpr($node->else->stmts);
-        if (!$ternaryIf instanceof Expr) {
+        $ternaryIfExpr = $this->resolveOnlyStmtAssignExpr($node->stmts);
+        $expr = $this->resolveOnlyStmtAssignExpr($node->else->stmts);
+        if (!$ternaryIfExpr instanceof Expr) {
             return null;
         }
-        if (!$ternaryElse instanceof Expr) {
+        if (!$expr instanceof Expr) {
             return null;
         }
         // has nested ternary → skip, it's super hard to read
-        if ($this->haveNestedTernary([$node->cond, $ternaryIf, $ternaryElse])) {
+        if ($this->haveNestedTernary([$node->cond, $ternaryIfExpr, $expr])) {
             return null;
         }
-        $ternary = new Ternary($node->cond, $ternaryIf, $ternaryElse);
-        $assign = new Assign($ifAssignVar, $ternary);
+        $ternary = new Ternary($node->cond, $ternaryIfExpr, $expr);
+        $assign = new Assign($ifAssignVarExpr, $ternary);
         // do not create super long lines
         if ($this->isNodeTooLong($assign)) {
             return null;
@@ -152,8 +159,8 @@ CODE_SAMPLE
     private function haveNestedTernary(array $nodes) : bool
     {
         foreach ($nodes as $node) {
-            $betterNodeFinderFindInstanceOf = $this->betterNodeFinder->findInstanceOf($node, Ternary::class);
-            if ($betterNodeFinderFindInstanceOf !== []) {
+            $ternary = $this->betterNodeFinder->findFirstInstanceOf($node, Ternary::class);
+            if ($ternary instanceof Ternary) {
                 return \true;
             }
         }
@@ -161,7 +168,7 @@ CODE_SAMPLE
     }
     private function isNodeTooLong(Assign $assign) : bool
     {
-        $assignContent = $this->nodePrinter->print($assign);
-        return Strings::length($assignContent) > self::LINE_LENGTH_LIMIT;
+        $assignContent = $this->betterStandardPrinter->print($assign);
+        return \strlen($assignContent) > self::LINE_LENGTH_LIMIT;
     }
 }

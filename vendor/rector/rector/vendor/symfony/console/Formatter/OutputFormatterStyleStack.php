@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202211\Symfony\Component\Console\Formatter;
+namespace RectorPrefix202312\Symfony\Component\Console\Formatter;
 
-use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202211\Symfony\Contracts\Service\ResetInterface;
+use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202312\Symfony\Contracts\Service\ResetInterface;
 /**
  * @author Jean-François Simon <contact@jfsimon.fr>
  */
@@ -32,6 +32,8 @@ class OutputFormatterStyleStack implements ResetInterface
     }
     /**
      * Resets stack (ie. empty internal arrays).
+     *
+     * @return void
      */
     public function reset()
     {
@@ -39,6 +41,8 @@ class OutputFormatterStyleStack implements ResetInterface
     }
     /**
      * Pushes a style in the stack.
+     *
+     * @return void
      */
     public function push(OutputFormatterStyleInterface $style)
     {
@@ -51,7 +55,7 @@ class OutputFormatterStyleStack implements ResetInterface
      */
     public function pop(OutputFormatterStyleInterface $style = null) : OutputFormatterStyleInterface
     {
-        if (empty($this->styles)) {
+        if (!$this->styles) {
             return $this->emptyStyle;
         }
         if (null === $style) {
@@ -70,7 +74,7 @@ class OutputFormatterStyleStack implements ResetInterface
      */
     public function getCurrent() : OutputFormatterStyleInterface
     {
-        if (empty($this->styles)) {
+        if (!$this->styles) {
             return $this->emptyStyle;
         }
         return $this->styles[\count($this->styles) - 1];

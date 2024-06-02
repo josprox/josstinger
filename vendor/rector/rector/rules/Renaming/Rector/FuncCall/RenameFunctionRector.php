@@ -12,7 +12,7 @@ use Rector\Core\Rector\AbstractRector;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202211\Webmozart\Assert\Assert;
+use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\FuncCall\RenameFunctionRector\RenameFunctionRectorTest
  */
@@ -38,13 +38,17 @@ final class RenameFunctionRector extends AbstractRector implements ConfigurableR
      */
     public function refactor(Node $node) : ?Node
     {
+        // not to refactor here
+        $isVirtual = (bool) $node->name->getAttribute(AttributeKey::VIRTUAL_NODE);
+        if ($isVirtual) {
+            return null;
+        }
+        $nodeName = $this->getName($node);
+        if ($nodeName === null) {
+            return null;
+        }
         foreach ($this->oldFunctionToNewFunction as $oldFunction => $newFunction) {
-            if (!$this->isName($node, $oldFunction)) {
-                continue;
-            }
-            // not to refactor here
-            $isVirtual = (bool) $node->name->getAttribute(AttributeKey::VIRTUAL_NODE);
-            if ($isVirtual) {
+            if (!$this->nodeNameResolver->isStringName($nodeName, $oldFunction)) {
                 continue;
             }
             $node->name = $this->createName($newFunction);

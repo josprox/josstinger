@@ -3,9 +3,9 @@
 declare (strict_types=1);
 namespace Rector\Skipper\SkipCriteriaResolver;
 
-use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\Configuration\Option;
-use Rector\Core\Configuration\Parameter\ParameterProvider;
+use Rector\Core\Configuration\Parameter\SimpleParameterProvider;
+use Rector\Testing\PHPUnit\StaticPHPUnitEnvironment;
 final class SkippedClassResolver
 {
     /**
@@ -13,29 +13,19 @@ final class SkippedClassResolver
      */
     private $skippedClasses = [];
     /**
-     * @readonly
-     * @var \Rector\Core\Configuration\Parameter\ParameterProvider
-     */
-    private $parameterProvider;
-    /**
-     * @readonly
-     * @var \PHPStan\Reflection\ReflectionProvider
-     */
-    private $reflectionProvider;
-    public function __construct(ParameterProvider $parameterProvider, ReflectionProvider $reflectionProvider)
-    {
-        $this->parameterProvider = $parameterProvider;
-        $this->reflectionProvider = $reflectionProvider;
-    }
-    /**
      * @return array<string, string[]|null>
      */
     public function resolve() : array
     {
+        if (StaticPHPUnitEnvironment::isPHPUnitRun()) {
+            // disable cache in tests
+            $this->skippedClasses = [];
+        }
+        // skip cache in tests
         if ($this->skippedClasses !== []) {
             return $this->skippedClasses;
         }
-        $skip = $this->parameterProvider->provideArrayParameter(Option::SKIP);
+        $skip = SimpleParameterProvider::provideArrayParameter(Option::SKIP);
         foreach ($skip as $key => $value) {
             // e.g. [SomeClass::class] → shift values to [SomeClass::class => null]
             if (\is_int($key)) {
@@ -45,7 +35,8 @@ final class SkippedClassResolver
             if (!\is_string($key)) {
                 continue;
             }
-            if (!$this->reflectionProvider->hasClass($key)) {
+            // this only checks for Rector rules, that are always autoloaded
+            if (!\class_exists($key) && !\interface_exists($key)) {
                 continue;
             }
             $this->skippedClasses[$key] = $value;

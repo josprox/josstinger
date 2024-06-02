@@ -7,15 +7,17 @@ use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp;
+use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Identical;
+use PhpParser\Node\Expr\BinaryOp\NotEqual;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\UnaryMinus;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
-use Rector\Core\NodeAnalyzer\ArgsAnalyzer;
 use Rector\Core\NodeAnalyzer\BinaryOpAnalyzer;
+use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\FuncCallAndExpr;
 use Rector\Core\ValueObject\PhpVersionFeature;
@@ -36,13 +38,13 @@ final class StrEndsWithRector extends AbstractRector implements MinPhpVersionInt
     private $binaryOpAnalyzer;
     /**
      * @readonly
-     * @var \Rector\Core\NodeAnalyzer\ArgsAnalyzer
+     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
      */
-    private $argsAnalyzer;
-    public function __construct(BinaryOpAnalyzer $binaryOpAnalyzer, ArgsAnalyzer $argsAnalyzer)
+    private $valueResolver;
+    public function __construct(BinaryOpAnalyzer $binaryOpAnalyzer, ValueResolver $valueResolver)
     {
         $this->binaryOpAnalyzer = $binaryOpAnalyzer;
-        $this->argsAnalyzer = $argsAnalyzer;
+        $this->valueResolver = $valueResolver;
     }
     public function provideMinPhpVersion() : int
     {
@@ -101,10 +103,10 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Identical::class, NotIdentical::class];
+        return [Identical::class, NotIdentical::class, Equal::class, NotEqual::class];
     }
     /**
-     * @param Identical|NotIdentical $node
+     * @param Identical|NotIdentical|Equal|NotEqual $node
      */
     public function refactor(Node $node) : ?Node
     {
@@ -127,18 +129,18 @@ CODE_SAMPLE
         } else {
             return null;
         }
-        if (!$this->argsAnalyzer->isArgsInstanceInArgsPositions($substrFuncCall->args, [0, 1])) {
+        if ($substrFuncCall->isFirstClassCallable()) {
             return null;
         }
-        /** @var Arg $secondArg */
-        $secondArg = $substrFuncCall->args[1];
-        if (!$this->isUnaryMinusStrlenFuncCallArgValue($secondArg->value, $comparedNeedleExpr) && !$this->isHardCodedLNumberAndString($secondArg->value, $comparedNeedleExpr)) {
+        if (\count($substrFuncCall->getArgs()) < 2) {
             return null;
         }
-        /** @var Arg $firstArg */
-        $firstArg = $substrFuncCall->args[0];
-        $haystack = $firstArg->value;
-        $isPositive = $binaryOp instanceof Identical;
+        $needle = $substrFuncCall->getArgs()[1]->value;
+        if (!$this->isUnaryMinusStrlenFuncCallArgValue($needle, $comparedNeedleExpr) && !$this->isHardCodedLNumberAndString($needle, $comparedNeedleExpr)) {
+            return null;
+        }
+        $haystack = $substrFuncCall->getArgs()[0]->value;
+        $isPositive = $binaryOp instanceof Identical || $binaryOp instanceof Equal;
         return $this->buildReturnNode($haystack, $comparedNeedleExpr, $isPositive);
     }
     /**
@@ -155,22 +157,16 @@ CODE_SAMPLE
             return null;
         }
         $substrCompareFuncCall = $funcCallAndExpr->getFuncCall();
-        if (!$this->argsAnalyzer->isArgsInstanceInArgsPositions($substrCompareFuncCall->args, [0, 1, 2])) {
+        if (\count($substrCompareFuncCall->getArgs()) < 2) {
             return null;
         }
-        /** @var Arg $firstArg */
-        $firstArg = $substrCompareFuncCall->args[0];
-        $haystack = $firstArg->value;
-        /** @var Arg $secondArg */
-        $secondArg = $substrCompareFuncCall->args[1];
-        $needle = $secondArg->value;
-        /** @var Arg $thirdArg */
-        $thirdArg = $substrCompareFuncCall->args[2];
-        $thirdArgValue = $thirdArg->value;
+        $haystack = $substrCompareFuncCall->getArgs()[0]->value;
+        $needle = $substrCompareFuncCall->getArgs()[1]->value;
+        $thirdArgValue = $substrCompareFuncCall->getArgs()[2]->value;
         if (!$this->isUnaryMinusStrlenFuncCallArgValue($thirdArgValue, $needle) && !$this->isHardCodedLNumberAndString($thirdArgValue, $needle)) {
             return null;
         }
-        $isPositive = $binaryOp instanceof Identical;
+        $isPositive = $binaryOp instanceof Identical || $binaryOp instanceof Equal;
         return $this->buildReturnNode($haystack, $needle, $isPositive);
     }
     private function isUnaryMinusStrlenFuncCallArgValue(Expr $substrOffset, Expr $needle) : bool
@@ -185,7 +181,7 @@ CODE_SAMPLE
         if (!$this->nodeNameResolver->isName($funcCall, 'strlen')) {
             return \false;
         }
-        if (!isset($funcCall->args[0])) {
+        if (!isset($funcCall->getArgs()[0])) {
             return \false;
         }
         if (!$funcCall->args[0] instanceof Arg) {

@@ -3,11 +3,16 @@
 declare (strict_types=1);
 namespace Rector\Symfony\FormHelper;
 
-use RectorPrefix202211\Nette\Utils\Strings;
+use RectorPrefix202312\Nette\Utils\Strings;
 use Rector\Symfony\Contract\Tag\TagInterface;
 use Rector\Symfony\DataProvider\ServiceMapProvider;
 final class FormTypeStringToTypeProvider
 {
+    /**
+     * @readonly
+     * @var \Rector\Symfony\DataProvider\ServiceMapProvider
+     */
+    private $serviceMapProvider;
     /**
      * @var array<string, string>
      */
@@ -16,11 +21,6 @@ final class FormTypeStringToTypeProvider
      * @var array<string, string>
      */
     private $customServiceFormTypeByAlias = [];
-    /**
-     * @readonly
-     * @var \Rector\Symfony\DataProvider\ServiceMapProvider
-     */
-    private $serviceMapProvider;
     public function __construct(ServiceMapProvider $serviceMapProvider)
     {
         $this->serviceMapProvider = $serviceMapProvider;

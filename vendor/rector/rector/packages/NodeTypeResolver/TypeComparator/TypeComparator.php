@@ -4,9 +4,9 @@ declare (strict_types=1);
 namespace Rector\NodeTypeResolver\TypeComparator;
 
 use PhpParser\Node;
-use PhpParser\Node\Stmt\Class_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
+use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
 use PHPStan\Type\Constant\ConstantArrayType;
@@ -22,10 +22,9 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeTraverser;
 use PHPStan\Type\UnionType;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
+use Rector\Core\Reflection\ReflectionResolver;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\NodeTypeResolver\PHPStan\TypeHasher;
-use Rector\PHPStanStaticTypeMapper\TypeAnalyzer\UnionTypeAnalyzer;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\StaticTypeMapper\ValueObject\Type\AliasedObjectType;
 use Rector\TypeDeclaration\TypeNormalizer;
@@ -63,15 +62,10 @@ final class TypeComparator
     private $typeFactory;
     /**
      * @readonly
-     * @var \Rector\PHPStanStaticTypeMapper\TypeAnalyzer\UnionTypeAnalyzer
+     * @var \Rector\Core\Reflection\ReflectionResolver
      */
-    private $unionTypeAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    public function __construct(TypeHasher $typeHasher, TypeNormalizer $typeNormalizer, StaticTypeMapper $staticTypeMapper, \Rector\NodeTypeResolver\TypeComparator\ArrayTypeComparator $arrayTypeComparator, \Rector\NodeTypeResolver\TypeComparator\ScalarTypeComparator $scalarTypeComparator, TypeFactory $typeFactory, UnionTypeAnalyzer $unionTypeAnalyzer, BetterNodeFinder $betterNodeFinder)
+    private $reflectionResolver;
+    public function __construct(TypeHasher $typeHasher, TypeNormalizer $typeNormalizer, StaticTypeMapper $staticTypeMapper, \Rector\NodeTypeResolver\TypeComparator\ArrayTypeComparator $arrayTypeComparator, \Rector\NodeTypeResolver\TypeComparator\ScalarTypeComparator $scalarTypeComparator, TypeFactory $typeFactory, ReflectionResolver $reflectionResolver)
     {
         $this->typeHasher = $typeHasher;
         $this->typeNormalizer = $typeNormalizer;
@@ -79,8 +73,7 @@ final class TypeComparator
         $this->arrayTypeComparator = $arrayTypeComparator;
         $this->scalarTypeComparator = $scalarTypeComparator;
         $this->typeFactory = $typeFactory;
-        $this->unionTypeAnalyzer = $unionTypeAnalyzer;
-        $this->betterNodeFinder = $betterNodeFinder;
+        $this->reflectionResolver = $reflectionResolver;
     }
     public function areTypesEqual(Type $firstType, Type $secondType) : bool
     {
@@ -139,28 +132,6 @@ final class TypeComparator
             return $mainType->isSuperTypeOf($checkedType)->yes();
         }
         return $this->arrayTypeComparator->isSubtype($checkedType, $mainType);
-    }
-    public function areTypesPossiblyIncluded(Type $assumptionType, ?Type $exactType) : bool
-    {
-        if (!$exactType instanceof Type) {
-            return \true;
-        }
-        if ($this->areTypesEqual($assumptionType, $exactType)) {
-            return \true;
-        }
-        if (!$assumptionType instanceof UnionType) {
-            return \true;
-        }
-        if (!$exactType instanceof UnionType) {
-            return \true;
-        }
-        $countAssumpionTypeTypes = \count($assumptionType->getTypes());
-        $countExactTypeTypes = \count($exactType->getTypes());
-        if ($countAssumpionTypeTypes === $countExactTypeTypes) {
-            $unionType = $this->unionTypeAnalyzer->mapGenericToClassStringType($exactType);
-            return $this->areTypesEqual($assumptionType, $unionType);
-        }
-        return $countAssumpionTypeTypes > $countExactTypeTypes;
     }
     private function areAliasedObjectMatchingFqnObject(Type $firstType, Type $secondType) : bool
     {
@@ -283,10 +254,10 @@ final class TypeComparator
         if (!$isStaticReturnDocTypeWithThisType) {
             return \true;
         }
-        $class = $this->betterNodeFinder->findParentType($node, Class_::class);
-        if (!$class instanceof Class_) {
+        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
+        if (!$classReflection instanceof ClassReflection || !$classReflection->isClass()) {
             return \false;
         }
-        return $class->isFinal();
+        return $classReflection->isFinalByKeyword();
     }
 }

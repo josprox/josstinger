@@ -4,15 +4,21 @@ declare (strict_types=1);
 namespace Rector\Php82\Rector\Class_;
 
 use PhpParser\Node;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
+use PHPStan\Analyser\Scope;
+use PHPStan\BetterReflection\Reflection\Adapter\ReflectionProperty;
+use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\NodeAnalyzer\ClassAnalyzer;
-use Rector\Core\Rector\AbstractRector;
+use Rector\Core\Rector\AbstractScopeAwareRector;
 use Rector\Core\ValueObject\MethodName;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\Core\ValueObject\Visibility;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
 use Rector\Php81\Enum\AttributeName;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
@@ -24,7 +30,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Tests\Php82\Rector\Class_\ReadOnlyClassRector\ReadOnlyClassRectorTest
  */
-final class ReadOnlyClassRector extends AbstractRector implements MinPhpVersionInterface
+final class ReadOnlyClassRector extends AbstractScopeAwareRector implements MinPhpVersionInterface
 {
     /**
      * @readonly
@@ -41,11 +47,17 @@ final class ReadOnlyClassRector extends AbstractRector implements MinPhpVersionI
      * @var \Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer
      */
     private $phpAttributeAnalyzer;
-    public function __construct(ClassAnalyzer $classAnalyzer, VisibilityManipulator $visibilityManipulator, PhpAttributeAnalyzer $phpAttributeAnalyzer)
+    /**
+     * @readonly
+     * @var \PHPStan\Reflection\ReflectionProvider
+     */
+    private $reflectionProvider;
+    public function __construct(ClassAnalyzer $classAnalyzer, VisibilityManipulator $visibilityManipulator, PhpAttributeAnalyzer $phpAttributeAnalyzer, ReflectionProvider $reflectionProvider)
     {
         $this->classAnalyzer = $classAnalyzer;
         $this->visibilityManipulator = $visibilityManipulator;
         $this->phpAttributeAnalyzer = $phpAttributeAnalyzer;
+        $this->reflectionProvider = $reflectionProvider;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -79,9 +91,9 @@ CODE_SAMPLE
     /**
      * @param Class_ $node
      */
-    public function refactor(Node $node) : ?Node
+    public function refactorWithScope(Node $node, Scope $scope) : ?Node
     {
-        if ($this->shouldSkip($node)) {
+        if ($this->shouldSkip($node, $scope)) {
             return null;
         }
         $this->visibilityManipulator->makeReadonly($node);
@@ -94,26 +106,67 @@ CODE_SAMPLE
         foreach ($node->getProperties() as $property) {
             $this->visibilityManipulator->removeReadonly($property);
         }
+        if ($node->attrGroups !== []) {
+            // invoke reprint with correct readonly newline
+            $node->setAttribute(AttributeKey::ORIGINAL_NODE, null);
+        }
         return $node;
     }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::READONLY_CLASS;
     }
-    private function shouldSkip(Class_ $class) : bool
+    /**
+     * @return ClassReflection[]
+     */
+    private function resolveParentClassReflections(Scope $scope) : array
     {
-        if ($this->shouldSkipClass($class)) {
-            return \true;
+        $classReflection = $scope->getClassReflection();
+        if (!$classReflection instanceof ClassReflection) {
+            return [];
         }
-        $properties = $class->getProperties();
-        if ($this->hasWritableProperty($properties)) {
-            return \true;
-        }
+        return $classReflection->getParents();
+    }
+    /**
+     * @param Property[] $properties
+     */
+    private function hasNonTypedProperty(array $properties) : bool
+    {
         foreach ($properties as $property) {
             // properties of readonly class must always have type
             if ($property->type === null) {
                 return \true;
             }
+        }
+        return \false;
+    }
+    private function shouldSkip(Class_ $class, Scope $scope) : bool
+    {
+        $classReflection = $scope->getClassReflection();
+        if (!$classReflection instanceof ClassReflection) {
+            return \true;
+        }
+        if ($this->shouldSkipClass($class)) {
+            return \true;
+        }
+        $parents = $this->resolveParentClassReflections($scope);
+        if (!$class->isFinal()) {
+            return !$this->isExtendsReadonlyClass($parents);
+        }
+        foreach ($parents as $parent) {
+            if (!$parent->isReadOnly()) {
+                return \true;
+            }
+        }
+        $properties = $class->getProperties();
+        if ($this->hasWritableProperty($properties)) {
+            return \true;
+        }
+        if ($this->hasNonTypedProperty($properties)) {
+            return \true;
+        }
+        if ($this->shouldSkipConsumeTraitProperty($class)) {
+            return \true;
         }
         $constructClassMethod = $class->getMethod(MethodName::CONSTRUCT);
         if (!$constructClassMethod instanceof ClassMethod) {
@@ -126,6 +179,49 @@ CODE_SAMPLE
             return $properties === [];
         }
         return $this->shouldSkipParams($params);
+    }
+    private function shouldSkipConsumeTraitProperty(Class_ $class) : bool
+    {
+        $traitUses = $class->getTraitUses();
+        foreach ($traitUses as $traitUse) {
+            foreach ($traitUse->traits as $trait) {
+                $traitName = $trait->toString();
+                // trait not autoloaded
+                if (!$this->reflectionProvider->hasClass($traitName)) {
+                    return \true;
+                }
+                $traitClassReflection = $this->reflectionProvider->getClass($traitName);
+                $nativeReflection = $traitClassReflection->getNativeReflection();
+                if ($this->hasReadonlyProperty($nativeReflection->getProperties())) {
+                    return \true;
+                }
+            }
+        }
+        return \false;
+    }
+    /**
+     * @param ReflectionProperty[] $properties
+     */
+    private function hasReadonlyProperty(array $properties) : bool
+    {
+        foreach ($properties as $property) {
+            if (!$property->isReadOnly()) {
+                return \true;
+            }
+        }
+        return \false;
+    }
+    /**
+     * @param ClassReflection[] $parents
+     */
+    private function isExtendsReadonlyClass(array $parents) : bool
+    {
+        foreach ($parents as $parent) {
+            if ($parent->isReadOnly()) {
+                return \true;
+            }
+        }
+        return \false;
     }
     /**
      * @param Property[] $properties
@@ -148,10 +244,10 @@ CODE_SAMPLE
         if ($this->classAnalyzer->isAnonymousClass($class)) {
             return \true;
         }
-        if (!$class->isFinal()) {
+        if ($this->phpAttributeAnalyzer->hasPhpAttribute($class, AttributeName::ALLOW_DYNAMIC_PROPERTIES)) {
             return \true;
         }
-        return $this->phpAttributeAnalyzer->hasPhpAttribute($class, AttributeName::ALLOW_DYNAMIC_PROPERTIES);
+        return $class->extends instanceof FullyQualified && !$this->reflectionProvider->hasClass($class->extends->toString());
     }
     /**
      * @param Param[] $params

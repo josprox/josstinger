@@ -97,7 +97,7 @@ if (isset($_POST['eliminar'])){
                         <div class="col-datos">
                             <h2 class="text-shadow-white text-center">Tu pedido</h2>
                             <?php
-                            include (__DIR__ . "../../../config/mercado_pago_hestia.php");
+                            include (__DIR__ . DIRECTORY_SEPARATOR .  "../../config/mercado_pago_hestia.php");
                             ?>
                         </div>
                     </div>

@@ -4,40 +4,24 @@ declare (strict_types=1);
 namespace Rector\VendorLocker\NodeVendorLocker;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt\ClassMethod;
-use PhpParser\Node\Stmt\Return_;
+use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
-use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\ArrayType;
-use PHPStan\Type\Generic\GenericClassStringType;
+use PHPStan\Reflection\FunctionVariantWithPhpDocs;
+use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ParametersAcceptorSelector;
+use PHPStan\Reflection\Php\PhpMethodReflection;
 use PHPStan\Type\MixedType;
-use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
-use PHPStan\Type\VoidType;
-use Rector\Core\PhpParser\AstResolver;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
+use Rector\Core\FileSystem\FilePathHelper;
+use Rector\Core\NodeAnalyzer\MagicClassMethodAnalyzer;
 use Rector\Core\Reflection\ReflectionResolver;
 use Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer;
-use Rector\NodeNameResolver\NodeNameResolver;
-use Rector\StaticTypeMapper\PhpDoc\CustomPHPStanDetector;
+use Rector\NodeTypeResolver\PHPStan\ParametersAcceptorSelectorVariantsWrapper;
 use Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer;
+use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
 final class ClassMethodReturnTypeOverrideGuard
 {
-    /**
-     * @var array<class-string, array<string>>
-     */
-    private const CHAOTIC_CLASS_METHOD_NAMES = ['PhpParser\\NodeVisitor' => ['enterNode', 'leaveNode', 'beforeTraverse', 'afterTraverse']];
-    /**
-     * @readonly
-     * @var \Rector\NodeNameResolver\NodeNameResolver
-     */
-    private $nodeNameResolver;
-    /**
-     * @readonly
-     * @var \PHPStan\Reflection\ReflectionProvider
-     */
-    private $reflectionProvider;
     /**
      * @readonly
      * @var \Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer
@@ -45,53 +29,58 @@ final class ClassMethodReturnTypeOverrideGuard
     private $familyRelationsAnalyzer;
     /**
      * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\AstResolver
-     */
-    private $astResolver;
-    /**
-     * @readonly
      * @var \Rector\Core\Reflection\ReflectionResolver
      */
     private $reflectionResolver;
     /**
      * @readonly
-     * @var \Rector\StaticTypeMapper\PhpDoc\CustomPHPStanDetector
-     */
-    private $customPHPStanDetector;
-    /**
-     * @readonly
      * @var \Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer
      */
     private $returnTypeInferer;
-    public function __construct(NodeNameResolver $nodeNameResolver, ReflectionProvider $reflectionProvider, FamilyRelationsAnalyzer $familyRelationsAnalyzer, BetterNodeFinder $betterNodeFinder, AstResolver $astResolver, ReflectionResolver $reflectionResolver, CustomPHPStanDetector $customPHPStanDetector, ReturnTypeInferer $returnTypeInferer)
+    /**
+     * @readonly
+     * @var \Rector\VendorLocker\ParentClassMethodTypeOverrideGuard
+     */
+    private $parentClassMethodTypeOverrideGuard;
+    /**
+     * @readonly
+     * @var \Rector\Core\FileSystem\FilePathHelper
+     */
+    private $filePathHelper;
+    /**
+     * @readonly
+     * @var \Rector\Core\NodeAnalyzer\MagicClassMethodAnalyzer
+     */
+    private $magicClassMethodAnalyzer;
+    public function __construct(FamilyRelationsAnalyzer $familyRelationsAnalyzer, ReflectionResolver $reflectionResolver, ReturnTypeInferer $returnTypeInferer, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard, FilePathHelper $filePathHelper, MagicClassMethodAnalyzer $magicClassMethodAnalyzer)
     {
-        $this->nodeNameResolver = $nodeNameResolver;
-        $this->reflectionProvider = $reflectionProvider;
         $this->familyRelationsAnalyzer = $familyRelationsAnalyzer;
-        $this->betterNodeFinder = $betterNodeFinder;
-        $this->astResolver = $astResolver;
         $this->reflectionResolver = $reflectionResolver;
-        $this->customPHPStanDetector = $customPHPStanDetector;
         $this->returnTypeInferer = $returnTypeInferer;
+        $this->parentClassMethodTypeOverrideGuard = $parentClassMethodTypeOverrideGuard;
+        $this->filePathHelper = $filePathHelper;
+        $this->magicClassMethodAnalyzer = $magicClassMethodAnalyzer;
     }
-    public function shouldSkipClassMethod(ClassMethod $classMethod) : bool
+    public function shouldSkipClassMethod(ClassMethod $classMethod, Scope $scope) : bool
     {
-        // 1. skip magic methods
-        if ($classMethod->isMagic()) {
-            return \true;
-        }
-        // 2. skip chaotic contract class methods
-        if ($this->shouldSkipChaoticClassMethods($classMethod)) {
+        if ($this->magicClassMethodAnalyzer->isUnsafeOverridden($classMethod)) {
             return \true;
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
         if (!$classReflection instanceof ClassReflection) {
             return \true;
+        }
+        if ($classMethod->isAbstract()) {
+            return \true;
+        }
+        if ($classReflection->isInterface()) {
+            return \true;
+        }
+        if (!$this->isReturnTypeChangeAllowed($classMethod, $scope)) {
+            return \true;
+        }
+        if ($classMethod->isFinal()) {
+            return \false;
         }
         $childrenClassReflections = $this->familyRelationsAnalyzer->getChildrenOfClassReflection($classReflection);
         if ($childrenClassReflections === []) {
@@ -100,89 +89,66 @@ final class ClassMethodReturnTypeOverrideGuard
         if ($classMethod->returnType instanceof Node) {
             return \true;
         }
-        if ($this->shouldSkipHasChildHasReturnType($childrenClassReflections, $classMethod)) {
-            return \true;
-        }
-        return $this->hasClassMethodExprReturn($classMethod);
-    }
-    public function shouldSkipClassMethodOldTypeWithNewType(Type $oldType, Type $newType, ClassMethod $classMethod) : bool
-    {
-        if ($this->customPHPStanDetector->isCustomType($oldType, $classMethod)) {
-            return \true;
-        }
-        if ($oldType instanceof MixedType) {
-            return \false;
-        }
-        // new generic string type is more advanced than old array type
-        if ($this->isFirstArrayTypeMoreAdvanced($oldType, $newType)) {
-            return \false;
-        }
-        return $oldType->isSuperTypeOf($newType)->yes();
+        $returnType = $this->returnTypeInferer->inferFunctionLike($classMethod);
+        return $this->hasChildrenDifferentTypeClassMethod($classMethod, $childrenClassReflections, $returnType);
     }
     /**
      * @param ClassReflection[] $childrenClassReflections
      */
-    private function shouldSkipHasChildHasReturnType(array $childrenClassReflections, ClassMethod $classMethod) : bool
+    private function hasChildrenDifferentTypeClassMethod(ClassMethod $classMethod, array $childrenClassReflections, Type $returnType) : bool
     {
-        $returnType = $this->returnTypeInferer->inferFunctionLike($classMethod);
-        $methodName = $this->nodeNameResolver->getName($classMethod);
+        $methodName = $classMethod->name->toString();
         foreach ($childrenClassReflections as $childClassReflection) {
-            if (!$childClassReflection->hasNativeMethod($methodName)) {
-                continue;
-            }
             $methodReflection = $childClassReflection->getNativeMethod($methodName);
-            $method = $this->astResolver->resolveClassMethodFromMethodReflection($methodReflection);
-            if (!$method instanceof ClassMethod) {
+            if (!$methodReflection instanceof PhpMethodReflection) {
                 continue;
             }
-            if ($method->returnType instanceof Node) {
-                return \true;
-            }
-            $childReturnType = $this->returnTypeInferer->inferFunctionLike($method);
-            if ($returnType instanceof VoidType && !$childReturnType instanceof VoidType) {
+            $parametersAcceptor = ParametersAcceptorSelector::combineAcceptors($methodReflection->getVariants());
+            $childReturnType = $parametersAcceptor->getNativeReturnType();
+            if (!$returnType->isSuperTypeOf($childReturnType)->yes()) {
                 return \true;
             }
         }
         return \false;
     }
-    private function shouldSkipChaoticClassMethods(ClassMethod $classMethod) : bool
+    private function isReturnTypeChangeAllowed(ClassMethod $classMethod, Scope $scope) : bool
     {
-        $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
-        if (!$classReflection instanceof ClassReflection) {
-            return \true;
+        // make sure return type is not protected by parent contract
+        $parentClassMethodReflection = $this->parentClassMethodTypeOverrideGuard->getParentClassMethod($classMethod);
+        // nothing to check
+        if (!$parentClassMethodReflection instanceof MethodReflection) {
+            return !$this->parentClassMethodTypeOverrideGuard->hasParentClassMethod($classMethod);
         }
-        foreach (self::CHAOTIC_CLASS_METHOD_NAMES as $chaoticClass => $chaoticMethodNames) {
-            if (!$this->reflectionProvider->hasClass($chaoticClass)) {
-                continue;
-            }
-            $chaoticClassReflection = $this->reflectionProvider->getClass($chaoticClass);
-            if (!$classReflection->isSubclassOf($chaoticClassReflection->getName())) {
-                continue;
-            }
-            return $this->nodeNameResolver->isNames($classMethod, $chaoticMethodNames);
-        }
-        return \false;
-    }
-    private function hasClassMethodExprReturn(ClassMethod $classMethod) : bool
-    {
-        return (bool) $this->betterNodeFinder->findFirst((array) $classMethod->stmts, static function (Node $node) : bool {
-            if (!$node instanceof Return_) {
-                return \false;
-            }
-            return $node->expr instanceof Expr;
-        });
-    }
-    private function isFirstArrayTypeMoreAdvanced(Type $oldType, Type $newType) : bool
-    {
-        if (!$oldType instanceof ArrayType) {
+        $parametersAcceptor = ParametersAcceptorSelectorVariantsWrapper::select($parentClassMethodReflection, $classMethod, $scope);
+        if ($parametersAcceptor instanceof FunctionVariantWithPhpDocs && !$parametersAcceptor->getNativeReturnType() instanceof MixedType) {
             return \false;
         }
-        if (!$newType instanceof ArrayType) {
+        $classReflection = $parentClassMethodReflection->getDeclaringClass();
+        $fileName = $classReflection->getFileName();
+        // probably internal
+        if ($fileName === null) {
             return \false;
         }
-        if (!$oldType->getItemType() instanceof StringType) {
-            return \false;
-        }
-        return $newType->getItemType() instanceof GenericClassStringType;
+        /*
+         * Below verify that both current file name and parent file name is not in the /vendor/, if yes, then allowed.
+         * This can happen when rector run into /vendor/ directory while child and parent both are there.
+         *
+         *  @see https://3v4l.org/Rc0RF#v8.0.13
+         *
+         *     - both in /vendor/ -> allowed
+         *     - one of them in /vendor/ -> not allowed
+         *     - both not in /vendor/ -> allowed
+         */
+        /** @var ClassReflection $currentClassReflection */
+        $currentClassReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
+        /** @var string $currentFileName */
+        $currentFileName = $currentClassReflection->getFileName();
+        // child (current)
+        $normalizedCurrentFileName = $this->filePathHelper->normalizePathAndSchema($currentFileName);
+        $isCurrentInVendor = \strpos($normalizedCurrentFileName, '/vendor/') !== \false;
+        // parent
+        $normalizedFileName = $this->filePathHelper->normalizePathAndSchema($fileName);
+        $isParentInVendor = \strpos($normalizedFileName, '/vendor/') !== \false;
+        return $isCurrentInVendor && $isParentInVendor || !$isCurrentInVendor && !$isParentInVendor;
     }
 }
