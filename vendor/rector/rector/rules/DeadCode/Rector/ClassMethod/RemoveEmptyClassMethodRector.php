@@ -7,9 +7,6 @@ use PhpParser\Node;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
-use PHPStan\PhpDocParser\Ast\PhpDoc\DeprecatedTagValueNode;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Core\NodeAnalyzer\ParamAnalyzer;
 use Rector\Core\NodeManipulator\ClassMethodManipulator;
 use Rector\Core\Rector\AbstractRector;
@@ -37,17 +34,11 @@ final class RemoveEmptyClassMethodRector extends AbstractRector
      * @var \Rector\Core\NodeAnalyzer\ParamAnalyzer
      */
     private $paramAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
-     */
-    private $phpDocInfoFactory;
-    public function __construct(ClassMethodManipulator $classMethodManipulator, ControllerClassMethodManipulator $controllerClassMethodManipulator, ParamAnalyzer $paramAnalyzer, PhpDocInfoFactory $phpDocInfoFactory)
+    public function __construct(ClassMethodManipulator $classMethodManipulator, ControllerClassMethodManipulator $controllerClassMethodManipulator, ParamAnalyzer $paramAnalyzer)
     {
         $this->classMethodManipulator = $classMethodManipulator;
         $this->controllerClassMethodManipulator = $controllerClassMethodManipulator;
         $this->paramAnalyzer = $paramAnalyzer;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -71,40 +62,34 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [ClassMethod::class];
     }
     /**
-     * @param Class_ $node
+     * @param ClassMethod $node
      */
-    public function refactor(Node $node) : ?Class_
+    public function refactor(Node $node) : ?Node
     {
-        $hasChanged = \false;
-        foreach ($node->stmts as $key => $stmt) {
-            if (!$stmt instanceof ClassMethod) {
-                continue;
-            }
-            if ($stmt->stmts !== null && $stmt->stmts !== []) {
-                continue;
-            }
-            if ($stmt->isAbstract()) {
-                continue;
-            }
-            if ($stmt->isFinal() && !$node->isFinal()) {
-                continue;
-            }
-            if ($this->shouldSkipNonFinalNonPrivateClassMethod($node, $stmt)) {
-                continue;
-            }
-            if ($this->shouldSkipClassMethod($node, $stmt)) {
-                continue;
-            }
-            unset($node->stmts[$key]);
-            $hasChanged = \true;
+        $classLike = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$classLike instanceof Class_) {
+            return null;
         }
-        if ($hasChanged) {
-            return $node;
+        if ($node->stmts !== null && $node->stmts !== []) {
+            return null;
         }
-        return null;
+        if ($node->isAbstract()) {
+            return null;
+        }
+        if ($node->isFinal() && !$classLike->isFinal()) {
+            return null;
+        }
+        if ($this->shouldSkipNonFinalNonPrivateClassMethod($classLike, $node)) {
+            return null;
+        }
+        if ($this->shouldSkipClassMethod($node)) {
+            return null;
+        }
+        $this->removeNode($node);
+        return $node;
     }
     private function shouldSkipNonFinalNonPrivateClassMethod(Class_ $class, ClassMethod $classMethod) : bool
     {
@@ -119,35 +104,24 @@ CODE_SAMPLE
         }
         return $classMethod->isPublic();
     }
-    private function shouldSkipClassMethod(Class_ $class, ClassMethod $classMethod) : bool
+    private function shouldSkipClassMethod(ClassMethod $classMethod) : bool
     {
         if ($this->classMethodManipulator->isNamedConstructor($classMethod)) {
             return \true;
         }
-        if ($this->classMethodManipulator->hasParentMethodOrInterfaceMethod($class, $classMethod->name->toString())) {
+        if ($this->classMethodManipulator->hasParentMethodOrInterfaceMethod($classMethod)) {
             return \true;
         }
         if ($this->paramAnalyzer->hasPropertyPromotion($classMethod->params)) {
             return \true;
         }
-        if ($this->hasDeprecatedAnnotation($classMethod)) {
-            return \true;
-        }
-        if ($this->controllerClassMethodManipulator->isControllerClassMethod($class, $classMethod)) {
+        if ($this->controllerClassMethodManipulator->isControllerClassMethodWithBehaviorAnnotation($classMethod)) {
             return \true;
         }
         if ($this->nodeNameResolver->isName($classMethod, MethodName::CONSTRUCT)) {
-            // has parent class?
-            return $class->extends instanceof FullyQualified;
+            $class = $this->betterNodeFinder->findParentType($classMethod, Class_::class);
+            return $class instanceof Class_ && $class->extends instanceof FullyQualified;
         }
         return $this->nodeNameResolver->isName($classMethod, MethodName::INVOKE);
-    }
-    private function hasDeprecatedAnnotation(ClassMethod $classMethod) : bool
-    {
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNode($classMethod);
-        if (!$phpDocInfo instanceof PhpDocInfo) {
-            return \false;
-        }
-        return $phpDocInfo->hasByType(DeprecatedTagValueNode::class);
     }
 }

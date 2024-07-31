@@ -9,6 +9,7 @@ use PhpParser\Node\Expr\BinaryOp\Coalesce;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\Empty_;
 use PhpParser\Node\Expr\Ternary;
+use PHPStan\Type\ArrayType;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -62,11 +63,11 @@ CODE_SAMPLE
         if (!$negagedExpr instanceof Empty_) {
             return null;
         }
-        if (!$node->if instanceof ArrayDimFetch) {
+        $emptyExprType = $this->getType($negagedExpr->expr);
+        if (!$emptyExprType instanceof ArrayType) {
             return null;
         }
-        $emptyExprType = $this->getType($negagedExpr->expr);
-        if (!$emptyExprType->isArray()->yes()) {
+        if (!$node->if instanceof ArrayDimFetch) {
             return null;
         }
         $dimFetchVar = $node->if->var;

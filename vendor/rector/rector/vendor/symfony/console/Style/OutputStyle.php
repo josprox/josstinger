@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Style;
+namespace RectorPrefix202211\Symfony\Component\Console\Style;
 
-use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterInterface;
-use RectorPrefix202312\Symfony\Component\Console\Helper\ProgressBar;
-use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202211\Symfony\Component\Console\Helper\ProgressBar;
+use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
 /**
  * Decorates output to add console style guide helpers.
  *
@@ -30,7 +30,7 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
         $this->output = $output;
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function newLine(int $count = 1)
     {
@@ -41,73 +41,91 @@ abstract class OutputStyle implements OutputInterface, StyleInterface
         return new ProgressBar($this->output, $max);
     }
     /**
-     * @return void
-     * @param string|iterable $messages
+     * {@inheritdoc}
+     * @param string|mixed[] $messages
      */
     public function write($messages, bool $newline = \false, int $type = self::OUTPUT_NORMAL)
     {
         $this->output->write($messages, $newline, $type);
     }
     /**
-     * @return void
-     * @param string|iterable $messages
+     * {@inheritdoc}
+     * @param string|mixed[] $messages
      */
     public function writeln($messages, int $type = self::OUTPUT_NORMAL)
     {
         $this->output->writeln($messages, $type);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setVerbosity(int $level)
     {
         $this->output->setVerbosity($level);
     }
+    /**
+     * {@inheritdoc}
+     */
     public function getVerbosity() : int
     {
         return $this->output->getVerbosity();
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setDecorated(bool $decorated)
     {
         $this->output->setDecorated($decorated);
     }
+    /**
+     * {@inheritdoc}
+     */
     public function isDecorated() : bool
     {
         return $this->output->isDecorated();
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setFormatter(OutputFormatterInterface $formatter)
     {
         $this->output->setFormatter($formatter);
     }
+    /**
+     * {@inheritdoc}
+     */
     public function getFormatter() : OutputFormatterInterface
     {
         return $this->output->getFormatter();
     }
+    /**
+     * {@inheritdoc}
+     */
     public function isQuiet() : bool
     {
         return $this->output->isQuiet();
     }
+    /**
+     * {@inheritdoc}
+     */
     public function isVerbose() : bool
     {
         return $this->output->isVerbose();
     }
+    /**
+     * {@inheritdoc}
+     */
     public function isVeryVerbose() : bool
     {
         return $this->output->isVeryVerbose();
     }
+    /**
+     * {@inheritdoc}
+     */
     public function isDebug() : bool
     {
         return $this->output->isDebug();
     }
-    /**
-     * @return OutputInterface
-     */
     protected function getErrorOutput()
     {
         if (!$this->output instanceof ConsoleOutputInterface) {

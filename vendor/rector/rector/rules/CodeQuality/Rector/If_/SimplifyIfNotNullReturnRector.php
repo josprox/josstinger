@@ -5,12 +5,12 @@ namespace Rector\CodeQuality\Rector\If_;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
-use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\Core\NodeManipulator\IfManipulator;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -23,15 +23,9 @@ final class SimplifyIfNotNullReturnRector extends AbstractRector
      * @var \Rector\Core\NodeManipulator\IfManipulator
      */
     private $ifManipulator;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(IfManipulator $ifManipulator, ValueResolver $valueResolver)
+    public function __construct(IfManipulator $ifManipulator)
     {
         $this->ifManipulator = $ifManipulator;
-        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -54,38 +48,28 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [StmtsAwareInterface::class];
+        return [If_::class];
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param If_ $node
      */
-    public function refactor(Node $node) : ?StmtsAwareInterface
+    public function refactor(Node $node) : ?Stmt
     {
-        foreach ((array) $node->stmts as $key => $stmt) {
-            if (!$stmt instanceof If_) {
-                continue;
-            }
-            if (!isset($node->stmts[$key + 1])) {
+        $expr = $this->ifManipulator->matchIfNotNullReturnValue($node);
+        if ($expr instanceof Expr) {
+            $insideIfNode = $node->stmts[0];
+            $nextNode = $node->getAttribute(AttributeKey::NEXT_NODE);
+            if (!$nextNode instanceof Return_) {
                 return null;
             }
-            $nextNode = $node->stmts[$key + 1];
-            if (!$nextNode instanceof Return_) {
-                continue;
-            }
-            $expr = $this->ifManipulator->matchIfNotNullReturnValue($stmt);
-            if (!$expr instanceof Expr) {
-                continue;
-            }
-            $insideIfNode = $stmt->stmts[0];
-            if (!$nextNode->expr instanceof Expr) {
-                continue;
+            if ($nextNode->expr === null) {
+                return null;
             }
             if (!$this->valueResolver->isNull($nextNode->expr)) {
-                continue;
+                return null;
             }
-            unset($node->stmts[$key]);
-            $node->stmts[$key + 1] = $insideIfNode;
-            return $node;
+            $this->removeNode($nextNode);
+            return $insideIfNode;
         }
         return null;
     }

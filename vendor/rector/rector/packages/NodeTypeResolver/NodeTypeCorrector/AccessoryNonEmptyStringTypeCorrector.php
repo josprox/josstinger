@@ -17,7 +17,7 @@ final class AccessoryNonEmptyStringTypeCorrector
         if (!$mainType instanceof IntersectionType) {
             return $mainType;
         }
-        if (!$mainType->isNonEmptyString()->yes()) {
+        if (!$mainType->isSubTypeOf(new AccessoryNonEmptyStringType())->yes() && !$mainType->isSubTypeOf(new AccessoryNonFalsyStringType())->yes()) {
             return $mainType;
         }
         $clearIntersectionedTypes = [];

@@ -91,10 +91,10 @@ CODE_SAMPLE
     }
     private function shouldSkip(ClassMethod $classMethod) : bool
     {
-        if ($classMethod->returnType instanceof Node) {
+        if (!$this->nodeNameResolver->isName($classMethod, '__toString')) {
             return \true;
         }
-        if (!$this->nodeNameResolver->isName($classMethod, '__toString')) {
+        if ($classMethod->returnType instanceof Node) {
             return \true;
         }
         $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);

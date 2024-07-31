@@ -10,9 +10,8 @@ use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
 final class PhpDocTagRemover
 {
-    public function removeByName(PhpDocInfo $phpDocInfo, string $name) : bool
+    public function removeByName(PhpDocInfo $phpDocInfo, string $name) : void
     {
-        $hasChanged = \false;
         $phpDocNode = $phpDocInfo->getPhpDocNode();
         foreach ($phpDocNode->children as $key => $phpDocChildNode) {
             if (!$phpDocChildNode instanceof PhpDocTagNode) {
@@ -20,32 +19,29 @@ final class PhpDocTagRemover
             }
             if ($this->areAnnotationNamesEqual($name, $phpDocChildNode->name)) {
                 unset($phpDocNode->children[$key]);
-                $hasChanged = \true;
+                $phpDocInfo->markAsChanged();
             }
             if ($phpDocChildNode->value instanceof DoctrineAnnotationTagValueNode && $phpDocChildNode->value->hasClassName($name)) {
                 unset($phpDocNode->children[$key]);
-                $hasChanged = \true;
+                $phpDocInfo->markAsChanged();
             }
         }
-        return $hasChanged;
     }
-    public function removeTagValueFromNode(PhpDocInfo $phpDocInfo, Node $desiredNode) : bool
+    public function removeTagValueFromNode(PhpDocInfo $phpDocInfo, Node $desiredNode) : void
     {
         $phpDocNode = $phpDocInfo->getPhpDocNode();
-        $hasChanged = \false;
         $phpDocNodeTraverser = new PhpDocNodeTraverser();
-        $phpDocNodeTraverser->traverseWithCallable($phpDocNode, '', static function (Node $node) use($desiredNode, &$hasChanged) : ?int {
+        $phpDocNodeTraverser->traverseWithCallable($phpDocNode, '', static function (Node $node) use($desiredNode, $phpDocInfo) : ?int {
             if ($node instanceof PhpDocTagNode && $node->value === $desiredNode) {
-                $hasChanged = \true;
+                $phpDocInfo->markAsChanged();
                 return PhpDocNodeTraverser::NODE_REMOVE;
             }
             if ($node !== $desiredNode) {
                 return null;
             }
-            $hasChanged = \true;
+            $phpDocInfo->markAsChanged();
             return PhpDocNodeTraverser::NODE_REMOVE;
         });
-        return $hasChanged;
     }
     private function areAnnotationNamesEqual(string $firstAnnotationName, string $secondAnnotationName) : bool
     {

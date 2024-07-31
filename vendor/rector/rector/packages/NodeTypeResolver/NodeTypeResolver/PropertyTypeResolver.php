@@ -10,6 +10,8 @@ use PhpParser\Node\Stmt\Property;
 use PHPStan\Type\Type;
 use Rector\NodeTypeResolver\Contract\NodeTypeResolverInterface;
 use Rector\NodeTypeResolver\Node\AttributeKey;
+use Rector\NodeTypeResolver\NodeTypeResolver;
+use RectorPrefix202211\Symfony\Contracts\Service\Attribute\Required;
 /**
  * @see \Rector\Tests\NodeTypeResolver\PerNodeTypeResolver\PropertyTypeResolver\PropertyTypeResolverTest
  *
@@ -18,13 +20,15 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 final class PropertyTypeResolver implements NodeTypeResolverInterface
 {
     /**
-     * @readonly
-     * @var \Rector\NodeTypeResolver\NodeTypeResolver\PropertyFetchTypeResolver
+     * @var \Rector\NodeTypeResolver\NodeTypeResolver
      */
-    private $propertyFetchTypeResolver;
-    public function __construct(\Rector\NodeTypeResolver\NodeTypeResolver\PropertyFetchTypeResolver $propertyFetchTypeResolver)
+    private $nodeTypeResolver;
+    /**
+     * @required
+     */
+    public function autowire(NodeTypeResolver $nodeTypeResolver) : void
     {
-        $this->propertyFetchTypeResolver = $propertyFetchTypeResolver;
+        $this->nodeTypeResolver = $nodeTypeResolver;
     }
     /**
      * @return array<class-string<Node>>
@@ -41,6 +45,6 @@ final class PropertyTypeResolver implements NodeTypeResolverInterface
         // fake property to local PropertyFetch → PHPStan understands that
         $propertyFetch = new PropertyFetch(new Variable('this'), (string) $node->props[0]->name);
         $propertyFetch->setAttribute(AttributeKey::SCOPE, $node->getAttribute(AttributeKey::SCOPE));
-        return $this->propertyFetchTypeResolver->resolve($propertyFetch);
+        return $this->nodeTypeResolver->getType($propertyFetch);
     }
 }

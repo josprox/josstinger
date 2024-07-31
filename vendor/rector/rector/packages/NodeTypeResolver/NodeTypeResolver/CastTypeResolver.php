@@ -43,7 +43,7 @@ final class CastTypeResolver implements NodeTypeResolverInterface
     public function resolve(Node $node) : Type
     {
         foreach (self::CAST_CLASS_TO_TYPE_MAP as $castClass => $typeClass) {
-            if ($node instanceof $castClass) {
+            if (\is_a($node, $castClass, \true)) {
                 return new $typeClass();
             }
         }

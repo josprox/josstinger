@@ -7,9 +7,8 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\NullableType;
 use PhpParser\Node\Stmt\Property;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
+use Rector\CodeQuality\NodeFactory\PropertyTypeDecorator;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeManipulator\PropertyDecorator;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -19,18 +18,12 @@ final class DowngradeTypedPropertyRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\NodeManipulator\PropertyDecorator
+     * @var \Rector\CodeQuality\NodeFactory\PropertyTypeDecorator
      */
-    private $propertyDecorator;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(PropertyDecorator $propertyDecorator, ValueResolver $valueResolver)
+    private $propertyTypeDecorator;
+    public function __construct(PropertyTypeDecorator $propertyTypeDecorator)
     {
-        $this->propertyDecorator = $propertyDecorator;
-        $this->valueResolver = $valueResolver;
+        $this->propertyTypeDecorator = $propertyTypeDecorator;
     }
     /**
      * @return array<class-string<Node>>
@@ -70,7 +63,7 @@ CODE_SAMPLE
         if ($node->type instanceof NullableType && $default instanceof Expr && $this->valueResolver->isNull($default)) {
             $node->props[0]->default = null;
         }
-        $this->propertyDecorator->decorateWithDocBlock($node, $node->type);
+        $this->propertyTypeDecorator->decoratePropertyWithDocBlock($node, $node->type);
         $node->type = null;
         return $node;
     }

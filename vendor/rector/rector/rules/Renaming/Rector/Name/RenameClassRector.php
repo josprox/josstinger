@@ -5,22 +5,22 @@ namespace Rector\Renaming\Rector\Name;
 
 use PhpParser\Node;
 use PhpParser\Node\FunctionLike;
-use PhpParser\Node\Name\FullyQualified;
+use PhpParser\Node\Identifier;
+use PhpParser\Node\Name;
 use PhpParser\Node\Stmt\ClassLike;
-use PhpParser\Node\Stmt\Declare_;
 use PhpParser\Node\Stmt\Expression;
-use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Property;
+use PhpParser\Node\Stmt\Use_;
+use Rector\Core\Configuration\RectorConfigProvider;
 use Rector\Core\Configuration\RenamedClassesDataCollector;
 use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Core\PhpParser\Node\CustomNode\FileWithoutNamespace;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Renaming\NodeManipulator\ClassRenamer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Renaming\Rector\Name\RenameClassRector\RenameClassRectorTest
  */
@@ -37,22 +37,15 @@ final class RenameClassRector extends AbstractRector implements ConfigurableRect
      */
     private $classRenamer;
     /**
-     * @var bool
+     * @readonly
+     * @var \Rector\Core\Configuration\RectorConfigProvider
      */
-    private $isMayRequireRestructureNamespace = \false;
-    public function __construct(RenamedClassesDataCollector $renamedClassesDataCollector, ClassRenamer $classRenamer)
+    private $rectorConfigProvider;
+    public function __construct(RenamedClassesDataCollector $renamedClassesDataCollector, ClassRenamer $classRenamer, RectorConfigProvider $rectorConfigProvider)
     {
         $this->renamedClassesDataCollector = $renamedClassesDataCollector;
         $this->classRenamer = $classRenamer;
-    }
-    /**
-     * @param Node[] $nodes
-     * @return Node[]|null
-     */
-    public function beforeTraverse(array $nodes) : ?array
-    {
-        $this->isMayRequireRestructureNamespace = \false;
-        return parent::beforeTraverse($nodes);
+        $this->rectorConfigProvider = $rectorConfigProvider;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -87,23 +80,24 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [FullyQualified::class, Property::class, FunctionLike::class, Expression::class, ClassLike::class, Namespace_::class, If_::class];
+        return [Name::class, Property::class, FunctionLike::class, Expression::class, ClassLike::class, Namespace_::class, FileWithoutNamespace::class, Use_::class];
     }
     /**
-     * @param FunctionLike|FullyQualified|ClassLike|Expression|Namespace_|Property|If_ $node
+     * @param FunctionLike|Name|ClassLike|Expression|Namespace_|Property|FileWithoutNamespace|Use_ $node
      */
     public function refactor(Node $node) : ?Node
     {
         $oldToNewClasses = $this->renamedClassesDataCollector->getOldToNewClasses();
-        if ($oldToNewClasses !== []) {
-            $scope = $node->getAttribute(AttributeKey::SCOPE);
-            $renameNode = $this->classRenamer->renameNode($node, $oldToNewClasses, $scope);
-            if ($renameNode instanceof Namespace_) {
-                $this->isMayRequireRestructureNamespace = \true;
-            }
-            return $renameNode;
+        if ($oldToNewClasses === []) {
+            return null;
         }
-        return null;
+        if (!$node instanceof Use_) {
+            return $this->classRenamer->renameNode($node, $oldToNewClasses);
+        }
+        if (!$this->rectorConfigProvider->shouldImportNames()) {
+            return null;
+        }
+        return $this->processCleanUpUse($node, $oldToNewClasses);
     }
     /**
      * @param mixed[] $configuration
@@ -112,52 +106,28 @@ CODE_SAMPLE
     {
         Assert::allString($configuration);
         Assert::allString(\array_keys($configuration));
-        $this->renamedClassesDataCollector->addOldToNewClasses($configuration);
+        $this->addOldToNewClasses($configuration);
     }
     /**
-     * @param Node[] $nodes
-     * @return null|Node[]
+     * @param array<string, string> $oldToNewClasses
      */
-    public function afterTraverse(array $nodes) : ?array
+    private function processCleanUpUse(Use_ $use, array $oldToNewClasses) : ?Use_
     {
-        if (!$this->isMayRequireRestructureNamespace) {
-            return parent::afterTraverse($nodes);
-        }
-        foreach ($nodes as $node) {
-            if ($node instanceof Namespace_) {
-                return parent::afterTraverse($nodes);
-            }
-            if (!$node instanceof FileWithoutNamespace) {
-                continue;
-            }
-            foreach ($node->stmts as $stmt) {
-                if ($stmt instanceof Namespace_) {
-                    $this->restructureUnderNamespace($node);
-                    return $node->stmts;
-                }
+        foreach ($use->uses as $useUse) {
+            if (!$useUse->alias instanceof Identifier && isset($oldToNewClasses[$useUse->name->toString()])) {
+                $this->removeNode($use);
+                return $use;
             }
         }
-        return parent::afterTraverse($nodes);
+        return null;
     }
-    private function restructureUnderNamespace(FileWithoutNamespace $fileWithoutNamespace) : void
+    /**
+     * @param mixed[] $oldToNewClasses
+     */
+    private function addOldToNewClasses(array $oldToNewClasses) : void
     {
-        $stmtsBeforeNamespace = [];
-        foreach ($fileWithoutNamespace->stmts as $key => $stmt) {
-            if ($stmt instanceof Namespace_) {
-                if ($stmtsBeforeNamespace !== []) {
-                    $stmt->stmts = \array_values(\array_merge(\is_array($stmtsBeforeNamespace) ? $stmtsBeforeNamespace : \iterator_to_array($stmtsBeforeNamespace), $stmt->stmts));
-                }
-                break;
-            }
-            if ($stmt instanceof Declare_) {
-                continue;
-            }
-            $stmtsBeforeNamespace[] = $stmt;
-            unset($fileWithoutNamespace->stmts[$key]);
-        }
-        if ($stmtsBeforeNamespace === []) {
-            return;
-        }
-        $fileWithoutNamespace->stmts = \array_values($fileWithoutNamespace->stmts);
+        Assert::allString(\array_keys($oldToNewClasses));
+        Assert::allString($oldToNewClasses);
+        $this->renamedClassesDataCollector->addOldToNewClasses($oldToNewClasses);
     }
 }

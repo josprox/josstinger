@@ -5,6 +5,7 @@ namespace Rector\Core\NodeManipulator;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassLike;
 use PHPStan\Reflection\ClassReflection;
@@ -36,17 +37,18 @@ final class ClassConstManipulator
     }
     public function hasClassConstFetch(ClassConst $classConst, ClassReflection $classReflection) : bool
     {
-        if (!$classReflection->isClass() && !$classReflection->isEnum()) {
-            return \true;
+        $class = $this->betterNodeFinder->findParentType($classConst, Class_::class);
+        if (!$class instanceof Class_) {
+            return \false;
         }
-        $className = $classReflection->getName();
+        $className = (string) $this->nodeNameResolver->getName($class);
         foreach ($classReflection->getAncestors() as $ancestorClassReflection) {
             $ancestorClass = $this->astResolver->resolveClassFromClassReflection($ancestorClassReflection);
             if (!$ancestorClass instanceof ClassLike) {
                 continue;
             }
             // has in class?
-            $isClassConstFetchFound = (bool) $this->betterNodeFinder->findFirst($ancestorClass, function (Node $node) use($classConst, $className) : bool {
+            $isClassConstFetchFound = (bool) $this->betterNodeFinder->find($ancestorClass, function (Node $node) use($classConst, $className) : bool {
                 // property + static fetch
                 if (!$node instanceof ClassConstFetch) {
                     return \false;

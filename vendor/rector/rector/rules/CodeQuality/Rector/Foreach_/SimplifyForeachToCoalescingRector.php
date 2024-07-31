@@ -4,20 +4,18 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Foreach_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\BinaryOp\Coalesce;
 use PhpParser\Node\Expr\BinaryOp\Identical;
-use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Foreach_;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Return_;
-use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
+use Rector\Core\NodeManipulator\ForeachManipulator;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -28,6 +26,19 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class SimplifyForeachToCoalescingRector extends AbstractRector implements MinPhpVersionInterface
 {
+    /**
+     * @var \PhpParser\Node\Stmt\Return_|null
+     */
+    private $return;
+    /**
+     * @readonly
+     * @var \Rector\Core\NodeManipulator\ForeachManipulator
+     */
+    private $foreachManipulator;
+    public function __construct(ForeachManipulator $foreachManipulator)
+    {
+        $this->foreachManipulator = $foreachManipulator;
+    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Changes foreach that returns set value to ??', [new CodeSample(<<<'CODE_SAMPLE'
@@ -45,109 +56,65 @@ CODE_SAMPLE
 )]);
     }
     /**
-     * @innerForeachReturn array<class-string<Node>>
+     * @return array<class-string<Node>>
      */
     public function getNodeTypes() : array
     {
-        return [StmtsAwareInterface::class];
+        return [Foreach_::class];
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param Foreach_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->stmts === null) {
+        $this->return = null;
+        if ($node->keyVar === null) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->stmts as $key => $stmt) {
-            if (!$stmt instanceof Foreach_) {
-                continue;
-            }
-            $foreach = $stmt;
-            if (!$foreach->keyVar instanceof Expr) {
-                continue;
-            }
-            $foreachReturnOrAssign = $this->matchForeachReturnOrAssign($foreach);
-            if ($foreachReturnOrAssign instanceof Expression) {
-                /** @var Assign $innerAssign */
-                $innerAssign = $foreachReturnOrAssign->expr;
-                if (!$this->nodeComparator->areNodesEqual($foreach->valueVar, $innerAssign->expr)) {
-                    return null;
-                }
-                $assign = $this->processForeachNodeWithAssignInside($foreach, $innerAssign);
-                if (!$assign instanceof Assign) {
-                    return null;
-                }
-                $node->stmts[$key] = new Expression($assign);
-                $hasChanged = \true;
-                continue;
-            }
-            if ($foreachReturnOrAssign instanceof Return_) {
-                if (!$this->nodeComparator->areNodesEqual($foreach->valueVar, $foreachReturnOrAssign->expr)) {
-                    return null;
-                }
-                $nextStmt = $node->stmts[$key + 1] ?? null;
-                $return = $this->processForeachNodeWithReturnInside($foreach, $foreachReturnOrAssign, $nextStmt);
-                $node->stmts[$key] = $return;
-                // cleanup next return
-                if ($nextStmt instanceof Return_) {
-                    unset($node->stmts[$key + 1]);
-                }
-                $hasChanged = \true;
-            }
+        /** @var Return_|Assign|null $returnOrAssignNode */
+        $returnOrAssignNode = $this->matchReturnOrAssignNode($node);
+        if ($returnOrAssignNode === null) {
+            return null;
         }
-        if ($hasChanged) {
-            return $node;
+        // return $newValue;
+        // we don't return the node value
+        if (!$this->nodeComparator->areNodesEqual($node->valueVar, $returnOrAssignNode->expr)) {
+            return null;
         }
-        return null;
+        if ($returnOrAssignNode instanceof Return_) {
+            return $this->processForeachNodeWithReturnInside($node, $returnOrAssignNode);
+        }
+        return $this->processForeachNodeWithAssignInside($node, $returnOrAssignNode);
     }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::NULL_COALESCE;
     }
     /**
-     * @todo make assign expr generic
-     * @return Expression<Assign>|Return_|null
+     * @return Assign|Return_|null
      */
-    private function matchForeachReturnOrAssign(Foreach_ $foreach)
+    private function matchReturnOrAssignNode(Foreach_ $foreach) : ?Node
     {
-        if (\count($foreach->stmts) !== 1) {
-            return null;
-        }
-        $onlyForeachStmt = $foreach->stmts[0];
-        if (!$onlyForeachStmt instanceof If_) {
-            return null;
-        }
-        $if = $onlyForeachStmt;
-        if (!$if->cond instanceof Identical) {
-            return null;
-        }
-        if (\count($if->stmts) !== 1) {
-            return null;
-        }
-        if ($if->else instanceof Else_ || $if->elseifs !== []) {
-            return null;
-        }
-        $innerStmt = $if->stmts[0];
-        if ($innerStmt instanceof Return_) {
-            return $innerStmt;
-        }
-        if (!$innerStmt instanceof Expression) {
-            return null;
-        }
-        $innerNode = $innerStmt->expr;
-        if ($innerNode instanceof Assign) {
-            if ($innerNode->var instanceof ArrayDimFetch) {
+        return $this->foreachManipulator->matchOnlyStmt($foreach, static function (Node $node) : ?Node {
+            if (!$node instanceof If_) {
                 return null;
             }
-            return $innerStmt;
-        }
-        return null;
+            if (!$node->cond instanceof Identical) {
+                return null;
+            }
+            if (\count($node->stmts) !== 1) {
+                return null;
+            }
+            $innerNode = $node->stmts[0] instanceof Expression ? $node->stmts[0]->expr : $node->stmts[0];
+            if ($innerNode instanceof Assign || $innerNode instanceof Return_) {
+                return $innerNode;
+            }
+            return null;
+        });
     }
-    private function processForeachNodeWithReturnInside(Foreach_ $foreach, Return_ $innerForeachReturn, ?Stmt $nextStmt) : ?\PhpParser\Node\Stmt\Return_
+    private function processForeachNodeWithReturnInside(Foreach_ $foreach, Return_ $return) : ?\PhpParser\Node\Stmt\Return_
     {
-        if (!$this->nodeComparator->areNodesEqual($foreach->valueVar, $innerForeachReturn->expr)) {
+        if (!$this->nodeComparator->areNodesEqual($foreach->valueVar, $return->expr)) {
             return null;
         }
         /** @var If_ $ifNode */
@@ -161,10 +128,19 @@ CODE_SAMPLE
         } else {
             return null;
         }
-        $coalesce = new Coalesce(new ArrayDimFetch($foreach->expr, $checkedNode), $nextStmt instanceof Return_ && $nextStmt->expr instanceof Expr ? $nextStmt->expr : $checkedNode);
-        return new Return_($coalesce);
+        $nextNode = $foreach->getAttribute(AttributeKey::NEXT_NODE);
+        // is next node Return?
+        if ($nextNode instanceof Return_) {
+            $this->return = $nextNode;
+            $this->removeNode($this->return);
+        }
+        $coalesce = new Coalesce(new ArrayDimFetch($foreach->expr, $checkedNode), $this->return instanceof Return_ && $this->return->expr !== null ? $this->return->expr : $checkedNode);
+        if ($this->return !== null) {
+            return new Return_($coalesce);
+        }
+        return null;
     }
-    private function processForeachNodeWithAssignInside(Foreach_ $foreach, Assign $assign) : ?Assign
+    private function processForeachNodeWithAssignInside(Foreach_ $foreach, Assign $assign) : ?Node
     {
         /** @var If_ $ifNode */
         $ifNode = $foreach->stmts[0];

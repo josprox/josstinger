@@ -5,6 +5,7 @@ namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
 use PhpParser\Node\Name;
+use PHPStan\PhpDocParser\Ast\Type\ThisTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\StaticType;
 use PHPStan\Type\Type;
@@ -12,7 +13,6 @@ use Rector\Core\Enum\ObjectReference;
 use Rector\Core\Php\PhpVersionProvider;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\PHPStanStaticTypeMapper\Contract\TypeMapperInterface;
-use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
 use Rector\StaticTypeMapper\ValueObject\Type\SelfStaticType;
 use Rector\StaticTypeMapper\ValueObject\Type\SimpleStaticType;
 /**
@@ -41,24 +41,25 @@ final class StaticTypeMapper implements TypeMapperInterface
     /**
      * @param StaticType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
     {
-        return $type->toPhpDocNode();
+        return new ThisTypeNode();
     }
     /**
-     * @param SimpleStaticType|StaticType $type
+     * @param StaticType $type
      */
     public function mapToPhpParserNode(Type $type, string $typeKind) : ?Node
     {
+        // special case, for autocomplete of return type
+        if ($type instanceof SimpleStaticType) {
+            return new Name(ObjectReference::STATIC);
+        }
         if ($type instanceof SelfStaticType) {
             return new Name(ObjectReference::SELF);
         }
-        if ($typeKind !== TypeKind::RETURN) {
-            return new Name(ObjectReference::SELF);
+        if ($this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::STATIC_RETURN_TYPE)) {
+            return new Name(ObjectReference::STATIC);
         }
-        if (!$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::STATIC_RETURN_TYPE)) {
-            return new Name(ObjectReference::SELF);
-        }
-        return new Name(ObjectReference::STATIC);
+        return new Name(ObjectReference::SELF);
     }
 }

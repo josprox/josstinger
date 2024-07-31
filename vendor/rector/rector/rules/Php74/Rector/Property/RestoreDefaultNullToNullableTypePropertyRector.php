@@ -4,10 +4,8 @@ declare (strict_types=1);
 namespace Rector\Php74\Rector\Property;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Property;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\TypeDeclaration\AlreadyAssignDetector\ConstructorAssignDetector;
@@ -24,15 +22,9 @@ final class RestoreDefaultNullToNullableTypePropertyRector extends AbstractRecto
      * @var \Rector\TypeDeclaration\AlreadyAssignDetector\ConstructorAssignDetector
      */
     private $constructorAssignDetector;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
-     */
-    private $phpDocInfoFactory;
-    public function __construct(ConstructorAssignDetector $constructorAssignDetector, PhpDocInfoFactory $phpDocInfoFactory)
+    public function __construct(ConstructorAssignDetector $constructorAssignDetector)
     {
         $this->constructorAssignDetector = $constructorAssignDetector;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -55,35 +47,25 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [Property::class];
     }
     /**
-     * @param Class_ $node
+     * @param Property $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->isReadonly()) {
+        if ($this->shouldSkip($node)) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->getProperties() as $property) {
-            if ($this->shouldSkip($property, $node)) {
-                continue;
-            }
-            $onlyProperty = $property->props[0];
-            $onlyProperty->default = $this->nodeFactory->createNull();
-            $hasChanged = \true;
-        }
-        if ($hasChanged) {
-            return $node;
-        }
-        return null;
+        $onlyProperty = $node->props[0];
+        $onlyProperty->default = $this->nodeFactory->createNull();
+        return $node;
     }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::TYPED_PROPERTIES;
     }
-    private function shouldSkip(Property $property, Class_ $class) : bool
+    private function shouldSkip(Property $property) : bool
     {
         if ($property->type === null) {
             return \true;
@@ -92,10 +74,10 @@ CODE_SAMPLE
             return \true;
         }
         $onlyProperty = $property->props[0];
-        if ($onlyProperty->default instanceof Expr) {
+        if ($onlyProperty->default !== null) {
             return \true;
         }
-        if ($this->isReadonly($property)) {
+        if ($property->isReadonly()) {
             return \true;
         }
         if (!$this->nodeTypeResolver->isNullableType($property)) {
@@ -103,17 +85,12 @@ CODE_SAMPLE
         }
         // is variable assigned in constructor
         $propertyName = $this->getName($property);
-        return $this->constructorAssignDetector->isPropertyAssigned($class, $propertyName);
-    }
-    private function isReadonly(Property $property) : bool
-    {
-        // native readonly
-        if ($property->isReadonly()) {
-            return \true;
+        $classLike = $this->betterNodeFinder->findParentType($property, Class_::class);
+        // a trait can be used in multiple context, we don't know whether it is assigned in __construct or not
+        // so it needs to has null default
+        if (!$classLike instanceof Class_) {
+            return \false;
         }
-        // @readonly annotation
-        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($property);
-        $tags = $phpDocInfo->getTagsByName('@readonly');
-        return $tags !== [];
+        return $this->constructorAssignDetector->isPropertyAssigned($classLike, $propertyName);
     }
 }

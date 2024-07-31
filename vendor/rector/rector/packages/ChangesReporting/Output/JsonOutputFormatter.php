@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\ChangesReporting\Output;
 
-use RectorPrefix202312\Nette\Utils\Json;
+use RectorPrefix202211\Nette\Utils\Json;
 use Rector\ChangesReporting\Annotation\RectorsChangelogResolver;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
 use Rector\Core\ValueObject\Configuration;
@@ -13,14 +13,14 @@ use Rector\Parallel\ValueObject\Bridge;
 final class JsonOutputFormatter implements OutputFormatterInterface
 {
     /**
+     * @var string
+     */
+    public const NAME = 'json';
+    /**
      * @readonly
      * @var \Rector\ChangesReporting\Annotation\RectorsChangelogResolver
      */
     private $rectorsChangelogResolver;
-    /**
-     * @var string
-     */
-    public const NAME = 'json';
     public function __construct(RectorsChangelogResolver $rectorsChangelogResolver)
     {
         $this->rectorsChangelogResolver = $rectorsChangelogResolver;
@@ -31,7 +31,7 @@ final class JsonOutputFormatter implements OutputFormatterInterface
     }
     public function report(ProcessResult $processResult, Configuration $configuration) : void
     {
-        $errorsJson = ['totals' => ['changed_files' => \count($processResult->getFileDiffs())]];
+        $errorsJson = ['totals' => ['changed_files' => \count($processResult->getFileDiffs()), 'removed_and_added_files_count' => $processResult->getRemovedAndAddedFilesCount(), 'removed_node_count' => $processResult->getRemovedNodeCount()]];
         $fileDiffs = $processResult->getFileDiffs();
         \ksort($fileDiffs);
         foreach ($fileDiffs as $fileDiff) {
@@ -41,9 +41,9 @@ final class JsonOutputFormatter implements OutputFormatterInterface
             // for Rector CI
             $errorsJson['changed_files'][] = $relativeFilePath;
         }
-        $systemErrors = $processResult->getSystemErrors();
-        $errorsJson['totals']['errors'] = \count($systemErrors);
-        $errorsData = $this->createErrorsData($systemErrors);
+        $errors = $processResult->getErrors();
+        $errorsJson['totals']['errors'] = \count($errors);
+        $errorsData = $this->createErrorsData($errors);
         if ($errorsData !== []) {
             $errorsJson['errors'] = $errorsData;
         }

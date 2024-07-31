@@ -3,14 +3,23 @@
 declare (strict_types=1);
 namespace Rector\Core\ValueObject\Reporting;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use Rector\ChangesReporting\ValueObject\RectorWithLineChange;
 use Rector\Core\Contract\Rector\RectorInterface;
-use Rector\Parallel\ValueObject\BridgeItem;
-use RectorPrefix202312\Symplify\EasyParallel\Contract\SerializableInterface;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use Rector\Parallel\ValueObject\Name;
+use RectorPrefix202211\Symplify\EasyParallel\Contract\SerializableInterface;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 final class FileDiff implements SerializableInterface
 {
+    /**
+     * @var string
+     * @se https://regex101.com/r/AUPIX4/1
+     */
+    private const FIRST_LINE_REGEX = '#@@(.*?)(?<' . self::FIRST_LINE_KEY . '>\\d+)(.*?)@@#';
+    /**
+     * @var string
+     */
+    private const FIRST_LINE_KEY = 'first_line';
     /**
      * @readonly
      * @var string
@@ -32,15 +41,6 @@ final class FileDiff implements SerializableInterface
      */
     private $rectorsWithLineChanges = [];
     /**
-     * @var string
-     * @se https://regex101.com/r/AUPIX4/1
-     */
-    private const FIRST_LINE_REGEX = '#@@(.*?)(?<' . self::FIRST_LINE_KEY . '>\\d+)(.*?)@@#';
-    /**
-     * @var string
-     */
-    private const FIRST_LINE_KEY = 'first_line';
-    /**
      * @param RectorWithLineChange[] $rectorsWithLineChanges
      */
     public function __construct(string $relativeFilePath, string $diff, string $diffConsoleFormatted, array $rectorsWithLineChanges = [])
@@ -49,7 +49,7 @@ final class FileDiff implements SerializableInterface
         $this->diff = $diff;
         $this->diffConsoleFormatted = $diffConsoleFormatted;
         $this->rectorsWithLineChanges = $rectorsWithLineChanges;
-        Assert::allIsInstanceOf($rectorsWithLineChanges, RectorWithLineChange::class);
+        Assert::allIsAOf($rectorsWithLineChanges, RectorWithLineChange::class);
     }
     public function getDiff() : string
     {
@@ -95,19 +95,18 @@ final class FileDiff implements SerializableInterface
      */
     public function jsonSerialize() : array
     {
-        return [BridgeItem::RELATIVE_FILE_PATH => $this->relativeFilePath, BridgeItem::DIFF => $this->diff, BridgeItem::DIFF_CONSOLE_FORMATTED => $this->diffConsoleFormatted, BridgeItem::RECTORS_WITH_LINE_CHANGES => $this->rectorsWithLineChanges];
+        return [Name::RELATIVE_FILE_PATH => $this->relativeFilePath, Name::DIFF => $this->diff, Name::DIFF_CONSOLE_FORMATTED => $this->diffConsoleFormatted, Name::RECTORS_WITH_LINE_CHANGES => $this->rectorsWithLineChanges];
     }
     /**
      * @param array<string, mixed> $json
-     * @return $this
      */
-    public static function decode(array $json) : \RectorPrefix202312\Symplify\EasyParallel\Contract\SerializableInterface
+    public static function decode(array $json) : SerializableInterface
     {
         $rectorWithLineChanges = [];
-        foreach ($json[BridgeItem::RECTORS_WITH_LINE_CHANGES] as $rectorWithLineChangesJson) {
+        foreach ($json[Name::RECTORS_WITH_LINE_CHANGES] as $rectorWithLineChangesJson) {
             $rectorWithLineChanges[] = RectorWithLineChange::decode($rectorWithLineChangesJson);
         }
-        return new self($json[BridgeItem::RELATIVE_FILE_PATH], $json[BridgeItem::DIFF], $json[BridgeItem::DIFF_CONSOLE_FORMATTED], $rectorWithLineChanges);
+        return new self($json[Name::RELATIVE_FILE_PATH], $json[Name::DIFF], $json[Name::DIFF_CONSOLE_FORMATTED], $rectorWithLineChanges);
     }
     /**
      * @template TType as object

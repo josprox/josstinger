@@ -14,12 +14,16 @@ use Rector\Privatization\NodeManipulator\VisibilityManipulator;
 use Rector\Visibility\ValueObject\ChangeMethodVisibility;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Visibility\Rector\ClassMethod\ChangeMethodVisibilityRector\ChangeMethodVisibilityRectorTest
  */
 final class ChangeMethodVisibilityRector extends AbstractScopeAwareRector implements ConfigurableRectorInterface
 {
+    /**
+     * @var ChangeMethodVisibility[]
+     */
+    private $methodVisibilities = [];
     /**
      * @readonly
      * @var \Rector\NodeCollector\ScopeResolver\ParentClassScopeResolver
@@ -30,10 +34,6 @@ final class ChangeMethodVisibilityRector extends AbstractScopeAwareRector implem
      * @var \Rector\Privatization\NodeManipulator\VisibilityManipulator
      */
     private $visibilityManipulator;
-    /**
-     * @var ChangeMethodVisibility[]
-     */
-    private $methodVisibilities = [];
     public function __construct(ParentClassScopeResolver $parentClassScopeResolver, VisibilityManipulator $visibilityManipulator)
     {
         $this->parentClassScopeResolver = $parentClassScopeResolver;
@@ -85,9 +85,6 @@ CODE_SAMPLE
      */
     public function refactorWithScope(Node $node, Scope $scope) : ?Node
     {
-        if ($this->methodVisibilities === []) {
-            return null;
-        }
         $parentClassName = $this->parentClassScopeResolver->resolveParentClassName($scope);
         if ($parentClassName === null) {
             return null;
@@ -102,7 +99,7 @@ CODE_SAMPLE
             $this->visibilityManipulator->changeNodeVisibility($node, $methodVisibility->getVisibility());
             return $node;
         }
-        return null;
+        return $node;
     }
     /**
      * @param mixed[] $configuration

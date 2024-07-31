@@ -17,9 +17,6 @@ use Rector\Core\Exception\ShouldNotHappenException;
 use Rector\Core\Util\StringUtils;
 use Rector\Core\ValueObject\SprintfStringAndArgs;
 use Rector\NodeTypeResolver\Node\AttributeKey;
-/**
- * @api used in phpunit
- */
 final class NodeTransformer
 {
     /**
@@ -28,8 +25,6 @@ final class NodeTransformer
      */
     private const PERCENT_TEXT_REGEX = '#^%\\w$#';
     /**
-     * @api used in phpunit symfony
-     *
      * From:
      * - sprintf("Hi %s", $name);
      *
@@ -62,24 +57,20 @@ final class NodeTransformer
      */
     public function transformArrayToYields(Array_ $array) : array
     {
-        $yields = [];
+        $yieldNodes = [];
         foreach ($array->items as $arrayItem) {
-            if (!$arrayItem instanceof ArrayItem) {
+            if ($arrayItem === null) {
                 continue;
             }
-            $yield = new Yield_($arrayItem->value, $arrayItem->key);
-            $expression = new Expression($yield);
+            $expressionNode = new Expression(new Yield_($arrayItem->value, $arrayItem->key));
             $arrayItemComments = $arrayItem->getComments();
             if ($arrayItemComments !== []) {
-                $expression->setAttribute(AttributeKey::COMMENTS, $arrayItemComments);
+                $expressionNode->setAttribute(AttributeKey::COMMENTS, $arrayItemComments);
             }
-            $yields[] = $expression;
+            $yieldNodes[] = $expressionNode;
         }
-        return $yields;
+        return $yieldNodes;
     }
-    /**
-     * @api symfony
-     */
     public function transformConcatToStringArray(Concat $concat) : Array_
     {
         $arrayItems = $this->transformConcatToItems($concat);

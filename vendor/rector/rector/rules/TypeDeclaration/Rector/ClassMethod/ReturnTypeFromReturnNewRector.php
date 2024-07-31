@@ -12,36 +12,27 @@ use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Function_;
 use PhpParser\Node\Stmt\Return_;
-use PHPStan\Analyser\Scope;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\ObjectType;
-use PHPStan\Type\ObjectWithoutClassType;
 use PHPStan\Type\StaticType;
 use PHPStan\Type\Type;
-use PHPStan\Type\UnionType;
 use Rector\Core\Enum\ObjectReference;
 use Rector\Core\Exception\ShouldNotHappenException;
-use Rector\Core\NodeAnalyzer\ClassAnalyzer;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\Core\Rector\AbstractScopeAwareRector;
+use Rector\Core\Rector\AbstractRector;
 use Rector\Core\Reflection\ReflectionResolver;
 use Rector\Core\ValueObject\PhpVersionFeature;
-use Rector\NodeTypeResolver\NodeTypeResolver\NewTypeResolver;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
-use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\StaticTypeMapper\ValueObject\Type\SelfStaticType;
 use Rector\TypeDeclaration\NodeAnalyzer\ReturnTypeAnalyzer\StrictReturnNewAnalyzer;
-use Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer;
-use Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\ReturnTypeFromReturnNewRector\ReturnTypeFromReturnNewRectorTest
  */
-final class ReturnTypeFromReturnNewRector extends AbstractScopeAwareRector implements MinPhpVersionInterface
+final class ReturnTypeFromReturnNewRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
      * @readonly
@@ -63,48 +54,12 @@ final class ReturnTypeFromReturnNewRector extends AbstractScopeAwareRector imple
      * @var \Rector\TypeDeclaration\NodeAnalyzer\ReturnTypeAnalyzer\StrictReturnNewAnalyzer
      */
     private $strictReturnNewAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\VendorLocker\NodeVendorLocker\ClassMethodReturnTypeOverrideGuard
-     */
-    private $classMethodReturnTypeOverrideGuard;
-    /**
-     * @readonly
-     * @var \Rector\TypeDeclaration\TypeInferer\ReturnTypeInferer
-     */
-    private $returnTypeInferer;
-    /**
-     * @readonly
-     * @var \Rector\Core\NodeAnalyzer\ClassAnalyzer
-     */
-    private $classAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\NodeTypeResolver\NodeTypeResolver\NewTypeResolver
-     */
-    private $newTypeResolver;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    /**
-     * @readonly
-     * @var \Rector\StaticTypeMapper\StaticTypeMapper
-     */
-    private $staticTypeMapper;
-    public function __construct(TypeFactory $typeFactory, ReflectionProvider $reflectionProvider, ReflectionResolver $reflectionResolver, StrictReturnNewAnalyzer $strictReturnNewAnalyzer, ClassMethodReturnTypeOverrideGuard $classMethodReturnTypeOverrideGuard, ReturnTypeInferer $returnTypeInferer, ClassAnalyzer $classAnalyzer, NewTypeResolver $newTypeResolver, BetterNodeFinder $betterNodeFinder, StaticTypeMapper $staticTypeMapper)
+    public function __construct(TypeFactory $typeFactory, ReflectionProvider $reflectionProvider, ReflectionResolver $reflectionResolver, StrictReturnNewAnalyzer $strictReturnNewAnalyzer)
     {
         $this->typeFactory = $typeFactory;
         $this->reflectionProvider = $reflectionProvider;
         $this->reflectionResolver = $reflectionResolver;
         $this->strictReturnNewAnalyzer = $strictReturnNewAnalyzer;
-        $this->classMethodReturnTypeOverrideGuard = $classMethodReturnTypeOverrideGuard;
-        $this->returnTypeInferer = $returnTypeInferer;
-        $this->classAnalyzer = $classAnalyzer;
-        $this->newTypeResolver = $newTypeResolver;
-        $this->betterNodeFinder = $betterNodeFinder;
-        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -138,12 +93,9 @@ CODE_SAMPLE
     /**
      * @param ClassMethod|Function_|ArrowFunction $node
      */
-    public function refactorWithScope(Node $node, Scope $scope) : ?Node
+    public function refactor(Node $node) : ?Node
     {
         if ($node->returnType !== null) {
-            return null;
-        }
-        if ($node instanceof ClassMethod && $this->classMethodReturnTypeOverrideGuard->shouldSkipClassMethod($node, $scope)) {
             return null;
         }
         if (!$node instanceof ArrowFunction) {
@@ -160,21 +112,14 @@ CODE_SAMPLE
         return PhpVersionFeature::SCALAR_TYPES;
     }
     /**
-     * @return \PHPStan\Type\ObjectType|\PHPStan\Type\ObjectWithoutClassType|\PHPStan\Type\StaticType|null
+     * @return \PHPStan\Type\ObjectType|\PHPStan\Type\StaticType
      */
     private function createObjectTypeFromNew(New_ $new)
     {
-        if ($this->classAnalyzer->isAnonymousClass($new->class)) {
-            $newType = $this->newTypeResolver->resolve($new);
-            if (!$newType instanceof ObjectWithoutClassType) {
-                return null;
-            }
-            return $newType;
-        }
-        if (!$new->class instanceof Name) {
-            return null;
-        }
         $className = $this->getName($new->class);
+        if ($className === null) {
+            throw new ShouldNotHappenException();
+        }
         if ($className === ObjectReference::STATIC || $className === ObjectReference::SELF) {
             $classReflection = $this->reflectionResolver->resolveClassReflection($new);
             if (!$classReflection instanceof ClassReflection) {
@@ -212,10 +157,6 @@ CODE_SAMPLE
         if (!$returnTypeNode instanceof Node) {
             return null;
         }
-        $returnType = $this->returnTypeInferer->inferFunctionLike($node);
-        if ($returnType instanceof UnionType) {
-            return null;
-        }
         $node->returnType = $returnTypeNode;
         return $node;
     }
@@ -230,11 +171,11 @@ CODE_SAMPLE
             if (!$return->expr instanceof New_) {
                 return null;
             }
-            $newType = $this->createObjectTypeFromNew($return->expr);
-            if (!$newType instanceof Type) {
+            $new = $return->expr;
+            if (!$new->class instanceof Name) {
                 return null;
             }
-            $newTypes[] = $newType;
+            $newTypes[] = $this->createObjectTypeFromNew($new);
         }
         return $newTypes;
     }

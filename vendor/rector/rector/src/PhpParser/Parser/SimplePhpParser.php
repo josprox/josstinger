@@ -3,12 +3,12 @@
 declare (strict_types=1);
 namespace Rector\Core\PhpParser\Parser;
 
-use RectorPrefix202312\Nette\Utils\FileSystem;
+use RectorPrefix202211\Nette\Utils\FileSystem;
 use PhpParser\Node\Stmt;
 use PhpParser\NodeTraverser;
+use PhpParser\NodeVisitor\NodeConnectingVisitor;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
-use Rector\NodeTypeResolver\PHPStan\Scope\NodeVisitor\AssignedToNodeVisitor;
 final class SimplePhpParser
 {
     /**
@@ -16,20 +16,12 @@ final class SimplePhpParser
      * @var \PhpParser\Parser
      */
     private $phpParser;
-    /**
-     * @readonly
-     * @var \PhpParser\NodeTraverser
-     */
-    private $nodeTraverser;
     public function __construct()
     {
         $parserFactory = new ParserFactory();
         $this->phpParser = $parserFactory->create(ParserFactory::PREFER_PHP7);
-        $this->nodeTraverser = new NodeTraverser();
-        $this->nodeTraverser->addVisitor(new AssignedToNodeVisitor());
     }
     /**
-     * @api tests
      * @return Stmt[]
      */
     public function parseFile(string $filePath) : array
@@ -46,6 +38,8 @@ final class SimplePhpParser
         if ($stmts === null) {
             return [];
         }
-        return $this->nodeTraverser->traverse($stmts);
+        $nodeTraverser = new NodeTraverser();
+        $nodeTraverser->addVisitor(new NodeConnectingVisitor());
+        return $nodeTraverser->traverse($stmts);
     }
 }

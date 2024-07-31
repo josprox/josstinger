@@ -9,8 +9,8 @@ use PhpParser\Node\Expr\BinaryOp;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\Cast\Bool_;
 use PhpParser\Node\Expr\Ternary;
+use PHPStan\Type\BooleanType;
 use Rector\Core\PhpParser\Node\AssignAndBinaryMap;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -24,15 +24,9 @@ final class UnnecessaryTernaryExpressionRector extends AbstractRector
      * @var \Rector\Core\PhpParser\Node\AssignAndBinaryMap
      */
     private $assignAndBinaryMap;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(AssignAndBinaryMap $assignAndBinaryMap, ValueResolver $valueResolver)
+    public function __construct(AssignAndBinaryMap $assignAndBinaryMap)
     {
         $this->assignAndBinaryMap = $assignAndBinaryMap;
-        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -50,18 +44,20 @@ final class UnnecessaryTernaryExpressionRector extends AbstractRector
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$node->if instanceof Expr) {
+        /** @var Ternary $ternaryExpression */
+        $ternaryExpression = $node;
+        if (!$ternaryExpression->if instanceof Expr) {
             return null;
         }
-        $ifExpression = $node->if;
+        $ifExpression = $ternaryExpression->if;
         if (!$this->valueResolver->isTrueOrFalse($ifExpression)) {
             return null;
         }
-        $elseExpression = $node->else;
+        $elseExpression = $ternaryExpression->else;
         if (!$this->valueResolver->isTrueOrFalse($elseExpression)) {
             return null;
         }
-        $condition = $node->cond;
+        $condition = $ternaryExpression->cond;
         if (!$condition instanceof BinaryOp) {
             return $this->processNonBinaryCondition($ifExpression, $elseExpression, $condition);
         }
@@ -98,7 +94,7 @@ final class UnnecessaryTernaryExpressionRector extends AbstractRector
     private function processTrueIfExpressionWithFalseElseExpression(Expr $expr) : Expr
     {
         $exprType = $this->getType($expr);
-        if ($exprType->isBoolean()->yes()) {
+        if ($exprType instanceof BooleanType) {
             return $expr;
         }
         return new Bool_($expr);
@@ -107,13 +103,13 @@ final class UnnecessaryTernaryExpressionRector extends AbstractRector
     {
         if ($expr instanceof BooleanNot) {
             $negatedExprType = $this->getType($expr->expr);
-            if ($negatedExprType->isBoolean()->yes()) {
+            if ($negatedExprType instanceof BooleanType) {
                 return $expr->expr;
             }
             return new Bool_($expr->expr);
         }
         $exprType = $this->getType($expr);
-        if ($exprType->isBoolean()->yes()) {
+        if ($exprType instanceof BooleanType) {
             return new BooleanNot($expr);
         }
         return new BooleanNot(new Bool_($expr));

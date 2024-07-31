@@ -5,8 +5,8 @@ namespace Rector\TypeDeclaration\Guard;
 
 use PhpParser\Node\Stmt\Property;
 use PHPStan\Reflection\ClassReflection;
+use Rector\Core\Reflection\ReflectionResolver;
 use Rector\NodeNameResolver\NodeNameResolver;
-use Rector\Php74\Guard\MakePropertyTypedGuard;
 final class PropertyTypeOverrideGuard
 {
     /**
@@ -16,18 +16,19 @@ final class PropertyTypeOverrideGuard
     private $nodeNameResolver;
     /**
      * @readonly
-     * @var \Rector\Php74\Guard\MakePropertyTypedGuard
+     * @var \Rector\Core\Reflection\ReflectionResolver
      */
-    private $makePropertyTypedGuard;
-    public function __construct(NodeNameResolver $nodeNameResolver, MakePropertyTypedGuard $makePropertyTypedGuard)
+    private $reflectionResolver;
+    public function __construct(NodeNameResolver $nodeNameResolver, ReflectionResolver $reflectionResolver)
     {
         $this->nodeNameResolver = $nodeNameResolver;
-        $this->makePropertyTypedGuard = $makePropertyTypedGuard;
+        $this->reflectionResolver = $reflectionResolver;
     }
-    public function isLegal(Property $property, ClassReflection $classReflection) : bool
+    public function isLegal(Property $property) : bool
     {
-        if (!$this->makePropertyTypedGuard->isLegal($property, $classReflection)) {
-            return \false;
+        $classReflection = $this->reflectionResolver->resolveClassReflection($property);
+        if (!$classReflection instanceof ClassReflection) {
+            return \true;
         }
         $propertyName = $this->nodeNameResolver->getName($property);
         foreach ($classReflection->getParents() as $parentClassReflection) {

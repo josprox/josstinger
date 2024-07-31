@@ -19,6 +19,7 @@ use Rector\BetterPhpDocParser\PhpDocInfo\TokenIteratorFactory;
 use Rector\BetterPhpDocParser\ValueObject\Parser\BetterTokenIterator;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
 use Rector\BetterPhpDocParser\ValueObject\StartAndEnd;
+use Rector\Core\Configuration\CurrentNodeProvider;
 use Rector\Core\Exception\ShouldNotHappenException;
 use Rector\Core\Util\Reflection\PrivatesAccessor;
 /**
@@ -26,6 +27,11 @@ use Rector\Core\Util\Reflection\PrivatesAccessor;
  */
 final class BetterPhpDocParser extends PhpDocParser
 {
+    /**
+     * @readonly
+     * @var \Rector\Core\Configuration\CurrentNodeProvider
+     */
+    private $currentNodeProvider;
     /**
      * @readonly
      * @var \Rector\BetterPhpDocParser\PhpDocInfo\TokenIteratorFactory
@@ -44,42 +50,34 @@ final class BetterPhpDocParser extends PhpDocParser
     /**
      * @param PhpDocNodeDecoratorInterface[] $phpDocNodeDecorators
      */
-    public function __construct(TypeParser $typeParser, ConstExprParser $constExprParser, TokenIteratorFactory $tokenIteratorFactory, array $phpDocNodeDecorators, PrivatesAccessor $privatesAccessor)
+    public function __construct(TypeParser $typeParser, ConstExprParser $constExprParser, CurrentNodeProvider $currentNodeProvider, TokenIteratorFactory $tokenIteratorFactory, array $phpDocNodeDecorators, PrivatesAccessor $privatesAccessor = null)
     {
+        $privatesAccessor = $privatesAccessor ?? new PrivatesAccessor();
+        $this->currentNodeProvider = $currentNodeProvider;
         $this->tokenIteratorFactory = $tokenIteratorFactory;
         $this->phpDocNodeDecorators = $phpDocNodeDecorators;
         $this->privatesAccessor = $privatesAccessor;
-        parent::__construct(
-            // TypeParser
-            $typeParser,
-            // ConstExprParser
-            $constExprParser,
-            // requireWhitespaceBeforeDescription
-            \false,
-            // preserveTypeAliasesWithInvalidTypes
-            \false,
-            // usedAttributes
-            ['lines' => \true, 'indexes' => \true],
-            // parseDoctrineAnnotations
-            \false,
-            // textBetweenTagsBelongsToDescription, default to false, exists since 1.23.0
-            \true
-        );
+        parent::__construct($typeParser, $constExprParser);
     }
-    public function parseWithNode(BetterTokenIterator $betterTokenIterator, Node $node) : PhpDocNode
+    public function parse(TokenIterator $tokenIterator) : PhpDocNode
     {
-        $betterTokenIterator->consumeTokenType(Lexer::TOKEN_OPEN_PHPDOC);
-        $betterTokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL);
+        $tokenIterator->consumeTokenType(Lexer::TOKEN_OPEN_PHPDOC);
+        $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL);
         $children = [];
-        if (!$betterTokenIterator->isCurrentTokenType(Lexer::TOKEN_CLOSE_PHPDOC)) {
-            $children[] = $this->parseChildAndStoreItsPositions($betterTokenIterator);
-            while ($betterTokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL) && !$betterTokenIterator->isCurrentTokenType(Lexer::TOKEN_CLOSE_PHPDOC)) {
-                $children[] = $this->parseChildAndStoreItsPositions($betterTokenIterator);
+        if (!$tokenIterator->isCurrentTokenType(Lexer::TOKEN_CLOSE_PHPDOC)) {
+            $children[] = $this->parseChildAndStoreItsPositions($tokenIterator);
+            while ($tokenIterator->tryConsumeTokenType(Lexer::TOKEN_PHPDOC_EOL) && !$tokenIterator->isCurrentTokenType(Lexer::TOKEN_CLOSE_PHPDOC)) {
+                $children[] = $this->parseChildAndStoreItsPositions($tokenIterator);
             }
         }
         // might be in the middle of annotations
-        $betterTokenIterator->tryConsumeTokenType(Lexer::TOKEN_CLOSE_PHPDOC);
+        $tokenIterator->tryConsumeTokenType(Lexer::TOKEN_CLOSE_PHPDOC);
         $phpDocNode = new PhpDocNode($children);
+        // decorate FQN classes etc.
+        $node = $this->currentNodeProvider->getNode();
+        if (!$node instanceof Node) {
+            throw new ShouldNotHappenException();
+        }
         foreach ($this->phpDocNodeDecorators as $phpDocNodeDecorator) {
             $phpDocNodeDecorator->decorate($phpDocNode, $node);
         }
@@ -100,13 +98,9 @@ final class BetterPhpDocParser extends PhpDocParser
      */
     public function parseTagValue(TokenIterator $tokenIterator, string $tag) : PhpDocTagValueNode
     {
-        $isPrecededByHorizontalWhitespace = $tokenIterator->isPrecededByHorizontalWhitespace();
         $startPosition = $tokenIterator->currentPosition();
         $phpDocTagValueNode = parent::parseTagValue($tokenIterator, $tag);
         $endPosition = $tokenIterator->currentPosition();
-        if ($isPrecededByHorizontalWhitespace && \property_exists($phpDocTagValueNode, 'description')) {
-            $phpDocTagValueNode->description = \str_replace("\n", "\n * ", (string) $phpDocTagValueNode->description);
-        }
         $startAndEnd = new StartAndEnd($startPosition, $endPosition);
         $phpDocTagValueNode->setAttribute(PhpDocAttributeKey::START_AND_END, $startAndEnd);
         return $phpDocTagValueNode;

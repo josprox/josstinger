@@ -22,6 +22,10 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class RenamePropertyToMatchTypeRector extends AbstractRector
 {
     /**
+     * @var bool
+     */
+    private $hasChanged = \false;
+    /**
      * @readonly
      * @var \Rector\Naming\PropertyRenamer\MatchTypePropertyRenamer
      */
@@ -41,10 +45,6 @@ final class RenamePropertyToMatchTypeRector extends AbstractRector
      * @var \Rector\Naming\PropertyRenamer\PropertyPromotionRenamer
      */
     private $propertyPromotionRenamer;
-    /**
-     * @var bool
-     */
-    private $hasChanged = \false;
     public function __construct(MatchTypePropertyRenamer $matchTypePropertyRenamer, PropertyRenameFactory $propertyRenameFactory, MatchPropertyTypeExpectedNameResolver $matchPropertyTypeExpectedNameResolver, PropertyPromotionRenamer $propertyPromotionRenamer)
     {
         $this->matchTypePropertyRenamer = $matchTypePropertyRenamer;
@@ -96,25 +96,21 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $this->hasChanged = \false;
         $this->refactorClassProperties($node);
-        $hasPromotedPropertyChanged = $this->propertyPromotionRenamer->renamePropertyPromotion($node);
-        if ($this->hasChanged) {
-            return $node;
+        $this->propertyPromotionRenamer->renamePropertyPromotion($node);
+        if (!$this->hasChanged) {
+            return null;
         }
-        if ($hasPromotedPropertyChanged) {
-            return $node;
-        }
-        return null;
+        return $node;
     }
     private function refactorClassProperties(ClassLike $classLike) : void
     {
         foreach ($classLike->getProperties() as $property) {
-            $expectedPropertyName = $this->matchPropertyTypeExpectedNameResolver->resolve($property, $classLike);
+            $expectedPropertyName = $this->matchPropertyTypeExpectedNameResolver->resolve($property);
             if ($expectedPropertyName === null) {
                 continue;
             }
-            $propertyRename = $this->propertyRenameFactory->createFromExpectedName($classLike, $property, $expectedPropertyName);
+            $propertyRename = $this->propertyRenameFactory->createFromExpectedName($property, $expectedPropertyName);
             if (!$propertyRename instanceof PropertyRename) {
                 continue;
             }

@@ -11,7 +11,6 @@ use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\Return_;
 use Rector\Core\PhpParser\Comparing\NodeComparator;
 use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\Core\Util\ArrayChecker;
 final class ClosureArrowFunctionAnalyzer
 {
     /**
@@ -24,16 +23,10 @@ final class ClosureArrowFunctionAnalyzer
      * @var \Rector\Core\PhpParser\Comparing\NodeComparator
      */
     private $nodeComparator;
-    /**
-     * @readonly
-     * @var \Rector\Core\Util\ArrayChecker
-     */
-    private $arrayChecker;
-    public function __construct(BetterNodeFinder $betterNodeFinder, NodeComparator $nodeComparator, ArrayChecker $arrayChecker)
+    public function __construct(BetterNodeFinder $betterNodeFinder, NodeComparator $nodeComparator)
     {
         $this->betterNodeFinder = $betterNodeFinder;
         $this->nodeComparator = $nodeComparator;
-        $this->arrayChecker = $arrayChecker;
     }
     public function matchArrowFunctionExpr(Closure $closure) : ?Expr
     {
@@ -46,7 +39,7 @@ final class ClosureArrowFunctionAnalyzer
         }
         /** @var Return_ $return */
         $return = $onlyStmt;
-        if (!$return->expr instanceof Expr) {
+        if ($return->expr === null) {
             return null;
         }
         if ($this->shouldSkipForUsedReferencedValue($closure)) {
@@ -83,7 +76,7 @@ final class ClosureArrowFunctionAnalyzer
                 return \false;
             }
             foreach ($referencedValues as $referencedValue) {
-                $isFoundInInnerUses = $this->arrayChecker->doesExist($subNode->uses, function (ClosureUse $closureUse) use($referencedValue) : bool {
+                $isFoundInInnerUses = (bool) \array_filter($subNode->uses, function (ClosureUse $closureUse) use($referencedValue) : bool {
                     return $closureUse->byRef && $this->nodeComparator->areNodesEqual($closureUse->var, $referencedValue);
                 });
                 if ($isFoundInInnerUses) {

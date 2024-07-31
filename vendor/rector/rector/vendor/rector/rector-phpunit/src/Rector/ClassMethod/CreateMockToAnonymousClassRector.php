@@ -111,9 +111,6 @@ CODE_SAMPLE
                     if (!$this->isName($rootMethodCall->name, 'method')) {
                         continue;
                     }
-                    if ($methodCall->isFirstClassCallable()) {
-                        continue;
-                    }
                     // has dynamic return?
                     if ($hasDynamicReturnExprs === \false) {
                         $returnedExpr = $methodCall->getArgs()[0]->value;
@@ -130,9 +127,6 @@ CODE_SAMPLE
             // change to anonymous class
             /** @var MethodCall $methodCall */
             $methodCall = $createMockMethodCallAssign->expr;
-            if ($methodCall->isFirstClassCallable()) {
-                continue;
-            }
             $firstArg = $methodCall->getArgs()[0];
             $mockExpr = $createMockMethodCallAssign->var;
             $anonymousClass = $this->createAnonymousClass($firstArg);
@@ -167,7 +161,7 @@ CODE_SAMPLE
             throw new NotImplementedYetException();
         }
         // must respect PHPStan anonymous internal naming \Rector\NodeTypeResolver\PHPStan\Scope\PHPStanNodeScopeResolver::ANONYMOUS_CLASS_START_REGEX
-        return new Class_('AnonymousClass1234', ['extends' => $className], ['startLine' => $firstArg->getStartLine(), 'endLine' => $firstArg->getEndLine()]);
+        return new Class_('AnonymousClass1234', ['extends' => $className]);
     }
     private function matchCreateMockAssign(Stmt $stmt) : ?Assign
     {

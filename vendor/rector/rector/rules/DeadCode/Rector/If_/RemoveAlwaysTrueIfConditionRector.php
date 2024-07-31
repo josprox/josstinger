@@ -5,18 +5,12 @@ namespace Rector\DeadCode\Rector\If_;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticPropertyFetch;
-use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\If_;
-use PhpParser\NodeTraverser;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\Constant\ConstantBooleanType;
-use Rector\Core\NodeAnalyzer\ExprAnalyzer;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\Reflection\ReflectionResolver;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -31,21 +25,9 @@ final class RemoveAlwaysTrueIfConditionRector extends AbstractRector
      * @var \Rector\Core\Reflection\ReflectionResolver
      */
     private $reflectionResolver;
-    /**
-     * @readonly
-     * @var \Rector\Core\NodeAnalyzer\ExprAnalyzer
-     */
-    private $exprAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    public function __construct(ReflectionResolver $reflectionResolver, ExprAnalyzer $exprAnalyzer, BetterNodeFinder $betterNodeFinder)
+    public function __construct(ReflectionResolver $reflectionResolver)
     {
         $this->reflectionResolver = $reflectionResolver;
-        $this->exprAnalyzer = $exprAnalyzer;
-        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -84,11 +66,11 @@ CODE_SAMPLE
     }
     /**
      * @param If_ $node
-     * @return int|null|Stmt[]
+     * @return If_|null|Stmt[]
      */
     public function refactor(Node $node)
     {
-        if ($node->else instanceof Else_) {
+        if ($node->else !== null) {
             return null;
         }
         // just one if
@@ -105,28 +87,11 @@ CODE_SAMPLE
         if ($this->shouldSkipPropertyFetch($node->cond)) {
             return null;
         }
-        if ($this->shouldSkipFromParam($node->cond)) {
-            return null;
-        }
-        $hasAssign = (bool) $this->betterNodeFinder->findFirstInstanceOf($node->cond, Assign::class);
-        if ($hasAssign) {
-            return null;
-        }
         if ($node->stmts === []) {
-            return NodeTraverser::REMOVE_NODE;
+            $this->removeNode($node);
+            return null;
         }
         return $node->stmts;
-    }
-    private function shouldSkipFromParam(Expr $expr) : bool
-    {
-        /** @var Variable[] $variables */
-        $variables = $this->betterNodeFinder->findInstancesOf($expr, [Variable::class]);
-        foreach ($variables as $variable) {
-            if ($this->exprAnalyzer->isNonTypedFromParam($variable)) {
-                return \true;
-            }
-        }
-        return \false;
     }
     private function shouldSkipPropertyFetch(Expr $expr) : bool
     {

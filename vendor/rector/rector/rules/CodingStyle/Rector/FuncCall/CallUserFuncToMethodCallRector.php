@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\FuncCall;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -64,13 +65,13 @@ CODE_SAMPLE
         if (!$this->isName($node, 'call_user_func')) {
             return null;
         }
-        if ($node->isFirstClassCallable()) {
+        if (!isset($node->args[0])) {
             return null;
         }
-        if (!isset($node->getArgs()[0])) {
+        if (!$node->args[0] instanceof Arg) {
             return null;
         }
-        $firstArgValue = $node->getArgs()[0]->value;
+        $firstArgValue = $node->args[0]->value;
         if (!$firstArgValue instanceof Array_) {
             return null;
         }

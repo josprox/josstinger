@@ -8,20 +8,21 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Command;
+namespace RectorPrefix202211\Symfony\Component\Console\Command;
 
-use RectorPrefix202312\Symfony\Component\Console\Attribute\AsCommand;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202312\Symfony\Component\Console\Output\ConsoleOutputInterface;
-use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
-use RectorPrefix202312\Symfony\Component\Process\Process;
+use RectorPrefix202211\Symfony\Component\Console\Attribute\AsCommand;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202211\Symfony\Component\Console\Output\ConsoleOutputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202211\Symfony\Component\Process\Process;
 /**
  * Dumps the completion script for the current shell.
  *
  * @author Wouter de Jong <wouter@wouterj.nl>
  */
+#[\Symfony\Component\Console\Attribute\AsCommand(name: 'completion', description: 'Dump the shell completion script')]
 final class DumpCompletionCommand extends Command
 {
     /**
@@ -36,7 +37,7 @@ final class DumpCompletionCommand extends Command
      * @var mixed[]
      */
     private $supportedShells;
-    protected function configure() : void
+    protected function configure()
     {
         $fullCommand = $_SERVER['PHP_SELF'];
         $commandName = \basename($fullCommand);
@@ -46,17 +47,13 @@ final class DumpCompletionCommand extends Command
             case 'fish':
                 [$rcFile, $completionFile] = ['~/.config/fish/config.fish', "/etc/fish/completions/{$commandName}.fish"];
                 break;
-            case 'zsh':
-                [$rcFile, $completionFile] = ['~/.zshrc', '$fpath[1]/_' . $commandName];
-                break;
             default:
                 [$rcFile, $completionFile] = ['~/.bashrc', "/etc/bash_completion.d/{$commandName}"];
                 break;
         }
-        $supportedShells = \implode(', ', $this->getSupportedShells());
         $this->setHelp(<<<EOH
 The <info>%command.name%</> command dumps the shell completion script required
-to use shell autocompletion (currently, {$supportedShells} completion are supported).
+to use shell autocompletion (currently, bash and fish completion is supported).
 
 <comment>Static installation
 -------------------</>
@@ -89,24 +86,17 @@ EOH
         $commandName = \basename($_SERVER['argv'][0]);
         if ($input->getOption('debug')) {
             $this->tailDebugLog($commandName, $output);
-            return 0;
+            return self::SUCCESS;
         }
         $shell = $input->getArgument('shell') ?? self::guessShell();
         $completionFile = __DIR__ . '/../Resources/completion.' . $shell;
         if (!\file_exists($completionFile)) {
             $supportedShells = $this->getSupportedShells();
-            if ($output instanceof ConsoleOutputInterface) {
-                $output = $output->getErrorOutput();
-            }
-            if ($shell) {
-                $output->writeln(\sprintf('<error>Detected shell "%s", which is not supported by Symfony shell completion (supported shells: "%s").</>', $shell, \implode('", "', $supportedShells)));
-            } else {
-                $output->writeln(\sprintf('<error>Shell not detected, Symfony shell completion only supports "%s").</>', \implode('", "', $supportedShells)));
-            }
-            return 2;
+            ($output instanceof ConsoleOutputInterface ? $output->getErrorOutput() : $output)->writeln(\sprintf('<error>Detected shell "%s", which is not supported by Symfony shell completion (supported shells: "%s").</>', $shell, \implode('", "', $supportedShells)));
+            return self::INVALID;
         }
-        $output->write(\str_replace(['{{ COMMAND_NAME }}', '{{ VERSION }}'], [$commandName, CompleteCommand::COMPLETION_API_VERSION], \file_get_contents($completionFile)));
-        return 0;
+        $output->write(\str_replace(['{{ COMMAND_NAME }}', '{{ VERSION }}'], [$commandName, $this->getApplication()->getVersion()], \file_get_contents($completionFile)));
+        return self::SUCCESS;
     }
     private static function guessShell() : string
     {
@@ -128,16 +118,8 @@ EOH
      */
     private function getSupportedShells() : array
     {
-        if (isset($this->supportedShells)) {
-            return $this->supportedShells;
-        }
-        $shells = [];
-        foreach (new \DirectoryIterator(__DIR__ . '/../Resources/') as $file) {
-            if (\strncmp($file->getBasename(), 'completion.', \strlen('completion.')) === 0 && $file->isFile()) {
-                $shells[] = $file->getExtension();
-            }
-        }
-        \sort($shells);
-        return $this->supportedShells = $shells;
+        return $this->supportedShells = $this->supportedShells ?? \array_map(function ($f) {
+            return \pathinfo($f, \PATHINFO_EXTENSION);
+        }, \glob(__DIR__ . '/../Resources/completion.*'));
     }
 }

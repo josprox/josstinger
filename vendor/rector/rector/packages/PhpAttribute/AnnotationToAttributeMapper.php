@@ -5,14 +5,10 @@ namespace Rector\PhpAttribute;
 
 use PhpParser\BuilderHelpers;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Scalar\String_;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
-use Rector\BetterPhpDocParser\PhpDoc\StringNode;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PhpAttribute\Contract\AnnotationToAttributeMapperInterface;
 use Rector\PhpAttribute\Enum\DocTagNodeState;
-use RectorPrefix202312\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\PhpAttribute\AnnotationToAttributeMapper\AnnotationToAttributeMapperTest
  */
@@ -29,7 +25,6 @@ final class AnnotationToAttributeMapper
     public function __construct(array $annotationToAttributeMappers)
     {
         $this->annotationToAttributeMappers = $annotationToAttributeMappers;
-        Assert::notEmpty($annotationToAttributeMappers);
     }
     /**
      * @return Expr|DocTagNodeState::REMOVE_ARRAY
@@ -51,9 +46,6 @@ final class AnnotationToAttributeMapper
         }
         if ($value instanceof ArrayItemNode) {
             return BuilderHelpers::normalizeValue((string) $value);
-        }
-        if ($value instanceof StringNode) {
-            return new String_($value->value, [AttributeKey::KIND => $value->getAttribute(AttributeKey::KIND)]);
         }
         // fallback
         return BuilderHelpers::normalizeValue($value);

@@ -13,25 +13,30 @@ use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\PhpAttribute\AnnotationToAttributeMapper;
 use Rector\PhpAttribute\Contract\AnnotationToAttributeMapperInterface;
 use Rector\PhpAttribute\Enum\DocTagNodeState;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Symfony\Contracts\Service\Attribute\Required;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @implements AnnotationToAttributeMapperInterface<mixed[]>
  */
 final class ArrayAnnotationToAttributeMapper implements AnnotationToAttributeMapperInterface
 {
     /**
+     * @var \Rector\PhpAttribute\AnnotationToAttributeMapper
+     */
+    private $annotationToAttributeMapper;
+    /**
      * @readonly
      * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
      */
     private $valueResolver;
-    /**
-     * @var \Rector\PhpAttribute\AnnotationToAttributeMapper
-     */
-    private $annotationToAttributeMapper;
     public function __construct(ValueResolver $valueResolver)
     {
         $this->valueResolver = $valueResolver;
     }
+    /**
+     * Avoid circular reference
+     * @required
+     */
     public function autowire(AnnotationToAttributeMapper $annotationToAttributeMapper) : void
     {
         $this->annotationToAttributeMapper = $annotationToAttributeMapper;
@@ -75,7 +80,7 @@ final class ArrayAnnotationToAttributeMapper implements AnnotationToAttributeMap
     }
     private function resolveValueExprWithSingleQuoteHandling(ArrayItem $arrayItem) : ArrayItem
     {
-        if (!$arrayItem->key instanceof Expr && $arrayItem->value instanceof ClassConstFetch && $arrayItem->value->class instanceof Name && \strpos((string) $arrayItem->value->class, "'") !== \false) {
+        if ($arrayItem->key === null && $arrayItem->value instanceof ClassConstFetch && $arrayItem->value->class instanceof Name && \strpos((string) $arrayItem->value->class, "'") !== \false) {
             $arrayItem->value = new String_($this->valueResolver->getValue($arrayItem->value));
             return $arrayItem;
         }

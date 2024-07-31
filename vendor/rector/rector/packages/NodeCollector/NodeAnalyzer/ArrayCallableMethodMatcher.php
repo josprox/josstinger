@@ -3,13 +3,17 @@
 declare (strict_types=1);
 namespace Rector\NodeCollector\NodeAnalyzer;
 
+use PhpParser\Node\Arg;
+use PhpParser\Node\Attribute;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\ClassConstFetch;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\String_;
+use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassLike;
 use PHPStan\Analyser\Scope;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ParametersAcceptorSelector;
 use PHPStan\Reflection\ReflectionProvider;
 use PHPStan\Type\MixedType;
@@ -18,15 +22,21 @@ use PHPStan\Type\ThisType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeWithClassName;
 use Rector\Core\Enum\ObjectReference;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\PhpParser\Node\Value\ValueResolver;
-use Rector\Core\Reflection\ReflectionResolver;
 use Rector\Core\ValueObject\MethodName;
 use Rector\NodeCollector\ValueObject\ArrayCallable;
 use Rector\NodeCollector\ValueObject\ArrayCallableDynamicMethod;
+use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 final class ArrayCallableMethodMatcher
 {
+    /**
+     * @readonly
+     * @var \Rector\NodeNameResolver\NodeNameResolver
+     */
+    private $nodeNameResolver;
     /**
      * @readonly
      * @var \Rector\NodeTypeResolver\NodeTypeResolver
@@ -44,15 +54,16 @@ final class ArrayCallableMethodMatcher
     private $reflectionProvider;
     /**
      * @readonly
-     * @var \Rector\Core\Reflection\ReflectionResolver
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
      */
-    private $reflectionResolver;
-    public function __construct(NodeTypeResolver $nodeTypeResolver, ValueResolver $valueResolver, ReflectionProvider $reflectionProvider, ReflectionResolver $reflectionResolver)
+    private $betterNodeFinder;
+    public function __construct(NodeNameResolver $nodeNameResolver, NodeTypeResolver $nodeTypeResolver, ValueResolver $valueResolver, ReflectionProvider $reflectionProvider, BetterNodeFinder $betterNodeFinder)
     {
+        $this->nodeNameResolver = $nodeNameResolver;
         $this->nodeTypeResolver = $nodeTypeResolver;
         $this->valueResolver = $valueResolver;
         $this->reflectionProvider = $reflectionProvider;
-        $this->reflectionResolver = $reflectionResolver;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
     /**
      * Matches array like: "[$this, 'methodName']" → ['ClassName', 'methodName']
@@ -61,7 +72,7 @@ final class ArrayCallableMethodMatcher
      * @see https://github.com/rectorphp/rector-src/pull/909
      * @return null|\Rector\NodeCollector\ValueObject\ArrayCallableDynamicMethod|\Rector\NodeCollector\ValueObject\ArrayCallable
      */
-    public function match(Array_ $array, Scope $scope)
+    public function match(Array_ $array)
     {
         if (\count($array->items) !== 2) {
             return null;
@@ -73,11 +84,12 @@ final class ArrayCallableMethodMatcher
         $items = $array->items;
         // $this, self, static, FQN
         $firstItemValue = $items[0]->value;
-        $callerType = $this->resolveCallerType($firstItemValue, $scope);
+        $callerType = $this->resolveCallerType($firstItemValue);
         if (!$callerType instanceof TypeWithClassName) {
             return null;
         }
-        if ($array->getAttribute(AttributeKey::IS_ARRAY_IN_ATTRIBUTE) === \true) {
+        $isInAttribute = (bool) $this->betterNodeFinder->findParentType($array, Attribute::class);
+        if ($isInAttribute) {
             return null;
         }
         $values = $this->valueResolver->getValue($array);
@@ -107,10 +119,10 @@ final class ArrayCallableMethodMatcher
     }
     private function shouldSkipNullItems(Array_ $array) : bool
     {
-        if (!$array->items[0] instanceof ArrayItem) {
+        if ($array->items[0] === null) {
             return \true;
         }
-        return !$array->items[1] instanceof ArrayItem;
+        return $array->items[1] === null;
     }
     /**
      * @param mixed $values
@@ -128,24 +140,28 @@ final class ArrayCallableMethodMatcher
      */
     private function isCallbackAtFunctionNames(Array_ $array, array $functionNames) : bool
     {
-        $fromFuncCallName = $array->getAttribute(AttributeKey::FROM_FUNC_CALL_NAME);
-        if ($fromFuncCallName === null) {
+        $parentNode = $array->getAttribute(AttributeKey::PARENT_NODE);
+        if (!$parentNode instanceof Arg) {
             return \false;
         }
-        return \in_array($fromFuncCallName, $functionNames, \true);
+        $parentParentNode = $parentNode->getAttribute(AttributeKey::PARENT_NODE);
+        if (!$parentParentNode instanceof FuncCall) {
+            return \false;
+        }
+        return $this->nodeNameResolver->isNames($parentParentNode, $functionNames);
     }
     /**
      * @return \PHPStan\Type\MixedType|\PHPStan\Type\ObjectType
      */
-    private function resolveClassConstFetchType(ClassConstFetch $classConstFetch, Scope $scope)
+    private function resolveClassConstFetchType(ClassConstFetch $classConstFetch)
     {
         $classConstantReference = $this->valueResolver->getValue($classConstFetch);
         if ($classConstantReference === ObjectReference::STATIC) {
-            $classReflection = $this->reflectionResolver->resolveClassReflection($classConstFetch);
-            if (!$classReflection instanceof ClassReflection || !$classReflection->isClass()) {
+            $classLike = $this->betterNodeFinder->findParentType($classConstFetch, Class_::class);
+            if (!$classLike instanceof ClassLike) {
                 return new MixedType();
             }
-            $classConstantReference = $classReflection->getName();
+            $classConstantReference = (string) $this->nodeNameResolver->getName($classLike);
         }
         // non-class value
         if (!\is_string($classConstantReference)) {
@@ -154,25 +170,29 @@ final class ArrayCallableMethodMatcher
         if (!$this->reflectionProvider->hasClass($classConstantReference)) {
             return new MixedType();
         }
+        $scope = $classConstFetch->getAttribute(AttributeKey::SCOPE);
+        if (!$scope instanceof Scope) {
+            return new MixedType();
+        }
         $classReflection = $this->reflectionProvider->getClass($classConstantReference);
         $hasConstruct = $classReflection->hasMethod(MethodName::CONSTRUCT);
         if (!$hasConstruct) {
             return new ObjectType($classConstantReference, null, $classReflection);
         }
         $extendedMethodReflection = $classReflection->getMethod(MethodName::CONSTRUCT, $scope);
-        $parametersAcceptorWithPhpDocs = ParametersAcceptorSelector::selectSingle($extendedMethodReflection->getVariants());
-        foreach ($parametersAcceptorWithPhpDocs->getParameters() as $parameterReflectionWithPhpDoc) {
-            if (!$parameterReflectionWithPhpDoc->getDefaultValue() instanceof Type) {
+        $parametersAcceptor = ParametersAcceptorSelector::selectSingle($extendedMethodReflection->getVariants());
+        foreach ($parametersAcceptor->getParameters() as $parameterReflection) {
+            if ($parameterReflection->getDefaultValue() === null) {
                 return new MixedType();
             }
         }
         return new ObjectType($classConstantReference, null, $classReflection);
     }
-    private function resolveCallerType(Expr $expr, Scope $scope) : Type
+    private function resolveCallerType(Expr $expr) : Type
     {
         if ($expr instanceof ClassConstFetch) {
             // static ::class reference?
-            $callerType = $this->resolveClassConstFetchType($expr, $scope);
+            $callerType = $this->resolveClassConstFetchType($expr);
         } else {
             $callerType = $this->nodeTypeResolver->getType($expr);
         }

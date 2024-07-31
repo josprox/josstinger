@@ -4,7 +4,6 @@ declare (strict_types=1);
 namespace Rector\Php52\Rector\Switch_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Stmt\Break_;
@@ -12,7 +11,6 @@ use PhpParser\Node\Stmt\Continue_;
 use PhpParser\Node\Stmt\Switch_;
 use PHPStan\Type\Constant\ConstantIntegerType;
 use PHPStan\Type\ConstantType;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -24,15 +22,6 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class ContinueToBreakInSwitchRector extends AbstractRector implements MinPhpVersionInterface
 {
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(ValueResolver $valueResolver)
-    {
-        $this->valueResolver = $valueResolver;
-    }
     public function provideMinPhpVersion() : int
     {
         return PhpVersionFeature::CONTINUE_TO_BREAK;
@@ -86,7 +75,7 @@ CODE_SAMPLE
                     continue;
                 }
                 $newStmt = $this->processContinueStatement($caseStmt);
-                if ($newStmt instanceof Continue_) {
+                if ($newStmt === $caseStmt) {
                     continue;
                 }
                 $case->stmts[$key] = $newStmt;
@@ -103,7 +92,7 @@ CODE_SAMPLE
      */
     private function processContinueStatement(Continue_ $continue)
     {
-        if (!$continue->num instanceof Expr) {
+        if ($continue->num === null) {
             return new Break_();
         }
         if ($continue->num instanceof LNumber) {

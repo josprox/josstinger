@@ -6,10 +6,15 @@ namespace Rector\Naming\Guard;
 use DateTimeInterface;
 use PHPStan\Type\TypeWithClassName;
 use Rector\Core\Util\StringUtils;
+use Rector\Naming\Contract\Guard\ConflictingNameGuardInterface;
+use Rector\Naming\Contract\RenameValueObjectInterface;
 use Rector\Naming\ValueObject\PropertyRename;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\PHPStanStaticTypeMapper\Utils\TypeUnwrapper;
-final class DateTimeAtNamingConventionGuard
+/**
+ * @implements ConflictingNameGuardInterface<PropertyRename>
+ */
+final class DateTimeAtNamingConventionGuard implements ConflictingNameGuardInterface
 {
     /**
      * @readonly
@@ -26,7 +31,14 @@ final class DateTimeAtNamingConventionGuard
         $this->nodeTypeResolver = $nodeTypeResolver;
         $this->typeUnwrapper = $typeUnwrapper;
     }
-    public function isConflicting(PropertyRename $propertyRename) : bool
+    /**
+     * @param PropertyRename $renameValueObject
+     */
+    public function isConflicting(RenameValueObjectInterface $renameValueObject) : bool
+    {
+        return $this->isDateTimeAtNamingConvention($renameValueObject);
+    }
+    private function isDateTimeAtNamingConvention(PropertyRename $propertyRename) : bool
     {
         $type = $this->nodeTypeResolver->getType($propertyRename->getProperty());
         $type = $this->typeUnwrapper->unwrapFirstObjectTypeFromUnionType($type);

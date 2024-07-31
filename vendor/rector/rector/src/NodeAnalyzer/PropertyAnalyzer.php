@@ -51,8 +51,8 @@ final class PropertyAnalyzer
     }
     private function isCallableType(Type $type) : bool
     {
-        if ($type instanceof TypeWithClassName && $type->getClassName() === 'Closure') {
-            return \false;
+        if ($type instanceof TypeWithClassName) {
+            return $type->getClassName() === 'Closure';
         }
         return $type instanceof CallableType;
     }

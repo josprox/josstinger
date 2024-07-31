@@ -10,7 +10,7 @@ use Rector\Core\Rector\AbstractRector;
 use Rector\Transform\ValueObject\MethodCallToStaticCall;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\MethodCall\MethodCallToStaticCallRector\MethodCallToStaticCallRectorTest
  */
@@ -69,10 +69,10 @@ CODE_SAMPLE
     public function refactor(Node $node) : ?Node
     {
         foreach ($this->methodCallsToStaticCalls as $methodCallToStaticCall) {
-            if (!$this->isName($node->name, $methodCallToStaticCall->getOldMethod())) {
+            if (!$this->isObjectType($node->var, $methodCallToStaticCall->getOldObjectType())) {
                 continue;
             }
-            if (!$this->isObjectType($node->var, $methodCallToStaticCall->getOldObjectType())) {
+            if (!$this->isName($node->name, $methodCallToStaticCall->getOldMethod())) {
                 continue;
             }
             return $this->nodeFactory->createStaticCall($methodCallToStaticCall->getNewClass(), $methodCallToStaticCall->getNewMethod(), $node->args);

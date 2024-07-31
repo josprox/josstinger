@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Ternary;
 use PHPStan\Analyser\Scope;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\Strict\NodeFactory\ExactCompareFactory;
 use Rector\Strict\Rector\AbstractFalsyScalarRuleFixerRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
@@ -49,7 +50,7 @@ final class ArrayCompare
     }
 }
 CODE_SAMPLE
-, [\Rector\Strict\Rector\Ternary\BooleanInTernaryOperatorRuleFixerRector::TREAT_AS_NON_EMPTY => \false])]);
+, [self::TREAT_AS_NON_EMPTY => \false])]);
     }
     /**
      * @return array<class-string<Node>>
@@ -61,13 +62,17 @@ CODE_SAMPLE
     /**
      * @param Ternary $node
      */
-    public function refactorWithScope(Node $node, Scope $scope) : ?Ternary
+    public function refactor(Node $node) : ?Ternary
     {
-        // skip short ternary
-        if (!$node->if instanceof Expr) {
+        $scope = $node->getAttribute(AttributeKey::SCOPE);
+        if (!$scope instanceof Scope) {
             return null;
         }
-        $exprType = $scope->getNativeType($node->cond);
+        // skip short ternary
+        if ($node->if === null) {
+            return null;
+        }
+        $exprType = $scope->getType($node->cond);
         $expr = $this->exactCompareFactory->createNotIdenticalFalsyCompare($exprType, $node->cond, $this->treatAsNonEmpty);
         if (!$expr instanceof Expr) {
             return null;

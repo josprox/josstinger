@@ -18,10 +18,11 @@ final class PhpVersionedFilter
         $this->phpVersionProvider = $phpVersionProvider;
     }
     /**
-     * @param array<RectorInterface> $rectors
-     * @return array<RectorInterface>
+     * @template T as RectorInterface
+     * @param array<T> $rectors
+     * @return array<T>
      */
-    public function filter(iterable $rectors) : array
+    public function filter(array $rectors) : array
     {
         $minProjectPhpVersion = $this->phpVersionProvider->provide();
         $activeRectors = [];

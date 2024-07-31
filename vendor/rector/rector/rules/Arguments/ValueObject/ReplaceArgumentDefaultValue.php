@@ -9,6 +9,10 @@ use Rector\Core\Validation\RectorAssert;
 final class ReplaceArgumentDefaultValue implements ReplaceArgumentDefaultValueInterface
 {
     /**
+     * @var string
+     */
+    public const ANY_VALUE_BEFORE = '*ANY_VALUE_BEFORE*';
+    /**
      * @readonly
      * @var string
      */
@@ -33,10 +37,6 @@ final class ReplaceArgumentDefaultValue implements ReplaceArgumentDefaultValueIn
      * @var mixed
      */
     private $valueAfter;
-    /**
-     * @var string
-     */
-    public const ANY_VALUE_BEFORE = '*ANY_VALUE_BEFORE*';
     /**
      * @param int<0, max> $position
      * @param mixed $valueBefore

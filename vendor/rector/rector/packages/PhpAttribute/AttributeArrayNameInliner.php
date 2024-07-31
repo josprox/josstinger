@@ -4,18 +4,17 @@ declare (strict_types=1);
 namespace Rector\PhpAttribute;
 
 use PhpParser\Node\Arg;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Scalar\LNumber;
 use PhpParser\Node\Scalar\String_;
 use Rector\Core\Exception\NotImplementedYetException;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 final class AttributeArrayNameInliner
 {
     /**
-     * @param Array_|Arg[] $array
+     * @param \PhpParser\Node\Expr\Array_|mixed[] $array
      * @return Arg[]
      */
     public function inlineArrayToArgs($array) : array
@@ -62,7 +61,7 @@ final class AttributeArrayNameInliner
                 } elseif ($arrayItem->key instanceof String_) {
                     $arrayItemString = $arrayItem->key;
                     $newArgs[] = new Arg($arrayItem->value, \false, \false, [], new Identifier($arrayItemString->value));
-                } elseif (!$arrayItem->key instanceof Expr) {
+                } elseif ($arrayItem->key === null) {
                     // silent key
                     $newArgs[] = new Arg($arrayItem->value);
                 } else {

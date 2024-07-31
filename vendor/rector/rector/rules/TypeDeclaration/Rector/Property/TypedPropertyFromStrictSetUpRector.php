@@ -5,12 +5,12 @@ namespace Rector\TypeDeclaration\Rector\Property;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Property;
+use PHPStan\Type\Type;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\MethodName;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
-use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\TrustedClassMethodPropertyTypeInferer;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -25,15 +25,9 @@ final class TypedPropertyFromStrictSetUpRector extends AbstractRector implements
      * @var \Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer\TrustedClassMethodPropertyTypeInferer
      */
     private $trustedClassMethodPropertyTypeInferer;
-    /**
-     * @readonly
-     * @var \Rector\StaticTypeMapper\StaticTypeMapper
-     */
-    private $staticTypeMapper;
-    public function __construct(TrustedClassMethodPropertyTypeInferer $trustedClassMethodPropertyTypeInferer, StaticTypeMapper $staticTypeMapper)
+    public function __construct(TrustedClassMethodPropertyTypeInferer $trustedClassMethodPropertyTypeInferer)
     {
         $this->trustedClassMethodPropertyTypeInferer = $trustedClassMethodPropertyTypeInferer;
-        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -70,39 +64,36 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [Property::class];
     }
     /**
-     * @param Class_ $node
+     * @param Property $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $setUpClassMethod = $node->getMethod(MethodName::SET_UP);
-        if (!$setUpClassMethod instanceof ClassMethod) {
+        // type is already set
+        if ($node->type !== null) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->getProperties() as $property) {
-            // type is already set
-            if ($property->type !== null) {
-                continue;
-            }
-            // is not private? we cannot be sure about other usage
-            if (!$property->isPrivate()) {
-                continue;
-            }
-            $propertyType = $this->trustedClassMethodPropertyTypeInferer->inferProperty($node, $property, $setUpClassMethod);
-            $propertyTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($propertyType, TypeKind::PROPERTY);
-            if (!$propertyTypeNode instanceof Node) {
-                continue;
-            }
-            $property->type = $propertyTypeNode;
-            $hasChanged = \true;
+        // is not private? we cannot be sure about other usage
+        if (!$node->isPrivate()) {
+            return null;
         }
-        if ($hasChanged) {
-            return $node;
+        $propertyType = $this->trustedClassMethodPropertyTypeInferer->inferProperty($node, MethodName::SET_UP);
+        if (!$propertyType instanceof Type) {
+            return null;
         }
-        return null;
+        // skip unless a class type; we cannot be sure about traits
+        $class = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$class instanceof Class_) {
+            return null;
+        }
+        $propertyTypeNode = $this->staticTypeMapper->mapPHPStanTypeToPhpParserNode($propertyType, TypeKind::PROPERTY);
+        if (!$propertyTypeNode instanceof Node) {
+            return null;
+        }
+        $node->type = $propertyTypeNode;
+        return $node;
     }
     public function provideMinPhpVersion() : int
     {

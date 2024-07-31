@@ -11,7 +11,7 @@ use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Scalar\String_;
 use Rector\CodingStyle\NodeFactory\ArrayCallableToMethodCallFactory;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
+use Rector\Core\NodeAnalyzer\ArgsAnalyzer;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -32,13 +32,13 @@ final class CallUserFuncArrayToVariadicRector extends AbstractRector implements 
     private $arrayCallableToMethodCallFactory;
     /**
      * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
+     * @var \Rector\Core\NodeAnalyzer\ArgsAnalyzer
      */
-    private $valueResolver;
-    public function __construct(ArrayCallableToMethodCallFactory $arrayCallableToMethodCallFactory, ValueResolver $valueResolver)
+    private $argsAnalyzer;
+    public function __construct(ArrayCallableToMethodCallFactory $arrayCallableToMethodCallFactory, ArgsAnalyzer $argsAnalyzer)
     {
         $this->arrayCallableToMethodCallFactory = $arrayCallableToMethodCallFactory;
-        $this->valueResolver = $valueResolver;
+        $this->argsAnalyzer = $argsAnalyzer;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -77,11 +77,15 @@ CODE_SAMPLE
         if (!$this->isName($node, 'call_user_func_array')) {
             return null;
         }
-        if ($node->isFirstClassCallable()) {
+        if (!$this->argsAnalyzer->isArgsInstanceInArgsPositions($node->args, [0, 1])) {
             return null;
         }
-        $firstArgValue = $node->getArgs()[0]->value;
-        $secondArgValue = $node->getArgs()[1]->value;
+        /** @var Arg $firstArg */
+        $firstArg = $node->getArgs()[0];
+        $firstArgValue = $firstArg->value;
+        /** @var Arg $secondArg */
+        $secondArg = $node->getArgs()[1];
+        $secondArgValue = $secondArg->value;
         if ($firstArgValue instanceof String_) {
             $functionName = $this->valueResolver->getValue($firstArgValue);
             return $this->createFuncCall($secondArgValue, $functionName);
@@ -98,7 +102,8 @@ CODE_SAMPLE
     }
     private function createFuncCall(Expr $expr, string $functionName) : FuncCall
     {
-        $args = [$this->createUnpackedArg($expr)];
+        $args = [];
+        $args[] = $this->createUnpackedArg($expr);
         return $this->nodeFactory->createFuncCall($functionName, $args);
     }
     private function createMethodCall(Array_ $array, Expr $secondExpr) : ?MethodCall

@@ -8,16 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console;
+namespace RectorPrefix202211\Symfony\Component\Console;
 
-use RectorPrefix202312\Symfony\Component\Console\Output\AnsiColorMode;
 class Terminal
 {
-    public const DEFAULT_COLOR_MODE = AnsiColorMode::Ansi4;
-    /**
-     * @var \Symfony\Component\Console\Output\AnsiColorMode|null
-     */
-    private static $colorMode;
     /**
      * @var int|null
      */
@@ -30,51 +24,6 @@ class Terminal
      * @var bool|null
      */
     private static $stty;
-    /**
-     * About Ansi color types: https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
-     * For more information about true color support with terminals https://github.com/termstandard/colors/.
-     */
-    public static function getColorMode() : AnsiColorMode
-    {
-        // Use Cache from previous run (or user forced mode)
-        if (null !== self::$colorMode) {
-            return self::$colorMode;
-        }
-        // Try with $COLORTERM first
-        if (\is_string($colorterm = \getenv('COLORTERM'))) {
-            $colorterm = \strtolower($colorterm);
-            if (\strpos($colorterm, 'truecolor') !== \false) {
-                self::setColorMode(AnsiColorMode::Ansi24);
-                return self::$colorMode;
-            }
-            if (\strpos($colorterm, '256color') !== \false) {
-                self::setColorMode(AnsiColorMode::Ansi8);
-                return self::$colorMode;
-            }
-        }
-        // Try with $TERM
-        if (\is_string($term = \getenv('TERM'))) {
-            $term = \strtolower($term);
-            if (\strpos($term, 'truecolor') !== \false) {
-                self::setColorMode(AnsiColorMode::Ansi24);
-                return self::$colorMode;
-            }
-            if (\strpos($term, '256color') !== \false) {
-                self::setColorMode(AnsiColorMode::Ansi8);
-                return self::$colorMode;
-            }
-        }
-        self::setColorMode(self::DEFAULT_COLOR_MODE);
-        return self::$colorMode;
-    }
-    /**
-     * Force a terminal color mode rendering.
-     * @param ?\Symfony\Component\Console\Output\AnsiColorMode::* $colorMode
-     */
-    public static function setColorMode(?string $colorMode) : void
-    {
-        self::$colorMode = $colorMode;
-    }
     /**
      * Gets the terminal width.
      */
@@ -111,17 +60,17 @@ class Terminal
         if (null !== self::$stty) {
             return self::$stty;
         }
-        // skip check if shell_exec function is disabled
-        if (!\function_exists('shell_exec')) {
+        // skip check if exec function is disabled
+        if (!\function_exists('exec')) {
             return \false;
         }
-        return self::$stty = (bool) \shell_exec('stty 2> ' . ('\\' === \DIRECTORY_SEPARATOR ? 'NUL' : '/dev/null'));
+        \exec('stty 2>&1', $output, $exitcode);
+        return self::$stty = 0 === $exitcode;
     }
-    private static function initDimensions() : void
+    private static function initDimensions()
     {
         if ('\\' === \DIRECTORY_SEPARATOR) {
-            $ansicon = \getenv('ANSICON');
-            if (\false !== $ansicon && \preg_match('/^(\\d+)x(\\d+)(?: \\((\\d+)x(\\d+)\\))?$/', \trim($ansicon), $matches)) {
+            if (\preg_match('/^(\\d+)x(\\d+)(?: \\((\\d+)x(\\d+)\\))?$/', \trim(\getenv('ANSICON')), $matches)) {
                 // extract [w, H] from "wxh (WxH)"
                 // or [w, h] from "wxh"
                 self::$width = (int) $matches[1];
@@ -149,14 +98,14 @@ class Terminal
     /**
      * Initializes dimensions using the output of an stty columns line.
      */
-    private static function initDimensionsUsingStty() : void
+    private static function initDimensionsUsingStty()
     {
         if ($sttyString = self::getSttyColumns()) {
-            if (\preg_match('/rows.(\\d+);.columns.(\\d+);/is', $sttyString, $matches)) {
+            if (\preg_match('/rows.(\\d+);.columns.(\\d+);/i', $sttyString, $matches)) {
                 // extract [w, h] from "rows h; columns w;"
                 self::$width = (int) $matches[2];
                 self::$height = (int) $matches[1];
-            } elseif (\preg_match('/;.(\\d+).rows;.(\\d+).columns/is', $sttyString, $matches)) {
+            } elseif (\preg_match('/;.(\\d+).rows;.(\\d+).columns/i', $sttyString, $matches)) {
                 // extract [w, h] from "; h rows; w columns"
                 self::$width = (int) $matches[2];
                 self::$height = (int) $matches[1];
@@ -181,19 +130,15 @@ class Terminal
      */
     private static function getSttyColumns() : ?string
     {
-        return self::readFromProcess(['stty', '-a']);
+        return self::readFromProcess('stty -a | grep columns');
     }
-    /**
-     * @param string|mixed[] $command
-     */
-    private static function readFromProcess($command) : ?string
+    private static function readFromProcess(string $command) : ?string
     {
         if (!\function_exists('proc_open')) {
             return null;
         }
         $descriptorspec = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-        $cp = \function_exists('sapi_windows_cp_set') ? \sapi_windows_cp_get() : 0;
-        $process = \proc_open(\is_array($command) ? \implode(' ', \array_map('escapeshellarg', $command)) : $command, $descriptorspec, $pipes, null, null, ['suppress_errors' => \true]);
+        $process = \proc_open($command, $descriptorspec, $pipes, null, null, ['suppress_errors' => \true]);
         if (!\is_resource($process)) {
             return null;
         }
@@ -201,9 +146,6 @@ class Terminal
         \fclose($pipes[1]);
         \fclose($pipes[2]);
         \proc_close($process);
-        if ($cp) {
-            \sapi_windows_cp_set($cp);
-        }
         return $info;
     }
 }

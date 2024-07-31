@@ -5,7 +5,6 @@ namespace Rector\CodeQuality\Rector\ClassMethod;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\Array_;
-use PhpParser\Node\Expr\ArrayDimFetch;
 use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\Variable;
@@ -15,7 +14,6 @@ use PhpParser\Node\Stmt\Return_;
 use Rector\CodeQuality\NodeAnalyzer\VariableDimFetchAssignResolver;
 use Rector\CodeQuality\ValueObject\KeyAndExpr;
 use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -30,15 +28,9 @@ final class InlineArrayReturnAssignRector extends AbstractRector
      * @var \Rector\CodeQuality\NodeAnalyzer\VariableDimFetchAssignResolver
      */
     private $variableDimFetchAssignResolver;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(VariableDimFetchAssignResolver $variableDimFetchAssignResolver, ValueResolver $valueResolver)
+    public function __construct(VariableDimFetchAssignResolver $variableDimFetchAssignResolver)
     {
         $this->variableDimFetchAssignResolver = $variableDimFetchAssignResolver;
-        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -75,16 +67,16 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $stmts = (array) $node->stmts;
+        $stmts = $node->stmts;
+        if ($stmts === null) {
+            return null;
+        }
         if (\count($stmts) < 3) {
             return null;
         }
         $firstStmt = \array_shift($stmts);
         $variable = $this->matchVariableAssignOfEmptyArray($firstStmt);
         if (!$variable instanceof Variable) {
-            return null;
-        }
-        if (!$this->areAssignExclusiveToDimFetch($stmts)) {
             return null;
         }
         $lastStmt = \array_pop($stmts);
@@ -141,33 +133,5 @@ CODE_SAMPLE
             $arrayItems[] = $arrayItem;
         }
         return new Array_($arrayItems);
-    }
-    /**
-     * Only:
-     * $items['...'] = $result;
-     *
-     * @param Stmt[] $stmts
-     */
-    private function areAssignExclusiveToDimFetch(array $stmts) : bool
-    {
-        \end($stmts);
-        $lastKey = \key($stmts);
-        foreach ($stmts as $key => $stmt) {
-            if ($key === $lastKey) {
-                // skip last item
-                continue;
-            }
-            if (!$stmt instanceof Expression) {
-                return \false;
-            }
-            if (!$stmt->expr instanceof Assign) {
-                return \false;
-            }
-            $assign = $stmt->expr;
-            if (!$assign->var instanceof ArrayDimFetch) {
-                return \false;
-            }
-        }
-        return \true;
     }
 }

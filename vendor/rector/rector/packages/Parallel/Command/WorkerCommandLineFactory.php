@@ -5,11 +5,10 @@ namespace Rector\Parallel\Command;
 
 use Rector\ChangesReporting\Output\JsonOutputFormatter;
 use Rector\Core\Configuration\Option;
-use Rector\Core\FileSystem\FilePathHelper;
-use RectorPrefix202312\Symfony\Component\Console\Command\Command;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202312\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
-use RectorPrefix202312\Symplify\EasyParallel\Reflection\CommandFromReflectionFactory;
+use RectorPrefix202211\Symfony\Component\Console\Command\Command;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202211\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202211\Symplify\EasyParallel\Reflection\CommandFromReflectionFactory;
 /**
  * @see \Rector\Tests\Parallel\Command\WorkerCommandLineFactoryTest
  * @todo possibly extract to symplify/easy-parallel
@@ -17,23 +16,17 @@ use RectorPrefix202312\Symplify\EasyParallel\Reflection\CommandFromReflectionFac
 final class WorkerCommandLineFactory
 {
     /**
+     * @var string
+     */
+    private const OPTION_DASHES = '--';
+    /**
      * @readonly
      * @var \Symplify\EasyParallel\Reflection\CommandFromReflectionFactory
      */
     private $commandFromReflectionFactory;
-    /**
-     * @readonly
-     * @var \Rector\Core\FileSystem\FilePathHelper
-     */
-    private $filePathHelper;
-    /**
-     * @var string
-     */
-    private const OPTION_DASHES = '--';
-    public function __construct(CommandFromReflectionFactory $commandFromReflectionFactory, FilePathHelper $filePathHelper)
+    public function __construct()
     {
-        $this->commandFromReflectionFactory = $commandFromReflectionFactory;
-        $this->filePathHelper = $filePathHelper;
+        $this->commandFromReflectionFactory = new CommandFromReflectionFactory();
     }
     /**
      * @param class-string<Command> $mainCommandClass
@@ -96,8 +89,7 @@ final class WorkerCommandLineFactory
              *
              * tested in macOS and Ubuntu (github action)
              */
-            $config = (string) $input->getOption(Option::CONFIG);
-            $workerCommandArray[] = \escapeshellarg($this->filePathHelper->relativePath($config));
+            $workerCommandArray[] = \escapeshellarg((string) $input->getOption(Option::CONFIG));
         }
         return \implode(' ', $workerCommandArray);
     }

@@ -4,14 +4,17 @@ declare (strict_types=1);
 namespace Rector\Naming\Rector\Foreach_;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr\PropertyFetch;
+use PhpParser\Node\Expr\StaticPropertyFetch;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Foreach_;
-use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
+use PHPStan\Type\ThisType;
+use Rector\CodeQuality\NodeAnalyzer\ForeachAnalyzer;
 use Rector\Core\NodeAnalyzer\PropertyFetchAnalyzer;
-use Rector\Core\NodeManipulator\StmtsManipulator;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Naming\ExpectedNameResolver\InflectorSingularResolver;
+use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -26,25 +29,19 @@ final class RenameForeachValueVariableToMatchExprVariableRector extends Abstract
     private $inflectorSingularResolver;
     /**
      * @readonly
+     * @var \Rector\CodeQuality\NodeAnalyzer\ForeachAnalyzer
+     */
+    private $foreachAnalyzer;
+    /**
+     * @readonly
      * @var \Rector\Core\NodeAnalyzer\PropertyFetchAnalyzer
      */
     private $propertyFetchAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Core\NodeManipulator\StmtsManipulator
-     */
-    private $stmtsManipulator;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    public function __construct(InflectorSingularResolver $inflectorSingularResolver, PropertyFetchAnalyzer $propertyFetchAnalyzer, StmtsManipulator $stmtsManipulator, BetterNodeFinder $betterNodeFinder)
+    public function __construct(InflectorSingularResolver $inflectorSingularResolver, ForeachAnalyzer $foreachAnalyzer, PropertyFetchAnalyzer $propertyFetchAnalyzer)
     {
         $this->inflectorSingularResolver = $inflectorSingularResolver;
+        $this->foreachAnalyzer = $foreachAnalyzer;
         $this->propertyFetchAnalyzer = $propertyFetchAnalyzer;
-        $this->stmtsManipulator = $stmtsManipulator;
-        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -79,62 +76,64 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [StmtsAwareInterface::class];
+        return [Foreach_::class];
     }
     /**
-     * @param StmtsAwareInterface $node
+     * @param Foreach_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->stmts === null) {
+        $isPropertyFetch = $this->propertyFetchAnalyzer->isPropertyFetch($node->expr);
+        if (!$node->expr instanceof Variable && !$isPropertyFetch) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->stmts as $key => $stmt) {
-            if (!$stmt instanceof Foreach_) {
-                continue;
-            }
-            $isPropertyFetch = $this->propertyFetchAnalyzer->isLocalPropertyFetch($stmt->expr);
-            if (!$stmt->expr instanceof Variable && !$isPropertyFetch) {
-                continue;
-            }
-            $exprName = $this->getName($stmt->expr);
-            if ($exprName === null) {
-                continue;
-            }
-            if ($stmt->keyVar instanceof Node) {
-                continue;
-            }
-            $valueVarName = $this->getName($stmt->valueVar);
-            if ($valueVarName === null) {
-                continue;
-            }
-            $singularValueVarName = $this->inflectorSingularResolver->resolve($exprName);
-            if ($singularValueVarName === $exprName) {
-                continue;
-            }
-            if ($singularValueVarName === $valueVarName) {
-                continue;
-            }
-            $alreadyUsedVariable = $this->betterNodeFinder->findVariableOfName($stmt->stmts, $singularValueVarName);
-            if ($alreadyUsedVariable instanceof Variable) {
-                continue;
-            }
-            if ($this->stmtsManipulator->isVariableUsedInNextStmt($node, $key + 1, $singularValueVarName)) {
-                continue;
-            }
-            if ($this->stmtsManipulator->isVariableUsedInNextStmt($node, $key + 1, $valueVarName)) {
-                continue;
-            }
-            $this->processRename($stmt, $valueVarName, $singularValueVarName);
-            $hasChanged = \true;
+        /** @var Variable|PropertyFetch|StaticPropertyFetch $expr */
+        $expr = $node->expr;
+        if ($this->isNotCurrentClassLikePropertyFetch($expr, $isPropertyFetch)) {
+            return null;
         }
-        if ($hasChanged) {
-            return $node;
+        $exprName = $this->getName($expr);
+        if ($exprName === null) {
+            return null;
         }
-        return null;
+        if ($node->keyVar instanceof Node) {
+            return null;
+        }
+        $valueVarName = $this->getName($node->valueVar);
+        if ($valueVarName === null) {
+            return null;
+        }
+        $singularValueVarName = $this->inflectorSingularResolver->resolve($exprName);
+        if ($singularValueVarName === $exprName) {
+            return null;
+        }
+        if ($singularValueVarName === $valueVarName) {
+            return null;
+        }
+        if ($this->foreachAnalyzer->isValueVarUsed($node, $singularValueVarName)) {
+            return null;
+        }
+        return $this->processRename($node, $valueVarName, $singularValueVarName);
     }
-    private function processRename(Foreach_ $foreach, string $valueVarName, string $singularValueVarName) : void
+    /**
+     * @param \PhpParser\Node\Expr\PropertyFetch|\PhpParser\Node\Expr\StaticPropertyFetch|\PhpParser\Node\Expr\Variable $expr
+     */
+    private function isNotCurrentClassLikePropertyFetch($expr, bool $isPropertyFetch) : bool
+    {
+        if (!$isPropertyFetch) {
+            return \false;
+        }
+        /** @var PropertyFetch|StaticPropertyFetch $expr */
+        $variableType = $expr instanceof PropertyFetch ? $this->nodeTypeResolver->getType($expr->var) : $this->nodeTypeResolver->getType($expr->class);
+        if ($variableType instanceof FullyQualifiedObjectType) {
+            $currentClassLike = $this->betterNodeFinder->findParentType($expr, ClassLike::class);
+            if ($currentClassLike instanceof ClassLike) {
+                return !$this->nodeNameResolver->isName($currentClassLike, $variableType->getClassName());
+            }
+        }
+        return !$variableType instanceof ThisType;
+    }
+    private function processRename(Foreach_ $foreach, string $valueVarName, string $singularValueVarName) : Foreach_
     {
         $foreach->valueVar = new Variable($singularValueVarName);
         $this->traverseNodesWithCallable($foreach->stmts, function (Node $node) use($singularValueVarName, $valueVarName) : ?Variable {
@@ -146,5 +145,6 @@ CODE_SAMPLE
             }
             return new Variable($singularValueVarName);
         });
+        return $foreach;
     }
 }

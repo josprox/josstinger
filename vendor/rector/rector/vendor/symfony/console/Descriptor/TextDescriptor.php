@@ -8,15 +8,15 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Descriptor;
+namespace RectorPrefix202211\Symfony\Component\Console\Descriptor;
 
-use RectorPrefix202312\Symfony\Component\Console\Application;
-use RectorPrefix202312\Symfony\Component\Console\Command\Command;
-use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatter;
-use RectorPrefix202312\Symfony\Component\Console\Helper\Helper;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202211\Symfony\Component\Console\Application;
+use RectorPrefix202211\Symfony\Component\Console\Command\Command;
+use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatter;
+use RectorPrefix202211\Symfony\Component\Console\Helper\Helper;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
 /**
  * Text descriptor.
  *
@@ -26,7 +26,10 @@ use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
  */
 class TextDescriptor extends Descriptor
 {
-    protected function describeInputArgument(InputArgument $argument, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputArgument(InputArgument $argument, array $options = [])
     {
         if (null !== $argument->getDefault() && (!\is_array($argument->getDefault()) || \count($argument->getDefault()))) {
             $default = \sprintf('<comment> [default: %s]</comment>', $this->formatDefaultValue($argument->getDefault()));
@@ -44,7 +47,10 @@ class TextDescriptor extends Descriptor
             $default
         ), $options);
     }
-    protected function describeInputOption(InputOption $option, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputOption(InputOption $option, array $options = [])
     {
         if ($option->acceptValue() && null !== $option->getDefault() && (!\is_array($option->getDefault()) || \count($option->getDefault()))) {
             $default = \sprintf('<comment> [default: %s]</comment>', $this->formatDefaultValue($option->getDefault()));
@@ -71,7 +77,10 @@ class TextDescriptor extends Descriptor
             $option->isArray() ? '<comment> (multiple values allowed)</comment>' : ''
         ), $options);
     }
-    protected function describeInputDefinition(InputDefinition $definition, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeInputDefinition(InputDefinition $definition, array $options = [])
     {
         $totalWidth = $this->calculateTotalWidthForOptions($definition->getOptions());
         foreach ($definition->getArguments() as $argument) {
@@ -105,7 +114,10 @@ class TextDescriptor extends Descriptor
             }
         }
     }
-    protected function describeCommand(Command $command, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeCommand(Command $command, array $options = [])
     {
         $command->mergeApplicationDefinition(\false);
         if ($description = $command->getDescription()) {
@@ -135,7 +147,10 @@ class TextDescriptor extends Descriptor
             $this->writeText("\n");
         }
     }
-    protected function describeApplication(Application $application, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    protected function describeApplication(Application $application, array $options = [])
     {
         $describedNamespace = $options['namespace'] ?? null;
         $description = new ApplicationDescription($application, $describedNamespace);
@@ -194,7 +209,10 @@ class TextDescriptor extends Descriptor
             $this->writeText("\n");
         }
     }
-    private function writeText(string $content, array $options = []) : void
+    /**
+     * {@inheritdoc}
+     */
+    private function writeText(string $content, array $options = [])
     {
         $this->write(isset($options['raw_text']) && $options['raw_text'] ? \strip_tags($content) : $content, isset($options['raw_output']) ? !$options['raw_output'] : \true);
     }

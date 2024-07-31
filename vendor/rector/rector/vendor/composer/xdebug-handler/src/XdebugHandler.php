@@ -9,10 +9,10 @@
  * the LICENSE file that was distributed with this source code.
  */
 declare (strict_types=1);
-namespace RectorPrefix202312\Composer\XdebugHandler;
+namespace RectorPrefix202211\Composer\XdebugHandler;
 
-use RectorPrefix202312\Composer\Pcre\Preg;
-use RectorPrefix202312\Psr\Log\LoggerInterface;
+use RectorPrefix202211\Composer\Pcre\Preg;
+use RectorPrefix202211\Psr\Log\LoggerInterface;
 /**
  * @author John Stevenson <john-stevenson@blueyonder.co.uk>
  *
@@ -237,7 +237,7 @@ class XdebugHandler
                 $cmd = '"' . $cmd . '"';
             }
         }
-        $process = \proc_open(\is_array($cmd) ? \implode(' ', \array_map('escapeshellarg', $cmd)) : $cmd, [], $pipes);
+        $process = \proc_open($cmd, [], $pipes);
         if (\is_resource($process)) {
             $exitCode = \proc_close($process);
         }

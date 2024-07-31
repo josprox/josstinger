@@ -15,6 +15,10 @@ use Rector\NodeNameResolver\NodeNameResolver;
 final class OnLogoutClassMethodFactory
 {
     /**
+     * @var array<string, string>
+     */
+    private const PARAMETER_TO_GETTER_NAMES = ['request' => 'getRequest', 'response' => 'getResponse', 'token' => 'getToken'];
+    /**
      * @readonly
      * @var \Rector\NodeNameResolver\NodeNameResolver
      */
@@ -29,10 +33,6 @@ final class OnLogoutClassMethodFactory
      * @var \Rector\Core\NodeAnalyzer\ParamAnalyzer
      */
     private $paramAnalyzer;
-    /**
-     * @var array<string, string>
-     */
-    private const PARAMETER_TO_GETTER_NAMES = ['request' => 'getRequest', 'response' => 'getResponse', 'token' => 'getToken'];
     public function __construct(NodeNameResolver $nodeNameResolver, \Rector\Symfony\NodeFactory\BareLogoutClassMethodFactory $bareLogoutClassMethodFactory, ParamAnalyzer $paramAnalyzer)
     {
         $this->nodeNameResolver = $nodeNameResolver;

@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\CodingStyle\NodeAnalyzer;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node\Identifier;
 use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\GroupUse;
@@ -17,6 +17,13 @@ use Rector\NodeTypeResolver\Node\AttributeKey;
 final class UseImportNameMatcher
 {
     /**
+     * @var string
+     *
+     * @see https://regex101.com/r/ZxFSlc/1 for last name, eg: Entity and UniqueEntity
+     * @see https://regex101.com/r/OLO0Un/1 for inside namespace, eg: ORM for ORM\Id or ORM\Column
+     */
+    private const SHORT_NAME_REGEX = '#^%s(\\\\[\\w]+)?$#i';
+    /**
      * @readonly
      * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
      */
@@ -26,13 +33,6 @@ final class UseImportNameMatcher
      * @var \Rector\Naming\Naming\UseImportsResolver
      */
     private $useImportsResolver;
-    /**
-     * @var string
-     *
-     * @see https://regex101.com/r/ZxFSlc/1 for last name, eg: Entity and UniqueEntity
-     * @see https://regex101.com/r/OLO0Un/1 for inside namespace, eg: ORM for ORM\Id or ORM\Column
-     */
-    private const SHORT_NAME_REGEX = '#^%s(\\\\[\\w]+)?$#i';
     public function __construct(BetterNodeFinder $betterNodeFinder, UseImportsResolver $useImportsResolver)
     {
         $this->betterNodeFinder = $betterNodeFinder;
@@ -63,35 +63,30 @@ final class UseImportNameMatcher
         }
         return null;
     }
-    private function resolveName(string $prefix, string $tag, UseUse $useUse) : string
+    public function resolveName(string $prefix, string $tag, UseUse $useUse) : string
     {
         // useuse can be renamed on the fly, so just in case, use the original one
-        $originalUseUseNode = $useUse->getAttribute(AttributeKey::ORIGINAL_NODE);
-        if (!$originalUseUseNode instanceof UseUse) {
+        $originalUseUse = $useUse->getAttribute(AttributeKey::ORIGINAL_NODE);
+        if (!$originalUseUse instanceof UseUse) {
             throw new ShouldNotHappenException();
         }
-        if (!$originalUseUseNode->alias instanceof Identifier) {
-            $lastName = $originalUseUseNode->name->getLast();
-            if (\strncmp($tag, $lastName . '\\', \strlen($lastName . '\\')) === 0) {
-                $tagName = Strings::after($tag, '\\');
-                return $prefix . $originalUseUseNode->name->toString() . '\\' . $tagName;
-            }
-            return $prefix . $originalUseUseNode->name->toString();
+        if ($originalUseUse->alias === null) {
+            return $prefix . $originalUseUse->name->toString();
         }
-        $unaliasedShortClass = Strings::substring($tag, \strlen($originalUseUseNode->alias->toString()));
+        $unaliasedShortClass = Strings::substring($tag, Strings::length($originalUseUse->alias->toString()));
         if (\strncmp($unaliasedShortClass, '\\', \strlen('\\')) === 0) {
-            return $prefix . $originalUseUseNode->name . $unaliasedShortClass;
+            return $prefix . $originalUseUse->name . $unaliasedShortClass;
         }
-        return $prefix . $originalUseUseNode->name . '\\' . $unaliasedShortClass;
+        return $prefix . $originalUseUse->name . '\\' . $unaliasedShortClass;
     }
     private function isUseMatchingName(string $tag, UseUse $useUse) : bool
     {
         // useuse can be renamed on the fly, so just in case, use the original one
-        $originalUseUseNode = $useUse->getAttribute(AttributeKey::ORIGINAL_NODE);
-        if (!$originalUseUseNode instanceof UseUse) {
+        $originalUseUse = $useUse->getAttribute(AttributeKey::ORIGINAL_NODE);
+        if (!$originalUseUse instanceof UseUse) {
             return \false;
         }
-        $shortName = $originalUseUseNode->alias instanceof Identifier ? $originalUseUseNode->alias->name : $originalUseUseNode->name->getLast();
+        $shortName = $originalUseUse->alias instanceof Identifier ? $originalUseUse->alias->name : $originalUseUse->name->getLast();
         $shortNamePattern = \preg_quote($shortName, '#');
         $pattern = \sprintf(self::SHORT_NAME_REGEX, $shortNamePattern);
         return StringUtils::isMatch($tag, $pattern);

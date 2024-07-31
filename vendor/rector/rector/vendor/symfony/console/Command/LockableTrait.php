@@ -8,13 +8,13 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Command;
+namespace RectorPrefix202211\Symfony\Component\Console\Command;
 
-use RectorPrefix202312\Symfony\Component\Console\Exception\LogicException;
-use RectorPrefix202312\Symfony\Component\Lock\LockFactory;
-use RectorPrefix202312\Symfony\Component\Lock\LockInterface;
-use RectorPrefix202312\Symfony\Component\Lock\Store\FlockStore;
-use RectorPrefix202312\Symfony\Component\Lock\Store\SemaphoreStore;
+use RectorPrefix202211\Symfony\Component\Console\Exception\LogicException;
+use RectorPrefix202211\Symfony\Component\Lock\LockFactory;
+use RectorPrefix202211\Symfony\Component\Lock\LockInterface;
+use RectorPrefix202211\Symfony\Component\Lock\Store\FlockStore;
+use RectorPrefix202211\Symfony\Component\Lock\Store\SemaphoreStore;
 /**
  * Basic lock feature for commands.
  *
@@ -32,7 +32,7 @@ trait LockableTrait
     private function lock(string $name = null, bool $blocking = \false) : bool
     {
         if (!\class_exists(SemaphoreStore::class)) {
-            throw new LogicException('To enable the locking feature you must install the symfony/lock component. Try running "composer require symfony/lock".');
+            throw new LogicException('To enable the locking feature you must install the symfony/lock component.');
         }
         if (null !== $this->lock) {
             throw new LogicException('A lock is already in place.');
@@ -52,7 +52,7 @@ trait LockableTrait
     /**
      * Releases the command lock if there is one.
      */
-    private function release() : void
+    private function release()
     {
         if ($this->lock) {
             $this->lock->release();

@@ -4,7 +4,7 @@ declare (strict_types=1);
 namespace Rector\Core\Validation;
 
 use Rector\Core\Util\StringUtils;
-use RectorPrefix202312\Webmozart\Assert\InvalidArgumentException;
+use RectorPrefix202211\Webmozart\Assert\InvalidArgumentException;
 /**
  * @see \Rector\Core\Tests\Validation\RectorAssertTest
  */
@@ -16,6 +16,10 @@ final class RectorAssert
      * @var string
      */
     private const CLASS_NAME_REGEX = '#^[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*(\\\\[a-zA-Z_\\x7f-\\xff][a-zA-Z0-9_\\x7f-\\xff]*)*$#';
+    /**
+     * @var string
+     */
+    private const NAMESPACE_REGEX = '#^' . self::NAKED_NAMESPACE_REGEX . '$#';
     /**
      * @see https://stackoverflow.com/a/60470526/1348344
      * @see https://regex101.com/r/37aUWA/1
@@ -45,6 +49,10 @@ final class RectorAssert
      * @var string
      */
     private const FUNCTION_NAME_REGEX = '#^(' . self::NAKED_NAMESPACE_REGEX . '\\\\)?([a-zA-Z_\\x80-\\xff][a-zA-Z0-9_\\x80-\\xff]*)$#';
+    public static function namespaceName(string $name) : void
+    {
+        self::elementName($name, self::NAMESPACE_REGEX, 'namespace');
+    }
     public static function constantName(string $name) : void
     {
         self::elementName($name, self::METHOD_OR_CONSTANT_NAME_REGEX, 'constant');
@@ -65,9 +73,6 @@ final class RectorAssert
     {
         self::elementName($name, self::FUNCTION_NAME_REGEX, 'function');
     }
-    /**
-     * @api
-     */
     public static function elementName(string $name, string $regex, string $elementType) : void
     {
         if (StringUtils::isMatch($name, $regex)) {

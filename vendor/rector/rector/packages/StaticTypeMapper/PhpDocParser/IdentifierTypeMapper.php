@@ -3,8 +3,9 @@
 declare (strict_types=1);
 namespace Rector\StaticTypeMapper\PhpDocParser;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node;
+use PhpParser\Node\Stmt\ClassLike;
 use PHPStan\Analyser\NameScope;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
@@ -21,7 +22,8 @@ use PHPStan\Type\StringType;
 use PHPStan\Type\Type;
 use PHPStan\Type\UnionType;
 use Rector\Core\Enum\ObjectReference;
-use Rector\Core\Reflection\ReflectionResolver;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
+use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\StaticTypeMapper\Contract\PhpDocParser\PhpDocTypeMapperInterface;
 use Rector\StaticTypeMapper\Mapper\ScalarStringToTypeMapper;
@@ -46,20 +48,26 @@ final class IdentifierTypeMapper implements PhpDocTypeMapperInterface
     private $scalarStringToTypeMapper;
     /**
      * @readonly
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
+     */
+    private $betterNodeFinder;
+    /**
+     * @readonly
+     * @var \Rector\NodeNameResolver\NodeNameResolver
+     */
+    private $nodeNameResolver;
+    /**
+     * @readonly
      * @var \PHPStan\Reflection\ReflectionProvider
      */
     private $reflectionProvider;
-    /**
-     * @readonly
-     * @var \Rector\Core\Reflection\ReflectionResolver
-     */
-    private $reflectionResolver;
-    public function __construct(ObjectTypeSpecifier $objectTypeSpecifier, ScalarStringToTypeMapper $scalarStringToTypeMapper, ReflectionProvider $reflectionProvider, ReflectionResolver $reflectionResolver)
+    public function __construct(ObjectTypeSpecifier $objectTypeSpecifier, ScalarStringToTypeMapper $scalarStringToTypeMapper, BetterNodeFinder $betterNodeFinder, NodeNameResolver $nodeNameResolver, ReflectionProvider $reflectionProvider)
     {
         $this->objectTypeSpecifier = $objectTypeSpecifier;
         $this->scalarStringToTypeMapper = $scalarStringToTypeMapper;
+        $this->betterNodeFinder = $betterNodeFinder;
+        $this->nodeNameResolver = $nodeNameResolver;
         $this->reflectionProvider = $reflectionProvider;
-        $this->reflectionResolver = $reflectionResolver;
     }
     public function getNodeType() : string
     {
@@ -70,18 +78,14 @@ final class IdentifierTypeMapper implements PhpDocTypeMapperInterface
      */
     public function mapToPHPStanType(TypeNode $typeNode, Node $node, NameScope $nameScope) : Type
     {
-        return $this->mapIdentifierTypeNode($typeNode, $node);
-    }
-    public function mapIdentifierTypeNode(IdentifierTypeNode $identifierTypeNode, Node $node) : Type
-    {
-        $type = $this->scalarStringToTypeMapper->mapScalarStringToType($identifierTypeNode->name);
+        $type = $this->scalarStringToTypeMapper->mapScalarStringToType($typeNode->name);
         if (!$type instanceof MixedType) {
             return $type;
         }
         if ($type->isExplicitMixed()) {
             return $type;
         }
-        $loweredName = \strtolower($identifierTypeNode->name);
+        $loweredName = \strtolower($typeNode->name);
         if ($loweredName === ObjectReference::SELF) {
             return $this->mapSelf($node);
         }
@@ -94,16 +98,16 @@ final class IdentifierTypeMapper implements PhpDocTypeMapperInterface
         if ($loweredName === 'iterable') {
             return new IterableType(new MixedType(), new MixedType());
         }
-        if (\strncmp($identifierTypeNode->name, '\\', \strlen('\\')) === 0) {
-            $typeWithoutPreslash = Strings::substring($identifierTypeNode->name, 1);
+        if (\strncmp($typeNode->name, '\\', \strlen('\\')) === 0) {
+            $typeWithoutPreslash = Strings::substring($typeNode->name, 1);
             $objectType = new FullyQualifiedObjectType($typeWithoutPreslash);
         } else {
-            if ($identifierTypeNode->name === 'scalar') {
+            if ($typeNode->name === 'scalar') {
                 // pseudo type, see https://www.php.net/manual/en/language.types.intro.php
                 $scalarTypes = [new BooleanType(), new StringType(), new IntegerType(), new FloatType()];
                 return new UnionType($scalarTypes);
             }
-            $objectType = new ObjectType($identifierTypeNode->name);
+            $objectType = new ObjectType($typeNode->name);
         }
         $scope = $node->getAttribute(AttributeKey::SCOPE);
         return $this->objectTypeSpecifier->narrowToFullyQualifiedOrAliasedObjectType($node, $objectType, $scope);
@@ -155,10 +159,17 @@ final class IdentifierTypeMapper implements PhpDocTypeMapperInterface
     }
     private function resolveClassName(Node $node) : ?string
     {
-        $classReflection = $this->reflectionResolver->resolveClassReflection($node);
-        if (!$classReflection instanceof ClassReflection) {
+        $classLike = $node instanceof ClassLike ? $node : $this->betterNodeFinder->findParentType($node, ClassLike::class);
+        if (!$classLike instanceof ClassLike) {
             return null;
         }
-        return $classReflection->getName();
+        $className = $this->nodeNameResolver->getName($classLike);
+        if (!\is_string($className)) {
+            return null;
+        }
+        if (!$this->reflectionProvider->hasClass($className)) {
+            return null;
+        }
+        return $className;
     }
 }

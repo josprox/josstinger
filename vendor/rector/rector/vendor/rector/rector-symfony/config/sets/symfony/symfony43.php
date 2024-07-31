@@ -1,32 +1,34 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202312;
+namespace RectorPrefix202211;
 
 use Rector\Arguments\Rector\ClassMethod\ArgumentAdderRector;
 use Rector\Arguments\ValueObject\ArgumentAdder;
 use Rector\Config\RectorConfig;
+use Rector\Core\ValueObject\MethodName;
+use Rector\DependencyInjection\Rector\ClassMethod\AddMethodParentCallRector;
 use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
 use Rector\Renaming\Rector\Name\RenameClassRector;
 use Rector\Renaming\ValueObject\MethodCallRename;
-use Rector\Symfony\Symfony43\Rector\ClassMethod\EventDispatcherParentConstructRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\ConvertRenderTemplateShortNotationToBundleSyntaxRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\GetCurrencyBundleMethodCallsToIntlRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\MakeDispatchFirstArgumentEventRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\WebTestCaseAssertIsSuccessfulRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\WebTestCaseAssertResponseCodeRector;
-use Rector\Symfony\Symfony43\Rector\MethodCall\WebTestCaseAssertSelectorTextContainsRector;
-use Rector\Symfony\Symfony43\Rector\StmtsAwareInterface\TwigBundleFilesystemLoaderToTwigRector;
+use Rector\Symfony\Rector\MethodCall\MakeDispatchFirstArgumentEventRector;
+use Rector\Symfony\Rector\MethodCall\WebTestCaseAssertIsSuccessfulRector;
+use Rector\Symfony\Rector\MethodCall\WebTestCaseAssertResponseCodeRector;
 # https://github.com/symfony/symfony/blob/4.4/UPGRADE-4.3.md
 return static function (RectorConfig $rectorConfig) : void {
     # https://symfony.com/blog/new-in-symfony-4-3-better-test-assertions
-    $rectorConfig->rules([WebTestCaseAssertIsSuccessfulRector::class, WebTestCaseAssertResponseCodeRector::class, WebTestCaseAssertSelectorTextContainsRector::class, TwigBundleFilesystemLoaderToTwigRector::class, MakeDispatchFirstArgumentEventRector::class, GetCurrencyBundleMethodCallsToIntlRector::class, ConvertRenderTemplateShortNotationToBundleSyntaxRector::class, EventDispatcherParentConstructRector::class]);
-    $rectorConfig->ruleWithConfiguration(RenameMethodRector::class, [new MethodCallRename('Symfony\\Component\\BrowserKit\\Response', 'getStatus', 'getStatusCode'), new MethodCallRename('Symfony\\Component\\Security\\Http\\Firewall', 'handleRequest', 'callListeners')]);
+    $rectorConfig->rule(WebTestCaseAssertIsSuccessfulRector::class);
+    $rectorConfig->rule(WebTestCaseAssertResponseCodeRector::class);
+    $rectorConfig->ruleWithConfiguration(RenameMethodRector::class, [
+        new MethodCallRename('Symfony\\Component\\BrowserKit\\Response', 'getStatus', 'getStatusCode'),
+        new MethodCallRename('Symfony\\Component\\Security\\Http\\Firewall', 'handleRequest', 'callListeners'),
+        # https://github.com/symfony/http-kernel/blob/801b925e308518ddf821ba91952c41ae77c77507/Event/GetResponseForExceptionEvent.php#L55
+        new MethodCallRename('Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent', 'getException', 'getThrowable'),
+        # https://github.com/symfony/http-kernel/blob/801b925e308518ddf821ba91952c41ae77c77507/Event/GetResponseForExceptionEvent.php#L67
+        new MethodCallRename('Symfony\\Component\\HttpKernel\\Event\\GetResponseForExceptionEvent', 'setException', 'setThrowable'),
+    ]);
+    $rectorConfig->rule(MakeDispatchFirstArgumentEventRector::class);
     $rectorConfig->ruleWithConfiguration(RenameClassRector::class, [
-        // assets deprecation
-        'Symfony\\Bundle\\FrameworkBundle\\Templating\\Helper\\AssetsHelper' => 'Symfony\\Component\\Asset\\Packages',
-        // templating
-        'Symfony\\Bundle\\FrameworkBundle\\Templating\\EngineInterface' => 'Symfony\\Component\\Templating\\EngineInterface',
         # https://symfony.com/blog/new-in-symfony-4-3-simpler-event-dispatching
         # Browser Kit
         'Symfony\\Component\\BrowserKit\\Client' => 'Symfony\\Component\\BrowserKit\\AbstractBrowser',
@@ -72,4 +74,5 @@ return static function (RectorConfig $rectorConfig) : void {
     ]);
     # https://github.com/symfony/symfony/blob/4.4/UPGRADE-4.3.md#workflow
     $rectorConfig->ruleWithConfiguration(ArgumentAdderRector::class, [new ArgumentAdder('Symfony\\Component\\Workflow\\MarkingStore\\MarkingStoreInterface', 'setMarking', 2, 'context', [])]);
+    $rectorConfig->ruleWithConfiguration(AddMethodParentCallRector::class, ['Symfony\\Component\\EventDispatcher\\EventDispatcher' => MethodName::CONSTRUCT]);
 };

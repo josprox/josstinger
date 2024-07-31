@@ -10,6 +10,7 @@ use PhpParser\Node\Expr\List_;
 use PhpParser\Node\Stmt\Foreach_;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -53,27 +54,24 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Assign::class, Foreach_::class];
+        return [List_::class];
     }
     /**
-     * @param Assign|Foreach_ $node
+     * @param List_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node instanceof Assign) {
-            if (!$node->var instanceof List_) {
-                return null;
-            }
-            $list = $node->var;
-            $node->var = new Array_($list->items);
-            return $node;
+        $parentNode = $node->getAttribute(AttributeKey::PARENT_NODE);
+        if ($parentNode instanceof Assign && $parentNode->var === $node) {
+            return new Array_($node->items);
         }
-        if (!$node->valueVar instanceof List_) {
+        if (!$parentNode instanceof Foreach_) {
             return null;
         }
-        $list = $node->valueVar;
-        $node->valueVar = new Array_($list->items);
-        return $node;
+        if ($parentNode->valueVar !== $node) {
+            return null;
+        }
+        return new Array_($node->items);
     }
     public function provideMinPhpVersion() : int
     {

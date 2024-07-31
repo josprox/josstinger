@@ -1,46 +1,29 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202312\Symplify\EasyParallel\ValueObject;
+namespace RectorPrefix202211\Symplify\EasyParallel\ValueObject;
 
-use RectorPrefix202312\Clue\React\NDJson\Decoder;
-use RectorPrefix202312\Clue\React\NDJson\Encoder;
+use RectorPrefix202211\Clue\React\NDJson\Decoder;
+use RectorPrefix202211\Clue\React\NDJson\Encoder;
 use Exception;
-use RectorPrefix202312\React\ChildProcess\Process;
-use RectorPrefix202312\React\EventLoop\LoopInterface;
-use RectorPrefix202312\React\EventLoop\TimerInterface;
-use RectorPrefix202312\Symplify\EasyParallel\Enum\Action;
-use RectorPrefix202312\Symplify\EasyParallel\Enum\Content;
-use RectorPrefix202312\Symplify\EasyParallel\Enum\ReactCommand;
-use RectorPrefix202312\Symplify\EasyParallel\Enum\ReactEvent;
-use RectorPrefix202312\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
+use RectorPrefix202211\React\ChildProcess\Process;
+use RectorPrefix202211\React\EventLoop\LoopInterface;
+use RectorPrefix202211\React\EventLoop\TimerInterface;
+use RectorPrefix202211\Symplify\EasyParallel\Enum\Action;
+use RectorPrefix202211\Symplify\EasyParallel\Enum\Content;
+use RectorPrefix202211\Symplify\EasyParallel\Enum\ReactCommand;
+use RectorPrefix202211\Symplify\EasyParallel\Enum\ReactEvent;
+use RectorPrefix202211\Symplify\EasyParallel\Exception\ParallelShouldNotHappenException;
 use Throwable;
 /**
  * Inspired at @see https://raw.githubusercontent.com/phpstan/phpstan-src/master/src/Parallel/Process.php
- *
- * @api
  */
 final class ParallelProcess
 {
     /**
-     * @readonly
-     * @var string
-     */
-    private $command;
-    /**
-     * @readonly
-     * @var \React\EventLoop\LoopInterface
-     */
-    private $loop;
-    /**
-     * @readonly
-     * @var int
-     */
-    private $timetoutInSeconds;
-    /**
      * @var \React\ChildProcess\Process
      */
-    private $process;
+    public $process;
     /**
      * @var \Clue\React\NDJson\Encoder
      */
@@ -61,6 +44,18 @@ final class ParallelProcess
      * @var \React\EventLoop\TimerInterface|null
      */
     private $timer;
+    /**
+     * @var string
+     */
+    private $command;
+    /**
+     * @var \React\EventLoop\LoopInterface
+     */
+    private $loop;
+    /**
+     * @var int
+     */
+    private $timetoutInSeconds;
     public function __construct(string $command, LoopInterface $loop, int $timetoutInSeconds)
     {
         $this->command = $command;

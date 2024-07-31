@@ -8,7 +8,7 @@ use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ClassReflection;
-use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
+use Rector\Core\Contract\Rector\AllowEmptyConfigurableRectorInterface;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\Reflection\ReflectionResolver;
 use Rector\DowngradePhp72\NodeAnalyzer\BuiltInMethodAnalyzer;
@@ -18,15 +18,19 @@ use Rector\DowngradePhp72\PhpDoc\NativeParamToPhpDocDecorator;
 use Rector\TypeDeclaration\NodeAnalyzer\AutowiredClassMethodOrPropertyAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @changelog https://www.php.net/manual/en/migration72.new-features.php#migration72.new-features.param-type-widening
  * @changelog https://3v4l.org/fOgSE
  *
  * @see \Rector\Tests\DowngradePhp72\Rector\ClassMethod\DowngradeParameterTypeWideningRector\DowngradeParameterTypeWideningRectorTest
  */
-final class DowngradeParameterTypeWideningRector extends AbstractRector implements ConfigurableRectorInterface
+final class DowngradeParameterTypeWideningRector extends AbstractRector implements AllowEmptyConfigurableRectorInterface
 {
+    /**
+     * @var array<string, string[]>
+     */
+    private $unsafeTypesToMethods = [];
     /**
      * @readonly
      * @var \Rector\DowngradePhp72\PhpDoc\NativeParamToPhpDocDecorator
@@ -57,10 +61,6 @@ final class DowngradeParameterTypeWideningRector extends AbstractRector implemen
      * @var \Rector\DowngradePhp72\NodeAnalyzer\SealedClassAnalyzer
      */
     private $sealedClassAnalyzer;
-    /**
-     * @var array<string, string[]>
-     */
-    private $unsafeTypesToMethods = [];
     public function __construct(NativeParamToPhpDocDecorator $nativeParamToPhpDocDecorator, ReflectionResolver $reflectionResolver, AutowiredClassMethodOrPropertyAnalyzer $autowiredClassMethodOrPropertyAnalyzer, BuiltInMethodAnalyzer $builtInMethodAnalyzer, OverrideFromAnonymousClassMethodAnalyzer $overrideFromAnonymousClassMethodAnalyzer, SealedClassAnalyzer $sealedClassAnalyzer)
     {
         $this->nativeParamToPhpDocDecorator = $nativeParamToPhpDocDecorator;
@@ -106,34 +106,23 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [ClassLike::class];
+        return [ClassMethod::class];
     }
     /**
-     * @param ClassLike $node
+     * @param ClassMethod $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $hasChanged = \false;
-        foreach ($node->getMethods() as $method) {
-            $ancestorOverridableAnonymousClass = $this->overrideFromAnonymousClassMethodAnalyzer->matchAncestorClassReflectionOverrideable($node, $method);
-            if ($ancestorOverridableAnonymousClass instanceof ClassReflection) {
-                $classMethod = $this->processRemoveParamTypeFromMethod($ancestorOverridableAnonymousClass, $method);
-                if ($classMethod instanceof ClassMethod) {
-                    $hasChanged = \true;
-                    continue;
-                }
-                continue;
-            }
-            $classReflection = $this->reflectionResolver->resolveClassAndAnonymousClass($node);
-            $classMethod = $this->processRemoveParamTypeFromMethod($classReflection, $method);
-            if ($classMethod instanceof ClassMethod) {
-                $hasChanged = \true;
-            }
+        $classLike = $this->betterNodeFinder->findParentType($node, ClassLike::class);
+        if (!$classLike instanceof ClassLike) {
+            return null;
         }
-        if ($hasChanged) {
-            return $node;
+        $ancestorOverridableAnonymousClass = $this->overrideFromAnonymousClassMethodAnalyzer->matchAncestorClassReflectionOverrideable($classLike, $node);
+        if ($ancestorOverridableAnonymousClass instanceof ClassReflection) {
+            return $this->processRemoveParamTypeFromMethod($ancestorOverridableAnonymousClass, $node);
         }
-        return null;
+        $classReflection = $this->reflectionResolver->resolveClassAndAnonymousClass($classLike);
+        return $this->processRemoveParamTypeFromMethod($classReflection, $node);
     }
     /**
      * @param mixed[] $configuration

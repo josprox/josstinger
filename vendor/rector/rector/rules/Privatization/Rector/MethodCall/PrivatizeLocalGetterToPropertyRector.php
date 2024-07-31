@@ -59,51 +59,32 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [MethodCall::class];
     }
     /**
-     * @param Class_ $node
+     * @param MethodCall $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $class = $node;
-        $hasChanged = \false;
-        $isFinal = $class->isFinal();
-        $this->traverseNodesWithCallable($node, function (Node $node) use($class, &$hasChanged, $isFinal) : ?PropertyFetch {
-            if (!$node instanceof MethodCall) {
-                return null;
-            }
-            if ($node->isFirstClassCallable()) {
-                return null;
-            }
-            if (!$node->var instanceof Variable) {
-                return null;
-            }
-            if (!$this->nodeNameResolver->isName($node->var, 'this')) {
-                return null;
-            }
-            $methodName = $this->getName($node->name);
-            if ($methodName === null) {
-                return null;
-            }
-            $classMethod = $class->getMethod($methodName);
-            if (!$classMethod instanceof ClassMethod) {
-                return null;
-            }
-            if (!$classMethod->isPrivate() && !$isFinal) {
-                return null;
-            }
-            $propertyFetch = $this->matchLocalPropertyFetchInGetterMethod($classMethod);
-            if (!$propertyFetch instanceof PropertyFetch) {
-                return null;
-            }
-            $hasChanged = \true;
-            return $propertyFetch;
-        });
-        if ($hasChanged) {
-            return $node;
+        if (!$node->var instanceof Variable) {
+            return null;
         }
-        return null;
+        if (!$this->nodeNameResolver->isName($node->var, 'this')) {
+            return null;
+        }
+        $classLike = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$classLike instanceof Class_) {
+            return null;
+        }
+        $methodName = $this->getName($node->name);
+        if ($methodName === null) {
+            return null;
+        }
+        $classMethod = $classLike->getMethod($methodName);
+        if (!$classMethod instanceof ClassMethod) {
+            return null;
+        }
+        return $this->matchLocalPropertyFetchInGetterMethod($classMethod);
     }
     private function matchLocalPropertyFetchInGetterMethod(ClassMethod $classMethod) : ?PropertyFetch
     {

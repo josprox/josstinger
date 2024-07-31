@@ -4,7 +4,6 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Switch_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Stmt\If_;
 use PhpParser\Node\Stmt\Switch_;
@@ -77,7 +76,7 @@ CODE_SAMPLE
         }
         $onlyCase = $node->cases[0];
         // only default → basically unwrap
-        if (!$onlyCase->cond instanceof Expr) {
+        if ($onlyCase->cond === null) {
             return $onlyCase->stmts;
         }
         $if = new If_(new Identical($node->cond, $onlyCase->cond));

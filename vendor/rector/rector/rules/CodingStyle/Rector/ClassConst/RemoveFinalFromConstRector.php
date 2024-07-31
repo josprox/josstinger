@@ -5,6 +5,7 @@ namespace Rector\CodingStyle\Rector\ClassConst;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
+use PhpParser\Node\Stmt\ClassConst;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
@@ -48,25 +49,19 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [ClassConst::class];
     }
     /**
-     * @param Class_ $node
+     * @param ClassConst $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$node->isFinal()) {
+        $parentClass = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$parentClass instanceof Class_) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->getConstants() as $classConst) {
-            if (!$classConst->isFinal()) {
-                continue;
-            }
-            $this->visibilityManipulator->removeFinal($classConst);
-            $hasChanged = \true;
-        }
-        if ($hasChanged) {
+        if ($parentClass->isFinal() && $node->isFinal()) {
+            $this->visibilityManipulator->removeFinal($node);
             return $node;
         }
         return null;

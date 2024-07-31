@@ -9,7 +9,6 @@ use PhpParser\Node\Stmt\Break_;
 use PhpParser\Node\Stmt\Case_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
-use PHPStan\Type\MixedType;
 use Rector\NodeTypeResolver\NodeTypeResolver;
 use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 final class SwitchAnalyzer
@@ -32,7 +31,7 @@ final class SwitchAnalyzer
     /**
      * @param Case_[] $cases
      */
-    public function hasDifferentTypeCases(array $cases, Expr $expr) : bool
+    public function hasDifferentTypeCases(array $cases) : bool
     {
         $types = [];
         foreach ($cases as $case) {
@@ -44,14 +43,7 @@ final class SwitchAnalyzer
             return \false;
         }
         $uniqueTypes = $this->typeFactory->uniquateTypes($types);
-        $countUniqueTypes = \count($uniqueTypes);
-        if ($countUniqueTypes === 1 && $uniqueTypes[0]->isInteger()->yes()) {
-            $switchCondType = $this->nodeTypeResolver->getType($expr);
-            if (!$switchCondType instanceof MixedType && $switchCondType->isString()->maybe()) {
-                return \true;
-            }
-        }
-        return $countUniqueTypes > 1;
+        return \count($uniqueTypes) > 1;
     }
     public function hasEachCaseBreak(Switch_ $switch) : bool
     {
@@ -73,7 +65,7 @@ final class SwitchAnalyzer
     public function hasEachCaseSingleStmt(Switch_ $switch) : bool
     {
         foreach ($switch->cases as $case) {
-            if (!$case->cond instanceof Expr) {
+            if ($case->cond === null) {
                 continue;
             }
             $stmtsWithoutBreak = \array_filter($case->stmts, static function (Node $node) : bool {
@@ -88,7 +80,7 @@ final class SwitchAnalyzer
     public function hasDefaultSingleStmt(Switch_ $switch) : bool
     {
         foreach ($switch->cases as $case) {
-            if (!$case->cond instanceof Expr) {
+            if ($case->cond === null) {
                 $stmtsWithoutBreak = \array_filter($case->stmts, static function (Node $node) : bool {
                     return !$node instanceof Break_;
                 });

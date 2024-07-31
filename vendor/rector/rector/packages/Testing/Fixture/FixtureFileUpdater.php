@@ -3,22 +3,20 @@
 declare (strict_types=1);
 namespace Rector\Testing\Fixture;
 
-use RectorPrefix202312\Nette\Utils\FileSystem;
+use RectorPrefix202211\Nette\Utils\FileSystem;
 final class FixtureFileUpdater
 {
-    /**
-     * @api
-     */
-    public static function updateFixtureContent(string $originalContent, string $changedContent, string $fixtureFilePath) : void
+    public static function updateFixtureContent(string $originalFilePath, string $changedContent, string $fixtureFilepath) : void
     {
         if (!\getenv('UPDATE_TESTS') && !\getenv('UT')) {
             return;
         }
-        $newOriginalContent = self::resolveNewFixtureContent($originalContent, $changedContent);
-        FileSystem::write($fixtureFilePath, $newOriginalContent);
+        $newOriginalContent = self::resolveNewFixtureContent($originalFilePath, $changedContent);
+        FileSystem::write($fixtureFilepath, $newOriginalContent);
     }
-    private static function resolveNewFixtureContent(string $originalContent, string $changedContent) : string
+    private static function resolveNewFixtureContent(string $originalFilePath, string $changedContent) : string
     {
+        $originalContent = FileSystem::read($originalFilePath);
         if ($originalContent === $changedContent) {
             return $originalContent;
         }

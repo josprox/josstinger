@@ -4,12 +4,7 @@ declare (strict_types=1);
 namespace Rector\Naming\Rector\Foreach_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr\Closure;
-use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Foreach_;
-use PhpParser\Node\Stmt\Function_;
-use PhpParser\NodeTraverser;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Naming\Guard\BreakingVariableRenameGuard;
 use Rector\Naming\Matcher\ForeachMatcher;
@@ -49,10 +44,6 @@ final class RenameForeachValueVariableToMatchMethodCallReturnTypeRector extends 
      * @var \Rector\Naming\Matcher\ForeachMatcher
      */
     private $foreachMatcher;
-    /**
-     * @var string[]
-     */
-    private const UNREADABLE_GENERIC_NAMES = ['traversable', 'iterable', 'generator', 'rewindableGenerator'];
     public function __construct(BreakingVariableRenameGuard $breakingVariableRenameGuard, ExpectedNameResolver $expectedNameResolver, NamingConventionAnalyzer $namingConventionAnalyzer, VariableRenamer $variableRenamer, ForeachMatcher $foreachMatcher)
     {
         $this->breakingVariableRenameGuard = $breakingVariableRenameGuard;
@@ -94,59 +85,39 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [ClassMethod::class, Closure::class, Function_::class];
+        return [Foreach_::class];
     }
     /**
-     * @param ClassMethod|Closure|Function_ $node
+     * @param Foreach_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->stmts === null) {
+        $variableAndCallForeach = $this->foreachMatcher->match($node);
+        if (!$variableAndCallForeach instanceof VariableAndCallForeach) {
             return null;
         }
-        $hasRenamed = \false;
-        $this->traverseNodesWithCallable($node->stmts, function (Node $subNode) use($node, &$hasRenamed) : ?int {
-            if ($subNode instanceof Class_ || $subNode instanceof Closure || $subNode instanceof Function_) {
-                return NodeTraverser::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
-            }
-            if (!$subNode instanceof Foreach_) {
-                return null;
-            }
-            $variableAndCallForeach = $this->foreachMatcher->match($subNode, $node);
-            if (!$variableAndCallForeach instanceof VariableAndCallForeach) {
-                return null;
-            }
-            $expectedName = $this->expectedNameResolver->resolveForForeach($variableAndCallForeach);
-            if ($expectedName === null) {
-                return null;
-            }
-            if ($this->isName($variableAndCallForeach->getVariable(), $expectedName)) {
-                return null;
-            }
-            if ($this->shouldSkip($variableAndCallForeach, $expectedName)) {
-                return null;
-            }
-            $hasChanged = $this->variableRenamer->renameVariableInFunctionLike($variableAndCallForeach->getFunctionLike(), $variableAndCallForeach->getVariableName(), $expectedName, null);
-            // use different variable on purpose to avoid variable re-assign back to false
-            // after go to other method
-            if ($hasChanged) {
-                $hasRenamed = \true;
-            }
+        $expectedName = $this->expectedNameResolver->resolveForForeach($variableAndCallForeach->getCall());
+        if ($expectedName === null) {
             return null;
-        });
-        if ($hasRenamed) {
-            return $node;
         }
-        return null;
+        if ($this->isName($variableAndCallForeach->getVariable(), $expectedName)) {
+            return null;
+        }
+        if ($this->shouldSkip($variableAndCallForeach, $expectedName)) {
+            return null;
+        }
+        $this->renameVariable($variableAndCallForeach, $expectedName);
+        return $node;
     }
     private function shouldSkip(VariableAndCallForeach $variableAndCallForeach, string $expectedName) : bool
     {
-        if (\in_array($expectedName, self::UNREADABLE_GENERIC_NAMES, \true)) {
-            return \true;
-        }
         if ($this->namingConventionAnalyzer->isCallMatchingVariableName($variableAndCallForeach->getCall(), $variableAndCallForeach->getVariableName(), $expectedName)) {
             return \true;
         }
         return $this->breakingVariableRenameGuard->shouldSkipVariable($variableAndCallForeach->getVariableName(), $expectedName, $variableAndCallForeach->getFunctionLike(), $variableAndCallForeach->getVariable());
+    }
+    private function renameVariable(VariableAndCallForeach $variableAndCallForeach, string $expectedName) : void
+    {
+        $this->variableRenamer->renameVariableInFunctionLike($variableAndCallForeach->getFunctionLike(), $variableAndCallForeach->getVariableName(), $expectedName, null);
     }
 }

@@ -41,14 +41,11 @@ use PhpParser\Node\Expr\BinaryOp\Smaller;
 use PhpParser\Node\Expr\BinaryOp\SmallerOrEqual;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Expr\Cast\Bool_;
-use Rector\NodeTypeResolver\NodeTypeResolver;
+use PHPStan\Analyser\Scope;
+use PHPStan\Type\BooleanType;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 final class AssignAndBinaryMap
 {
-    /**
-     * @readonly
-     * @var \Rector\NodeTypeResolver\NodeTypeResolver
-     */
-    private $nodeTypeResolver;
     /**
      * @var array<class-string<BinaryOp>, class-string<BinaryOp>>
      */
@@ -61,9 +58,8 @@ final class AssignAndBinaryMap
      * @var array<class-string<BinaryOp>, class-string<BinaryOp>>
      */
     private $binaryOpToAssignClasses = [];
-    public function __construct(NodeTypeResolver $nodeTypeResolver)
+    public function __construct()
     {
-        $this->nodeTypeResolver = $nodeTypeResolver;
         $this->binaryOpToAssignClasses = \array_flip(self::ASSIGN_OP_TO_BINARY_OP_CLASSES);
     }
     /**
@@ -96,9 +92,12 @@ final class AssignAndBinaryMap
         if ($expr instanceof BooleanNot) {
             return $expr;
         }
-        $exprType = $this->nodeTypeResolver->getType($expr);
-        // $type = $scope->getType($expr);
-        if ($exprType->isBoolean()->yes()) {
+        $scope = $expr->getAttribute(AttributeKey::SCOPE);
+        if (!$scope instanceof Scope) {
+            return new Bool_($expr);
+        }
+        $type = $scope->getType($expr);
+        if ($type instanceof BooleanType) {
             return $expr;
         }
         return new Bool_($expr);

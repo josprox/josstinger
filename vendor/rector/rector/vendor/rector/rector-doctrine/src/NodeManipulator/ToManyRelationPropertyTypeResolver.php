@@ -9,7 +9,6 @@ use PHPStan\Type\Generic\GenericObjectType;
 use PHPStan\Type\Type;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
-use Rector\BetterPhpDocParser\PhpDoc\StringNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Doctrine\NodeAnalyzer\AttributeFinder;
@@ -17,6 +16,14 @@ use Rector\Doctrine\PhpDoc\ShortClassExpander;
 use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 final class ToManyRelationPropertyTypeResolver
 {
+    /**
+     * @var string
+     */
+    private const COLLECTION_TYPE = 'Doctrine\\Common\\Collections\\Collection';
+    /**
+     * @var class-string[]
+     */
+    private const TO_MANY_ANNOTATION_CLASSES = ['Doctrine\\ORM\\Mapping\\OneToMany', 'Doctrine\\ORM\\Mapping\\ManyToMany'];
     /**
      * @readonly
      * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
@@ -37,14 +44,6 @@ final class ToManyRelationPropertyTypeResolver
      * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
      */
     private $valueResolver;
-    /**
-     * @var string
-     */
-    private const COLLECTION_TYPE = 'Doctrine\\Common\\Collections\\Collection';
-    /**
-     * @var class-string[]
-     */
-    private const TO_MANY_ANNOTATION_CLASSES = ['Doctrine\\ORM\\Mapping\\OneToMany', 'Doctrine\\ORM\\Mapping\\ManyToMany'];
     public function __construct(PhpDocInfoFactory $phpDocInfoFactory, ShortClassExpander $shortClassExpander, AttributeFinder $attributeFinder, ValueResolver $valueResolver)
     {
         $this->phpDocInfoFactory = $phpDocInfoFactory;
@@ -56,7 +55,7 @@ final class ToManyRelationPropertyTypeResolver
     {
         $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($property);
         $doctrineAnnotationTagValueNode = $phpDocInfo->getByAnnotationClasses(self::TO_MANY_ANNOTATION_CLASSES);
-        if ($doctrineAnnotationTagValueNode instanceof DoctrineAnnotationTagValueNode) {
+        if ($doctrineAnnotationTagValueNode !== null) {
             return $this->processToManyRelation($property, $doctrineAnnotationTagValueNode);
         }
         $expr = $this->attributeFinder->findAttributeByClassesArgByName($property, self::TO_MANY_ANNOTATION_CLASSES, 'targetEntity');
@@ -71,14 +70,10 @@ final class ToManyRelationPropertyTypeResolver
         if (!$targetEntityArrayItemNode instanceof ArrayItemNode) {
             return null;
         }
-        $targetEntityClass = $targetEntityArrayItemNode->value;
-        if ($targetEntityClass instanceof StringNode) {
-            $targetEntityClass = $targetEntityClass->value;
-        }
-        if (!\is_string($targetEntityClass)) {
+        if (!\is_string($targetEntityArrayItemNode->value)) {
             return null;
         }
-        return $this->resolveTypeFromTargetEntity($targetEntityClass, $property);
+        return $this->resolveTypeFromTargetEntity($targetEntityArrayItemNode->value, $property);
     }
     /**
      * @param \PhpParser\Node\Expr|string $targetEntity

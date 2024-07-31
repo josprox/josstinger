@@ -5,9 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202312\Nette\Utils;
+namespace RectorPrefix202211\Nette\Utils;
 
-use RectorPrefix202312\Nette;
+use RectorPrefix202211\Nette;
 use function is_array, is_object, is_string;
 /**
  * PHP callable tools.
@@ -128,7 +128,7 @@ final class Callback
      */
     public static function isStatic(callable $callable) : bool
     {
-        return is_string(is_array($callable) ? $callable[0] : $callable);
+        return is_array($callable) ? is_string($callable[0]) : is_string($callable);
     }
     /**
      * Unwraps closure created by Closure::fromCallable().
@@ -137,12 +137,11 @@ final class Callback
     public static function unwrap(\Closure $closure)
     {
         $r = new \ReflectionFunction($closure);
-        $class = $r->getClosureScopeClass();
         if (\substr($r->name, -1) === '}') {
             return $closure;
-        } elseif (($obj = $r->getClosureThis()) && $class && \get_class($obj) === $class->name) {
+        } elseif ($obj = $r->getClosureThis()) {
             return [$obj, $r->name];
-        } elseif ($class) {
+        } elseif ($class = $r->getClosureScopeClass()) {
             return [$class->name, $r->name];
         } else {
             return $r->name;

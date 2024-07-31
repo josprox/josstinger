@@ -5,9 +5,10 @@ namespace Rector\NodeNameResolver\NodeNameResolver;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
-use PHPStan\Analyser\Scope;
 use Rector\NodeNameResolver\Contract\NodeNameResolverInterface;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 /**
  * @implements NodeNameResolverInterface<Variable>
  */
@@ -20,8 +21,13 @@ final class VariableNameResolver implements NodeNameResolverInterface
     /**
      * @param Variable $node
      */
-    public function resolve(Node $node, ?Scope $scope) : ?string
+    public function resolve(Node $node) : ?string
     {
+        $parentNode = $node->getAttribute(AttributeKey::PARENT_NODE);
+        // skip $some->$dynamicMethodName()
+        if ($parentNode instanceof MethodCall && $node === $parentNode->name) {
+            return null;
+        }
         if ($node->name instanceof Expr) {
             return null;
         }

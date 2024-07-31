@@ -4,8 +4,11 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Scalar\String_;
+use PHPStan\Type\StringType;
+use Rector\Core\NodeAnalyzer\ArgsAnalyzer;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -14,6 +17,15 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class RemoveSoleValueSprintfRector extends AbstractRector
 {
+    /**
+     * @readonly
+     * @var \Rector\Core\NodeAnalyzer\ArgsAnalyzer
+     */
+    private $argsAnalyzer;
+    public function __construct(ArgsAnalyzer $argsAnalyzer)
+    {
+        $this->argsAnalyzer = $argsAnalyzer;
+    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Remove sprintf() wrapper if not needed', [new CodeSample(<<<'CODE_SAMPLE'
@@ -21,6 +33,8 @@ class SomeClass
 {
     public function run()
     {
+        $value = sprintf('%s', 'hi');
+
         $welcome = 'hello';
         $value = sprintf('%s', $welcome);
     }
@@ -31,6 +45,8 @@ class SomeClass
 {
     public function run()
     {
+        $value = 'hi';
+
         $welcome = 'hello';
         $value = $welcome;
     }
@@ -53,13 +69,14 @@ CODE_SAMPLE
         if (!$this->isName($node, 'sprintf')) {
             return null;
         }
-        if ($node->isFirstClassCallable()) {
+        if (\count($node->args) !== 2) {
             return null;
         }
-        if (\count($node->getArgs()) !== 2) {
+        if (!$this->argsAnalyzer->isArgsInstanceInArgsPositions($node->args, [0, 1])) {
             return null;
         }
-        $firstArg = $node->getArgs()[0];
+        /** @var Arg $firstArg */
+        $firstArg = $node->args[0];
         $maskArgument = $firstArg->value;
         if (!$maskArgument instanceof String_) {
             return null;
@@ -67,10 +84,11 @@ CODE_SAMPLE
         if ($maskArgument->value !== '%s') {
             return null;
         }
-        $secondArg = $node->getArgs()[1];
+        /** @var Arg $secondArg */
+        $secondArg = $node->args[1];
         $valueArgument = $secondArg->value;
         $valueType = $this->getType($valueArgument);
-        if (!$valueType->isString()->yes()) {
+        if (!$valueType instanceof StringType) {
             return null;
         }
         return $valueArgument;

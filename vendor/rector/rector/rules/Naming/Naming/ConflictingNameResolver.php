@@ -15,6 +15,10 @@ use Rector\Naming\PhpArray\ArrayFilter;
 final class ConflictingNameResolver
 {
     /**
+     * @var array<string, string[]>
+     */
+    private $conflictingVariableNamesByClassMethod = [];
+    /**
      * @readonly
      * @var \Rector\Naming\PhpArray\ArrayFilter
      */
@@ -39,10 +43,6 @@ final class ConflictingNameResolver
      * @var \Rector\Core\NodeManipulator\FunctionLikeManipulator
      */
     private $functionLikeManipulator;
-    /**
-     * @var array<int, string[]>
-     */
-    private $conflictingVariableNamesByClassMethod = [];
     public function __construct(ArrayFilter $arrayFilter, BetterNodeFinder $betterNodeFinder, \Rector\Naming\Naming\ExpectedNameResolver $expectedNameResolver, MatchParamTypeExpectedNameResolver $matchParamTypeExpectedNameResolver, FunctionLikeManipulator $functionLikeManipulator)
     {
         $this->arrayFilter = $arrayFilter;
@@ -82,16 +82,16 @@ final class ConflictingNameResolver
     private function resolveConflictingVariableNamesForNew($functionLike) : array
     {
         // cache it!
-        $classMethodId = \spl_object_id($functionLike);
-        if (isset($this->conflictingVariableNamesByClassMethod[$classMethodId])) {
-            return $this->conflictingVariableNamesByClassMethod[$classMethodId];
+        $classMethodHash = \spl_object_hash($functionLike);
+        if (isset($this->conflictingVariableNamesByClassMethod[$classMethodHash])) {
+            return $this->conflictingVariableNamesByClassMethod[$classMethodHash];
         }
         $paramNames = $this->functionLikeManipulator->resolveParamNames($functionLike);
         $newAssignNames = $this->resolveForNewAssigns($functionLike);
         $nonNewAssignNames = $this->resolveForNonNewAssigns($functionLike);
         $protectedNames = \array_merge($paramNames, $newAssignNames, $nonNewAssignNames);
         $protectedNames = $this->arrayFilter->filterWithAtLeastTwoOccurences($protectedNames);
-        $this->conflictingVariableNamesByClassMethod[$classMethodId] = $protectedNames;
+        $this->conflictingVariableNamesByClassMethod[$classMethodHash] = $protectedNames;
         return $protectedNames;
     }
     /**

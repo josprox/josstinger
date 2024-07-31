@@ -35,10 +35,6 @@ final class PhpVersionFeature
     /**
      * @var int
      */
-    public const ANONYMOUS_FUNCTION_PARAM_TYPE = \Rector\Core\ValueObject\PhpVersion::PHP_53;
-    /**
-     * @var int
-     */
     public const NO_ZERO_BREAK = \Rector\Core\ValueObject\PhpVersion::PHP_54;
     /**
      * @var int
@@ -57,6 +53,9 @@ final class PhpVersionFeature
      * @var int
      */
     public const CLASSNAME_CONSTANT = \Rector\Core\ValueObject\PhpVersion::PHP_55;
+    /*
+     * @var int
+     */
     /**
      * @var int
      */
@@ -73,10 +72,6 @@ final class PhpVersionFeature
      * @var int
      */
     public const SCALAR_TYPES = \Rector\Core\ValueObject\PhpVersion::PHP_70;
-    /**
-     * @var int
-     */
-    public const HAS_RETURN_TYPE = \Rector\Core\ValueObject\PhpVersion::PHP_70;
     /**
      * @var int
      */
@@ -152,10 +147,6 @@ final class PhpVersionFeature
      * @var int
      */
     public const WRAP_VARIABLE_VARIABLE = \Rector\Core\ValueObject\PhpVersion::PHP_70;
-    /**
-     * @var int
-     */
-    public const ANONYMOUS_FUNCTION_RETURN_TYPE = \Rector\Core\ValueObject\PhpVersion::PHP_70;
     /**
      * @var int
      */
@@ -360,10 +351,6 @@ final class PhpVersionFeature
     /**
      * @var int
      */
-    public const NULLSAFE_OPERATOR = \Rector\Core\ValueObject\PhpVersion::PHP_80;
-    /**
-     * @var int
-     */
     public const IS_ITERABLE = \Rector\Core\ValueObject\PhpVersion::PHP_71;
     /**
      * @var int
@@ -500,36 +487,4 @@ final class PhpVersionFeature
      * @var int
      */
     public const DEPRECATE_NULL_ARG_IN_STRING_FUNCTION = \Rector\Core\ValueObject\PhpVersion::PHP_81;
-    /**
-     * @see https://wiki.php.net/rfc/remove_utf8_decode_and_utf8_encode
-     * @var int
-     */
-    public const DEPRECATE_UTF8_DECODE_ENCODE_FUNCTION = \Rector\Core\ValueObject\PhpVersion::PHP_82;
-    /**
-     * @see https://www.php.net/manual/en/filesystemiterator.construct
-     * @var int
-     */
-    public const FILESYSTEM_ITERATOR_SKIP_DOTS = \Rector\Core\ValueObject\PhpVersion::PHP_82;
-    /**
-     * @see https://wiki.php.net/rfc/null-false-standalone-types
-     * @see https://wiki.php.net/rfc/true-type
-     *
-     * @var int
-     */
-    public const NULL_FALSE_TRUE_STANDALONE_TYPE = \Rector\Core\ValueObject\PhpVersion::PHP_82;
-    /**
-     * @see https://wiki.php.net/rfc/redact_parameters_in_back_traces
-     * @var int
-     */
-    public const SENSITIVE_PARAMETER_ATTRIBUTE = \Rector\Core\ValueObject\PhpVersion::PHP_82;
-    /**
-     * @see https://wiki.php.net/rfc/marking_overriden_methods
-     * @var int
-     */
-    public const OVERRIDE_ATTRIBUTE = \Rector\Core\ValueObject\PhpVersion::PHP_83;
-    /**
-     * @see https://wiki.php.net/rfc/typed_class_constants
-     * @var int
-     */
-    public const TYPED_CLASS_CONSTANTS = \Rector\Core\ValueObject\PhpVersion::PHP_83;
 }

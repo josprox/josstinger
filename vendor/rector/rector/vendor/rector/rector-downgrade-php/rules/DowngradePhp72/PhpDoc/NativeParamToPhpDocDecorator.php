@@ -6,6 +6,7 @@ namespace Rector\DowngradePhp72\PhpDoc;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\ClassMethod;
+use PHPStan\Type\NullType;
 use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use PHPStan\Type\UnionType;
@@ -58,7 +59,7 @@ final class NativeParamToPhpDocDecorator
         $paramName = $this->nodeNameResolver->getName($param);
         $mappedCurrentParamType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($param->type);
         $correctedNullableParamType = $this->correctNullableType($param, $mappedCurrentParamType);
-        $this->phpDocTypeChanger->changeParamType($classMethod, $phpDocInfo, $correctedNullableParamType, $param, $paramName);
+        $this->phpDocTypeChanger->changeParamType($phpDocInfo, $correctedNullableParamType, $param, $paramName);
     }
     private function isParamNullable(Param $param) : bool
     {
@@ -79,6 +80,6 @@ final class NativeParamToPhpDocDecorator
             return $paramType;
         }
         // add default null type
-        return TypeCombinator::addNull($paramType);
+        return new UnionType([$paramType, new NullType()]);
     }
 }

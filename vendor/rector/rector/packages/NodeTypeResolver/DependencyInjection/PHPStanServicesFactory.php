@@ -6,20 +6,21 @@ namespace Rector\NodeTypeResolver\DependencyInjection;
 use PhpParser\Lexer;
 use PHPStan\Analyser\NodeScopeResolver;
 use PHPStan\Analyser\ScopeFactory;
+use PHPStan\Dependency\DependencyResolver;
 use PHPStan\DependencyInjection\Container;
 use PHPStan\DependencyInjection\ContainerFactory;
+use PHPStan\ExtensionInstaller\GeneratedConfig;
 use PHPStan\File\FileHelper;
 use PHPStan\Parser\Parser;
 use PHPStan\PhpDoc\TypeNodeResolver;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\Core\Configuration\Option;
-use Rector\Core\Configuration\Parameter\SimpleParameterProvider;
+use Rector\Core\Configuration\Parameter\ParameterProvider;
+use Rector\Core\Exception\ShouldNotHappenException;
 use Rector\NodeTypeResolver\Reflection\BetterReflection\SourceLocatorProvider\DynamicSourceLocatorProvider;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use ReflectionClass;
 /**
  * Factory so Symfony app can use services from PHPStan container
- *
- * @see \Rector\NodeTypeResolver\DependencyInjection\PHPStanServicesFactory
  */
 final class PHPStanServicesFactory
 {
@@ -28,11 +29,20 @@ final class PHPStanServicesFactory
      * @var \PHPStan\DependencyInjection\Container
      */
     private $container;
-    public function __construct()
+    public function __construct(ParameterProvider $parameterProvider)
     {
         $containerFactory = new ContainerFactory(\getcwd());
-        $additionalConfigFiles = $this->resolveAdditionalConfigFiles();
-        $this->container = $containerFactory->create(SimpleParameterProvider::provideStringParameter(Option::CONTAINER_CACHE_DIRECTORY), $additionalConfigFiles, []);
+        $additionalConfigFiles = [];
+        if ($parameterProvider->hasParameter(Option::PHPSTAN_FOR_RECTOR_PATH)) {
+            $additionalConfigFiles[] = $parameterProvider->provideStringParameter(Option::PHPSTAN_FOR_RECTOR_PATH);
+        }
+        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/static-reflection.neon';
+        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/better-infer.neon';
+        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/parser.neon';
+        $extensionConfigFiles = $this->resolveExtensionConfigs();
+        $additionalConfigFiles = \array_merge($additionalConfigFiles, $extensionConfigFiles);
+        $existingAdditionalConfigFiles = \array_filter($additionalConfigFiles, 'file_exists');
+        $this->container = $containerFactory->create(\sys_get_temp_dir(), $existingAdditionalConfigFiles, []);
     }
     /**
      * @api
@@ -70,14 +80,11 @@ final class PHPStanServicesFactory
         return $this->container->getByType(ScopeFactory::class);
     }
     /**
-     * @template TObject as Object
-     *
-     * @param class-string<TObject> $type
-     * @return TObject
+     * @api
      */
-    public function getByType(string $type) : object
+    public function createDependencyResolver() : DependencyResolver
     {
-        return $this->container->getByType($type);
+        return $this->container->getByType(DependencyResolver::class);
     }
     /**
      * @api
@@ -103,19 +110,29 @@ final class PHPStanServicesFactory
     /**
      * @return string[]
      */
-    private function resolveAdditionalConfigFiles() : array
+    private function resolveExtensionConfigs() : array
     {
-        $additionalConfigFiles = [];
-        if (SimpleParameterProvider::hasParameter(Option::PHPSTAN_FOR_RECTOR_PATHS)) {
-            $paths = SimpleParameterProvider::provideArrayParameter(Option::PHPSTAN_FOR_RECTOR_PATHS);
-            foreach ($paths as $path) {
-                Assert::string($path);
-                $additionalConfigFiles[] = $path;
+        // same logic as in PHPStan for extension installed - https://github.com/phpstan/phpstan-src/blob/5956ec4f6cd09c8d7db9466ed4e7f25706f37a43/src/Command/CommandHelper.php#L195-L222
+        if (!\class_exists(GeneratedConfig::class)) {
+            return [];
+        }
+        $reflectionClass = new ReflectionClass(GeneratedConfig::class);
+        $generatedConfigClassFileName = $reflectionClass->getFileName();
+        if ($generatedConfigClassFileName === \false) {
+            throw new ShouldNotHappenException();
+        }
+        $generatedConfigDirectory = \dirname($generatedConfigClassFileName);
+        $extensionConfigFiles = [];
+        foreach (GeneratedConfig::EXTENSIONS as $extension) {
+            $fileNames = $extension['extra']['includes'] ?? [];
+            foreach ($fileNames as $fileName) {
+                $configFilePath = $generatedConfigDirectory . '/' . $extension['relative_install_path'] . '/' . $fileName;
+                if (!\file_exists($configFilePath)) {
+                    continue;
+                }
+                $extensionConfigFiles[] = $configFilePath;
             }
         }
-        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/static-reflection.neon';
-        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/better-infer.neon';
-        $additionalConfigFiles[] = __DIR__ . '/../../../config/phpstan/parser.neon';
-        return \array_filter($additionalConfigFiles, 'file_exists');
+        return $extensionConfigFiles;
     }
 }

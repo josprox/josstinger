@@ -1,11 +1,11 @@
 <?php
 
-namespace RectorPrefix202312\Clue\React\NDJson;
+namespace RectorPrefix202211\Clue\React\NDJson;
 
-use RectorPrefix202312\Evenement\EventEmitter;
-use RectorPrefix202312\React\Stream\ReadableStreamInterface;
-use RectorPrefix202312\React\Stream\Util;
-use RectorPrefix202312\React\Stream\WritableStreamInterface;
+use RectorPrefix202211\Evenement\EventEmitter;
+use RectorPrefix202211\React\Stream\ReadableStreamInterface;
+use RectorPrefix202211\React\Stream\Util;
+use RectorPrefix202211\React\Stream\WritableStreamInterface;
 /**
  * The Decoder / Parser reads from a plain stream and emits data objects for each JSON element
  */
@@ -82,10 +82,6 @@ class Decoder extends EventEmitter implements ReadableStreamInterface
     /** @internal */
     public function handleData($data)
     {
-        if (!\is_string($data)) {
-            $this->handleError(new \UnexpectedValueException('Expected stream to emit string, but got ' . \gettype($data)));
-            return;
-        }
         $this->buffer .= $data;
         // keep parsing while a newline has been found
         while (($newline = \strpos($this->buffer, "\n")) !== \false && $newline <= $this->maxlength) {
@@ -93,14 +89,11 @@ class Decoder extends EventEmitter implements ReadableStreamInterface
             $data = (string) \substr($this->buffer, 0, $newline);
             $this->buffer = (string) \substr($this->buffer, $newline + 1);
             // decode data with options given in ctor
-            // @codeCoverageIgnoreStart
             if ($this->options === 0) {
                 $data = \json_decode($data, $this->assoc, $this->depth);
             } else {
-                \assert(\PHP_VERSION_ID >= 50400);
                 $data = \json_decode($data, $this->assoc, $this->depth, $this->options);
             }
-            // @codeCoverageIgnoreEnd
             // abort stream if decoding failed
             if ($data === null && \json_last_error() !== \JSON_ERROR_NONE) {
                 // @codeCoverageIgnoreStart

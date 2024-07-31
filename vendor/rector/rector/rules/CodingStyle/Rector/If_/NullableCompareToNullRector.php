@@ -9,7 +9,13 @@ use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PhpParser\Node\Expr\BooleanNot;
 use PhpParser\Node\Stmt\If_;
-use PHPStan\Type\TypeCombinator;
+use PHPStan\Type\ArrayType;
+use PHPStan\Type\BooleanType;
+use PHPStan\Type\FloatType;
+use PHPStan\Type\IntegerType;
+use PHPStan\Type\MixedType;
+use PHPStan\Type\NullType;
+use PHPStan\Type\StringType;
 use PHPStan\Type\UnionType;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -63,21 +69,35 @@ CODE_SAMPLE
     }
     private function isNullableNonScalarType(Expr $expr) : bool
     {
-        $nativeType = $this->nodeTypeResolver->getNativeType($expr);
-        // is non-nullable?
-        if (!TypeCombinator::containsNull($nativeType)) {
+        $staticType = $this->getType($expr);
+        if ($staticType instanceof MixedType) {
             return \false;
         }
-        if (!$nativeType instanceof UnionType) {
+        if (!$staticType instanceof UnionType) {
+            return \false;
+        }
+        // is non-nullable?
+        if ($staticType->isSuperTypeOf(new NullType())->no()) {
             return \false;
         }
         // is array?
-        foreach ($nativeType->getTypes() as $subType) {
-            if ($subType->isArray()->yes()) {
+        foreach ($staticType->getTypes() as $subType) {
+            if ($subType instanceof ArrayType) {
                 return \false;
             }
         }
-        $nativeType = TypeCombinator::removeNull($nativeType);
-        return !$nativeType->isScalar()->yes();
+        // is string?
+        if ($staticType->isSuperTypeOf(new StringType())->yes()) {
+            return \false;
+        }
+        // is number?
+        if ($staticType->isSuperTypeOf(new IntegerType())->yes()) {
+            return \false;
+        }
+        // is bool?
+        if ($staticType->isSuperTypeOf(new BooleanType())->yes()) {
+            return \false;
+        }
+        return !$staticType->isSuperTypeOf(new FloatType())->yes();
     }
 }

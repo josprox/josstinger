@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Output;
+namespace RectorPrefix202211\Symfony\Component\Console\Output;
 
-use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterInterface;
+use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202211\Symfony\Component\Console\Formatter\OutputFormatterInterface;
 /**
  * StreamOutput writes the output to a given stream.
  *
@@ -27,7 +27,6 @@ use RectorPrefix202312\Symfony\Component\Console\Formatter\OutputFormatterInterf
  */
 class StreamOutput extends Output
 {
-    /** @var resource */
     private $stream;
     /**
      * @param resource                      $stream    A stream resource
@@ -43,7 +42,9 @@ class StreamOutput extends Output
             throw new InvalidArgumentException('The StreamOutput class needs a stream as its first argument.');
         }
         $this->stream = $stream;
-        $decorated = $decorated ?? $this->hasColorSupport();
+        if (null === $decorated) {
+            $decorated = $this->hasColorSupport();
+        }
         parent::__construct($verbosity, $decorated, $formatter);
     }
     /**
@@ -56,7 +57,7 @@ class StreamOutput extends Output
         return $this->stream;
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     protected function doWrite(string $message, bool $newline)
     {

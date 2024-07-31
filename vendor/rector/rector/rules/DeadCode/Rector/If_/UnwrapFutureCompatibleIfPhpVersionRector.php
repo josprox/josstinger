@@ -5,9 +5,7 @@ namespace Rector\DeadCode\Rector\If_;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\If_;
-use PhpParser\NodeTraverser;
 use Rector\Core\Rector\AbstractRector;
 use Rector\DeadCode\ConditionEvaluator;
 use Rector\DeadCode\ConditionResolver;
@@ -61,9 +59,9 @@ CODE_SAMPLE
     }
     /**
      * @param If_ $node
-     * @return Stmt[]|null|int
+     * @return Stmt[]|null
      */
-    public function refactor(Node $node)
+    public function refactor(Node $node) : ?array
     {
         if ($node->elseifs !== []) {
             return null;
@@ -96,13 +94,14 @@ CODE_SAMPLE
         return $if->stmts;
     }
     /**
-     * @return Stmt[]|int
+     * @return Stmt[]|null
      */
-    private function refactorIsNotMatch(If_ $if)
+    private function refactorIsNotMatch(If_ $if) : ?array
     {
         // no else → just remove the node
-        if (!$if->else instanceof Else_) {
-            return NodeTraverser::REMOVE_NODE;
+        if ($if->else === null) {
+            $this->removeNode($if);
+            return null;
         }
         // else is always used
         return $if->else->stmts;

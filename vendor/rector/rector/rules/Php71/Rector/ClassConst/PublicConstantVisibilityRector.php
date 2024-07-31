@@ -55,7 +55,16 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        return $this->visibilityManipulator->publicize($node);
+        // already non-public
+        if (!$node->isPublic()) {
+            return null;
+        }
+        // explicitly public
+        if ($node->flags !== 0) {
+            return null;
+        }
+        $this->visibilityManipulator->makePublic($node);
+        return $node;
     }
     public function provideMinPhpVersion() : int
     {

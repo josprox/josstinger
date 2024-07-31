@@ -78,25 +78,66 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
         <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
         <?php
         $ssl = check_http();
-        $json_string = file_get_contents("https://tecnotech.ovh/mis_entradas.json");
-        // Convierte la cadena de texto en un array
-        $array = json_decode($json_string, true, 512, JSON_THROW_ON_ERROR);
-        $count = 0;
-        foreach($array as $row){
-            ?>
-            <a class="anuncio_scroller" href="<?php echo $row['permalink']; ?>"><?php echo $row['title']; ?></a>
-            <?php
-            $count ++;
-            if($count == 15){
+        $url_consulta = "https://tecnotech.ovh/mis_entradas.json";
+
+        $options = [
+            'http' => [
+                'method' => 'GET',
+                'header' => 'User-Agent: PHP'
+            ]
+        ];
+        $context = stream_context_create($options);
+
+        // Obtener los encabezados de la URL
+        $headers = @get_headers($url_consulta, 1, $context);
+
+        if ($headers !== false && strpos($headers[0], '200') !== false) {
+            // Verificar si el tipo de contenido es application/json
+            if (isset($headers['Content-Type']) && strpos($headers['Content-Type'], 'application/json') !== false) {
+                // Obtener el contenido de la URL
+                $response = @file_get_contents($url_consulta, false, $context);
+                
+                if ($response !== false) {
+                    // Intentar decodificar el contenido como JSON
+                    try {
+                        $array = json_decode($response, true, 512, JSON_THROW_ON_ERROR);
+                        
+                        $count = 0;
+                        foreach($array as $row) {
+                            ?>
+                            <a class="anuncio_scroller" href="<?php echo $row['permalink']; ?>"><?php echo $row['title']; ?></a>
+                            <?php
+                            $count++;
+                            if($count == 15) {
+                                ?>
+                                <div class="flex_center">
+                                    <a name="" id="" class="btn btn-primary" href="#" role="button">Ver más</a>
+                                </div>
+                                <?php
+                                break;
+                            }
+                        }
+                    } catch (JsonException $e) {
+                        // El contenido no es un JSON válido
+                        echo "La página existe pero el contenido no es un JSON válido.";
+                    }
+                } else {
+                    ?>
+                    <a class="anuncio_scroller" href="https://josprox.com/blog-y-noticias/">Conoce nuestro blog</a>
+                    <?php
+                }
+            } else {
                 ?>
-                <div class="flex_center">
-                    <a name="" id="" class="btn btn-primary" href="#" role="button">Ver más</a>
-                </div>
+                <a class="anuncio_scroller" href="https://josprox.com/blog-y-noticias/">Conoce nuestro blog</a>
                 <?php
-                break;
             }
+        } else {
+            ?>
+            <a class="anuncio_scroller" href="https://josprox.com/blog-y-noticias/">Conoce nuestro blog</a>
+            <?php
         }
         ?>
+
     </div>
 
     <section class="contenedor">

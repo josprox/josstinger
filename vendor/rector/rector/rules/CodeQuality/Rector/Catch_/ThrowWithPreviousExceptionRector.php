@@ -29,14 +29,14 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 final class ThrowWithPreviousExceptionRector extends AbstractRector
 {
     /**
+     * @var int
+     */
+    private const DEFAULT_EXCEPTION_ARGUMENT_POSITION = 2;
+    /**
      * @readonly
      * @var \PHPStan\Reflection\ReflectionProvider
      */
     private $reflectionProvider;
-    /**
-     * @var int
-     */
-    private const DEFAULT_EXCEPTION_ARGUMENT_POSITION = 2;
     public function __construct(ReflectionProvider $reflectionProvider)
     {
         $this->reflectionProvider = $reflectionProvider;
@@ -113,19 +113,15 @@ CODE_SAMPLE
         if ($exceptionArgumentPosition === null) {
             return null;
         }
-        if ($new->isFirstClassCallable()) {
-            return null;
-        }
         // exception is bundled
-        if (isset($new->getArgs()[$exceptionArgumentPosition])) {
+        if (isset($new->args[$exceptionArgumentPosition])) {
             return null;
         }
-        if (!isset($new->getArgs()[0])) {
+        if (!isset($new->args[0])) {
             // get previous message
-            $getMessageMethodCall = new MethodCall($catchedThrowableVariable, 'getMessage');
-            $new->args[0] = new Arg($getMessageMethodCall);
+            $new->args[0] = new Arg(new MethodCall($catchedThrowableVariable, 'getMessage'));
         }
-        if (!isset($new->getArgs()[1])) {
+        if (!isset($new->args[1])) {
             // get previous code
             $new->args[1] = new Arg(new MethodCall($catchedThrowableVariable, 'getCode'));
         }
@@ -140,7 +136,7 @@ CODE_SAMPLE
         // null the node, to fix broken format preserving printers, see https://github.com/rectorphp/rector/issues/5576
         $new->setAttribute(AttributeKey::ORIGINAL_NODE, null);
         // nothing more to add
-        return NodeTraverser::DONT_TRAVERSE_CURRENT_AND_CHILDREN;
+        return NodeTraverser::DONT_TRAVERSE_CHILDREN;
     }
     private function resolveExceptionArgumentPosition(Name $exceptionName) : ?int
     {
@@ -158,9 +154,9 @@ CODE_SAMPLE
             return self::DEFAULT_EXCEPTION_ARGUMENT_POSITION;
         }
         $extendedMethodReflection = $classReflection->getConstructor();
-        $parametersAcceptorWithPhpDocs = ParametersAcceptorSelector::selectSingle($extendedMethodReflection->getVariants());
-        foreach ($parametersAcceptorWithPhpDocs->getParameters() as $position => $parameterReflectionWithPhpDoc) {
-            $parameterType = $parameterReflectionWithPhpDoc->getType();
+        $parametersAcceptor = ParametersAcceptorSelector::selectSingle($extendedMethodReflection->getVariants());
+        foreach ($parametersAcceptor->getParameters() as $position => $parameterReflection) {
+            $parameterType = $parameterReflection->getType();
             if (!$parameterType instanceof TypeWithClassName) {
                 continue;
             }

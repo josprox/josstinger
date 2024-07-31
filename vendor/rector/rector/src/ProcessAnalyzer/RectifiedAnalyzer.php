@@ -4,57 +4,96 @@ declare (strict_types=1);
 namespace Rector\Core\ProcessAnalyzer;
 
 use PhpParser\Node;
-use PhpParser\Node\Stmt;
 use Rector\Core\Contract\Rector\RectorInterface;
+use Rector\Core\PhpParser\Comparing\NodeComparator;
+use Rector\Core\ValueObject\RectifiedNode;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 /**
- * This service verify if the Node:
+ * This service verify if the Node already rectified with same Rector rule before current Rector rule with condition
  *
- *      - already applied same Rector rule before current Rector rule on last previous Rector rule.
- *      - Just added as new Stmt
- *      - just re-printed but token start still >= 0
- *      - has above node skipped traverse children on current rule
+ *        Same Rector Rule <-> Same Node <-> Same File
+ *
+ *  For both non-consecutive or consecutive order.
  */
 final class RectifiedAnalyzer
 {
     /**
-     * @param class-string<RectorInterface> $rectorClass
+     * @var array<string, RectifiedNode|null>
      */
-    public function hasRectified(string $rectorClass, Node $node) : bool
+    private $previousFileWithNodes = [];
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\Comparing\NodeComparator
+     */
+    private $nodeComparator;
+    public function __construct(NodeComparator $nodeComparator)
     {
-        $originalNode = $node->getAttribute(AttributeKey::ORIGINAL_NODE);
-        if ($this->hasConsecutiveCreatedByRule($rectorClass, $node, $originalNode)) {
-            return \true;
-        }
-        if ($this->isJustAddedAsNewStmt($node, $originalNode)) {
-            return \true;
-        }
-        if ($this->isJustReprintedOverlappedTokenStart($node, $originalNode)) {
-            return \true;
-        }
-        return $node->getAttribute(AttributeKey::SKIPPED_BY_RECTOR_RULE) === $rectorClass;
-    }
-    private function isJustAddedAsNewStmt(Node $node, ?Node $originalNode) : bool
-    {
-        return !$originalNode instanceof Node && $node instanceof Stmt && \array_keys($node->getAttributes()) === [AttributeKey::SCOPE];
+        $this->nodeComparator = $nodeComparator;
     }
     /**
      * @param class-string<RectorInterface> $rectorClass
      */
-    private function hasConsecutiveCreatedByRule(string $rectorClass, Node $node, ?Node $originalNode) : bool
+    public function verify(string $rectorClass, Node $node, string $filePath) : ?RectifiedNode
     {
-        $createdByRuleNode = $originalNode ?? $node;
-        /** @var class-string<RectorInterface>[] $createdByRule */
-        $createdByRule = $createdByRuleNode->getAttribute(AttributeKey::CREATED_BY_RULE) ?? [];
-        if ($createdByRule === []) {
-            return \false;
+        $originalNode = $node->getAttribute(AttributeKey::ORIGINAL_NODE);
+        if ($this->hasCreatedByRule($rectorClass, $node, $originalNode)) {
+            return new RectifiedNode($rectorClass, $node);
         }
-        return \end($createdByRule) === $rectorClass;
+        if (!isset($this->previousFileWithNodes[$filePath])) {
+            $this->previousFileWithNodes[$filePath] = new RectifiedNode($rectorClass, $node);
+            return null;
+        }
+        /** @var RectifiedNode $rectifiedNode */
+        $rectifiedNode = $this->previousFileWithNodes[$filePath];
+        if ($this->shouldContinue($rectifiedNode, $rectorClass, $node, $originalNode)) {
+            return null;
+        }
+        if ($this->previousFileWithNodes[$filePath]->getNode() === $node) {
+            // re-set to refill next
+            $this->previousFileWithNodes[$filePath] = null;
+        }
+        return $rectifiedNode;
     }
-    private function isJustReprintedOverlappedTokenStart(Node $node, ?Node $originalNode) : bool
+    /**
+     * @param class-string<RectorInterface> $rectorClass
+     */
+    private function hasCreatedByRule(string $rectorClass, Node $node, ?Node $originalNode) : bool
     {
+        if (!$originalNode instanceof Node) {
+            $createdByRule = $node->getAttribute(AttributeKey::CREATED_BY_RULE) ?? [];
+            \end($createdByRule);
+            $lastRectorRuleKey = \key($createdByRule);
+            if ($lastRectorRuleKey === null) {
+                return \false;
+            }
+            return $createdByRule[$lastRectorRuleKey] === $rectorClass;
+        }
+        $createdByRule = $originalNode->getAttribute(AttributeKey::CREATED_BY_RULE) ?? [];
+        return \in_array($rectorClass, $createdByRule, \true);
+    }
+    /**
+     * @param class-string<RectorInterface> $rectorClass
+     */
+    private function shouldContinue(RectifiedNode $rectifiedNode, string $rectorClass, Node $node, ?Node $originalNode) : bool
+    {
+        $rectifiedNodeClass = $rectifiedNode->getRectorClass();
+        $rectifiedNodeNode = $rectifiedNode->getNode();
+        if ($rectifiedNodeClass === $rectorClass && $rectifiedNodeNode === $node) {
+            /**
+             * allow to revisit the Node with same Rector rule if Node is changed by other rule
+             */
+            return !$this->nodeComparator->areNodesEqual($originalNode, $node);
+        }
         if ($originalNode instanceof Node) {
-            return \false;
+            return \true;
+        }
+        $parentNode = $node->getAttribute(AttributeKey::PARENT_NODE);
+        if (!$parentNode instanceof Node) {
+            return \true;
+        }
+        $parentOriginalNode = $parentNode->getAttribute(AttributeKey::ORIGINAL_NODE);
+        if ($parentOriginalNode instanceof Node) {
+            return \true;
         }
         /**
          * Start token pos must be < 0 to continue, as the node and parent node just re-printed
@@ -63,12 +102,6 @@ final class RectifiedAnalyzer
          * - Parent Node's original node is null
          */
         $startTokenPos = $node->getStartTokenPos();
-        if ($startTokenPos >= 0) {
-            return \true;
-        }
-        if ($node instanceof Stmt) {
-            return \array_keys($node->getAttributes()) === [AttributeKey::STMT_KEY];
-        }
-        return $node->getAttributes() === [];
+        return $startTokenPos < 0;
     }
 }

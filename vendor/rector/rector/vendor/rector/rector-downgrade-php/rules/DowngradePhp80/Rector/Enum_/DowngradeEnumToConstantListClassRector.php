@@ -4,9 +4,7 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp80\Rector\Enum_;
 
 use PhpParser\Node;
-use PhpParser\Node\Identifier;
 use PhpParser\Node\Name;
-use PhpParser\Node\NullableType;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -14,15 +12,12 @@ use PhpParser\Node\Stmt\Enum_;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstFetchNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\Type\ConstTypeNode;
-use PHPStan\PhpDocParser\Ast\Type\NullableTypeNode;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\ReflectionProvider;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
-use Rector\Comments\NodeDocBlock\DocBlockUpdater;
 use Rector\Core\Rector\AbstractRector;
 use Rector\DowngradePhp80\NodeAnalyzer\EnumAnalyzer;
-use Rector\NodeFactory\ClassFromEnumFactory;
+use Rector\Php81\NodeFactory\ClassFromEnumFactory;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -32,7 +27,7 @@ final class DowngradeEnumToConstantListClassRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\NodeFactory\ClassFromEnumFactory
+     * @var \Rector\Php81\NodeFactory\ClassFromEnumFactory
      */
     private $classFromEnumFactory;
     /**
@@ -45,23 +40,11 @@ final class DowngradeEnumToConstantListClassRector extends AbstractRector
      * @var \Rector\DowngradePhp80\NodeAnalyzer\EnumAnalyzer
      */
     private $enumAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Comments\NodeDocBlock\DocBlockUpdater
-     */
-    private $docBlockUpdater;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
-     */
-    private $phpDocInfoFactory;
-    public function __construct(ClassFromEnumFactory $classFromEnumFactory, ReflectionProvider $reflectionProvider, EnumAnalyzer $enumAnalyzer, DocBlockUpdater $docBlockUpdater, PhpDocInfoFactory $phpDocInfoFactory)
+    public function __construct(ClassFromEnumFactory $classFromEnumFactory, ReflectionProvider $reflectionProvider, EnumAnalyzer $enumAnalyzer)
     {
         $this->classFromEnumFactory = $classFromEnumFactory;
         $this->reflectionProvider = $reflectionProvider;
         $this->enumAnalyzer = $enumAnalyzer;
-        $this->docBlockUpdater = $docBlockUpdater;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -100,20 +83,13 @@ CODE_SAMPLE
             return $this->classFromEnumFactory->createFromEnum($node);
         }
         $hasChanged = \false;
-        $classMethodPhpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
+        $phpDocInfo = $this->phpDocInfoFactory->createFromNodeOrEmpty($node);
         foreach ($node->params as $param) {
-            if ($param->type instanceof Name) {
-                $paramType = $param->type;
-                $isNullable = \false;
-            } elseif ($param->type instanceof NullableType) {
-                $paramType = $param->type->type;
-                $isNullable = \true;
-            } else {
+            if (!$param->type instanceof Name) {
                 continue;
             }
             // is enum type?
-            /** @var string $typeName */
-            $typeName = $this->getName($paramType);
+            $typeName = $this->getName($param->type);
             if (!$this->reflectionProvider->hasClass($typeName)) {
                 continue;
             }
@@ -121,33 +97,21 @@ CODE_SAMPLE
             if (!$classLikeReflection->isEnum()) {
                 continue;
             }
-            $this->refactorParamType($classLikeReflection, $isNullable, $param);
+            $param->type = $this->enumAnalyzer->resolveType($classLikeReflection);
             $hasChanged = \true;
-            $this->decorateParamDocType($classLikeReflection, $param, $classMethodPhpDocInfo, $isNullable, $node);
+            $this->decorateParamDocType($classLikeReflection, $param, $phpDocInfo);
         }
         if ($hasChanged) {
             return $node;
         }
         return null;
     }
-    private function decorateParamDocType(ClassReflection $classReflection, Param $param, PhpDocInfo $phpDocInfo, bool $isNullable, ClassMethod $classMethod) : void
+    private function decorateParamDocType(ClassReflection $classReflection, Param $param, PhpDocInfo $phpDocInfo) : void
     {
         $constFetchNode = new ConstFetchNode('\\' . $classReflection->getName(), '*');
         $constTypeNode = new ConstTypeNode($constFetchNode);
         $paramName = '$' . $this->getName($param);
-        $paramTypeNode = $isNullable ? new NullableTypeNode($constTypeNode) : $constTypeNode;
-        $paramTagValueNode = new ParamTagValueNode($paramTypeNode, \false, $paramName, '');
+        $paramTagValueNode = new ParamTagValueNode($constTypeNode, \false, $paramName, '');
         $phpDocInfo->addTagValueNode($paramTagValueNode);
-        $this->docBlockUpdater->updateRefactoredNodeWithPhpDocInfo($classMethod);
-    }
-    private function refactorParamType(ClassReflection $classReflection, bool $isNullable, Param $param) : void
-    {
-        $identifier = $this->enumAnalyzer->resolveType($classReflection);
-        if ($identifier instanceof Identifier) {
-            $param->type = $isNullable ? new NullableType($identifier) : new Name($identifier->name);
-        } else {
-            // remove type as ambiguous
-            $param->type = null;
-        }
     }
 }

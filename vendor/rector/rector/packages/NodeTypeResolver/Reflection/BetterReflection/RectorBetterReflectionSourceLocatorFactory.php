@@ -7,9 +7,6 @@ use PHPStan\BetterReflection\SourceLocator\Type\AggregateSourceLocator;
 use PHPStan\BetterReflection\SourceLocator\Type\MemoizingSourceLocator;
 use PHPStan\Reflection\BetterReflection\BetterReflectionSourceLocatorFactory;
 use Rector\NodeTypeResolver\Reflection\BetterReflection\SourceLocator\IntermediateSourceLocator;
-/**
- * @api used on phpstan config factory
- */
 final class RectorBetterReflectionSourceLocatorFactory
 {
     /**
@@ -32,7 +29,7 @@ final class RectorBetterReflectionSourceLocatorFactory
         $phpStanSourceLocator = $this->betterReflectionSourceLocatorFactory->create();
         // make PHPStan first source locator, so we avoid parsing every single file - huge performance hit!
         $aggregateSourceLocator = new AggregateSourceLocator([$phpStanSourceLocator, $this->intermediateSourceLocator]);
-        // important for cache, but should rebuild for tests
+        // important for cache
         return new MemoizingSourceLocator($aggregateSourceLocator);
     }
 }

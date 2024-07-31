@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\PhpAttribute\NodeFactory;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\AttributeGroup;
@@ -23,6 +23,11 @@ use Rector\PhpAttribute\AttributeArrayNameInliner;
 use Rector\PhpAttribute\NodeAnalyzer\ExprParameterReflectionTypeCorrector;
 final class PhpNestedAttributeGroupFactory
 {
+    /**
+     * @var string
+     * @see https://regex101.com/r/g3d9jy/1
+     */
+    private const SHORT_ORM_ALIAS_REGEX = '#^@ORM#';
     /**
      * @readonly
      * @var \Rector\PhpAttribute\AnnotationToAttributeMapper
@@ -100,7 +105,7 @@ final class PhpNestedAttributeGroupFactory
     /**
      * @return Arg[]
      */
-    private function createAttributeArgs(DoctrineAnnotationTagValueNode $nestedDoctrineAnnotationTagValueNode, NestedAnnotationToAttribute $nestedAnnotationToAttribute) : array
+    public function createAttributeArgs(DoctrineAnnotationTagValueNode $nestedDoctrineAnnotationTagValueNode, NestedAnnotationToAttribute $nestedAnnotationToAttribute) : array
     {
         $args = $this->createArgsFromItems($nestedDoctrineAnnotationTagValueNode->getValues(), $nestedAnnotationToAttribute);
         return $this->attributeArrayNameInliner->inlineArrayToArgs($args);
@@ -124,7 +129,8 @@ final class PhpNestedAttributeGroupFactory
     {
         /** @var string $shortDoctrineAttributeName */
         $shortDoctrineAttributeName = Strings::after($annotationPropertyToAttributeClass->getAttributeClass(), '\\', -1);
-        if (\strncmp($originalIdentifier, '@ORM', \strlen('@ORM')) === 0) {
+        $matches = Strings::match($originalIdentifier, self::SHORT_ORM_ALIAS_REGEX);
+        if ($matches !== null) {
             // or alias
             return new Name('ORM\\' . $shortDoctrineAttributeName);
         }
@@ -174,7 +180,7 @@ final class PhpNestedAttributeGroupFactory
                 $attributeArgs = $this->createAttributeArgs($nestedDoctrineAnnotationTagValueNode, $nestedAnnotationToAttribute);
                 $originalIdentifier = $nestedDoctrineAnnotationTagValueNode->identifierTypeNode->name;
                 $attributeName = $this->resolveAliasedAttributeName($originalIdentifier, $annotationPropertyToAttributeClass);
-                if ($annotationPropertyToAttributeClass->doesNeedNewImport() && \count($attributeName->getParts()) === 1) {
+                if ($annotationPropertyToAttributeClass->doesNeedNewImport() && \count($attributeName->parts) === 1) {
                     $attributeName->setAttribute(AttributeKey::EXTRA_USE_IMPORT, $annotationPropertyToAttributeClass->getAttributeClass());
                 }
                 $attribute = new Attribute($attributeName, $attributeArgs);

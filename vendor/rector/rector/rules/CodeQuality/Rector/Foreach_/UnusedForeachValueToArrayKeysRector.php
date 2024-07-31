@@ -10,7 +10,6 @@ use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Stmt\Foreach_;
 use PHPStan\Type\ObjectType;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\Core\Rector\AbstractRector;
 use Rector\DeadCode\NodeAnalyzer\ExprUsedInNodeAnalyzer;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -25,15 +24,9 @@ final class UnusedForeachValueToArrayKeysRector extends AbstractRector
      * @var \Rector\DeadCode\NodeAnalyzer\ExprUsedInNodeAnalyzer
      */
     private $exprUsedInNodeAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    public function __construct(ExprUsedInNodeAnalyzer $exprUsedInNodeAnalyzer, BetterNodeFinder $betterNodeFinder)
+    public function __construct(ExprUsedInNodeAnalyzer $exprUsedInNodeAnalyzer)
     {
         $this->exprUsedInNodeAnalyzer = $exprUsedInNodeAnalyzer;
-        $this->betterNodeFinder = $betterNodeFinder;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -75,7 +68,7 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$node->keyVar instanceof Expr) {
+        if ($node->keyVar === null) {
             return null;
         }
         // special case of nested array items
@@ -98,7 +91,7 @@ CODE_SAMPLE
         if (!$this->isArrayType($node->expr)) {
             return null;
         }
-        $this->removeForeachValueAndUseArrayKeys($node, $node->keyVar);
+        $this->removeForeachValueAndUseArrayKeys($node);
         return $node;
     }
     /**
@@ -151,10 +144,10 @@ CODE_SAMPLE
             return $this->exprUsedInNodeAnalyzer->isUsed($node, $variable);
         });
     }
-    private function removeForeachValueAndUseArrayKeys(Foreach_ $foreach, Expr $keyVarExpr) : void
+    private function removeForeachValueAndUseArrayKeys(Foreach_ $foreach) : void
     {
         // remove key value
-        $foreach->valueVar = $keyVarExpr;
+        $foreach->valueVar = $foreach->keyVar;
         $foreach->keyVar = null;
         $foreach->expr = $this->nodeFactory->createFuncCall('array_keys', [$foreach->expr]);
     }

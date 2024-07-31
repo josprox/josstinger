@@ -43,7 +43,8 @@ final class LiteralCallLikeConstFetchReplacer
         if ($constantName === null) {
             return null;
         }
-        $arg->value = $this->nodeFactory->createClassConstFetch($className, $constantName);
+        $classConstFetch = $this->nodeFactory->createClassConstFetch($className, $constantName);
+        $arg->value = $classConstFetch;
         return $callLike;
     }
 }

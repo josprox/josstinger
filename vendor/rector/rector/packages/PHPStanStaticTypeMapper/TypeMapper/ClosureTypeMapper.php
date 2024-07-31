@@ -5,31 +5,24 @@ namespace Rector\PHPStanStaticTypeMapper\TypeMapper;
 
 use PhpParser\Node;
 use PhpParser\Node\Name\FullyQualified;
-use PHPStan\PhpDocParser\Ast\Node as AstNode;
 use PHPStan\PhpDocParser\Ast\Type\IdentifierTypeNode;
 use PHPStan\PhpDocParser\Ast\Type\TypeNode;
 use PHPStan\Type\ClosureType;
 use PHPStan\Type\Type;
-use Rector\BetterPhpDocParser\ValueObject\Type\FullyQualifiedIdentifierTypeNode;
-use Rector\Core\Php\PhpVersionProvider;
-use Rector\Core\ValueObject\PhpVersionFeature;
-use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
+use Rector\BetterPhpDocParser\ValueObject\Type\SpacingAwareCallableTypeNode;
 use Rector\PHPStanStaticTypeMapper\Contract\TypeMapperInterface;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
+use Rector\PHPStanStaticTypeMapper\PHPStanStaticTypeMapper;
+use RectorPrefix202211\Symfony\Contracts\Service\Attribute\Required;
 /**
  * @implements TypeMapperInterface<ClosureType>
  */
 final class ClosureTypeMapper implements TypeMapperInterface
 {
     /**
-     * @readonly
-     * @var \Rector\Core\Php\PhpVersionProvider
+     * @var \Rector\PHPStanStaticTypeMapper\PHPStanStaticTypeMapper
      */
-    private $phpVersionProvider;
-    public function __construct(PhpVersionProvider $phpVersionProvider)
-    {
-        $this->phpVersionProvider = $phpVersionProvider;
-    }
+    private $phpStanStaticTypeMapper;
     /**
      * @return class-string<Type>
      */
@@ -40,20 +33,15 @@ final class ClosureTypeMapper implements TypeMapperInterface
     /**
      * @param ClosureType $type
      */
-    public function mapToPHPStanPhpDocTypeNode(Type $type) : TypeNode
+    public function mapToPHPStanPhpDocTypeNode(Type $type, string $typeKind) : TypeNode
     {
-        $typeNode = $type->toPhpDocNode();
-        $phpDocNodeTraverser = new PhpDocNodeTraverser();
-        $phpDocNodeTraverser->traverseWithCallable($typeNode, '', static function (AstNode $astNode) : ?FullyQualifiedIdentifierTypeNode {
-            if (!$astNode instanceof IdentifierTypeNode) {
-                return null;
-            }
-            if ($astNode->name !== 'Closure') {
-                return null;
-            }
-            return new FullyQualifiedIdentifierTypeNode('Closure');
-        });
-        return $typeNode;
+        $identifierTypeNode = new IdentifierTypeNode($type->getClassName());
+        $returnDocTypeNode = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($type->getReturnType(), $typeKind);
+        $parameterDocTypeNodes = [];
+        foreach ($type->getParameters() as $parameterReflection) {
+            $parameterDocTypeNodes[] = $this->phpStanStaticTypeMapper->mapToPHPStanPhpDocTypeNode($parameterReflection->getType(), $typeKind);
+        }
+        return new SpacingAwareCallableTypeNode($identifierTypeNode, $parameterDocTypeNodes, $returnDocTypeNode);
     }
     /**
      * @param TypeKind::* $typeKind
@@ -61,21 +49,16 @@ final class ClosureTypeMapper implements TypeMapperInterface
      */
     public function mapToPhpParserNode(Type $type, string $typeKind) : ?Node
     {
-        // ref https://3v4l.org/iKMK6#v5.3.29
-        if ($typeKind === TypeKind::PARAM && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::ANONYMOUS_FUNCTION_PARAM_TYPE)) {
-            return new FullyQualified('Closure');
-        }
-        // ref https://3v4l.org/g8WvW#v7.4.0
-        if ($typeKind === TypeKind::PROPERTY && $this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::TYPED_PROPERTIES)) {
-            return new FullyQualified('Closure');
-        }
-        if ($typeKind !== TypeKind::RETURN) {
-            return null;
-        }
-        // ref https://3v4l.org/nUreN#v7.0.0
-        if (!$this->phpVersionProvider->isAtLeastPhpVersion(PhpVersionFeature::ANONYMOUS_FUNCTION_RETURN_TYPE)) {
+        if ($typeKind === TypeKind::PROPERTY) {
             return null;
         }
         return new FullyQualified('Closure');
+    }
+    /**
+     * @required
+     */
+    public function autowire(PHPStanStaticTypeMapper $phpStanStaticTypeMapper) : void
+    {
+        $this->phpStanStaticTypeMapper = $phpStanStaticTypeMapper;
     }
 }

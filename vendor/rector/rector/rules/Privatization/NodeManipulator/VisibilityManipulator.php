@@ -9,7 +9,7 @@ use PhpParser\Node\Stmt\ClassConst;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Property;
 use Rector\Core\ValueObject\Visibility;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Privatization\NodeManipulator\VisibilityManipulatorTest
  */
@@ -42,6 +42,13 @@ final class VisibilityManipulator
         $node->flags -= Class_::MODIFIER_STATIC;
     }
     /**
+     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Class_ $node
+     */
+    public function makeAbstract($node) : void
+    {
+        $this->addVisibilityFlag($node, Visibility::ABSTRACT);
+    }
+    /**
      * @api
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Class_ $node
      */
@@ -69,6 +76,27 @@ final class VisibilityManipulator
             return;
         }
         $node->flags -= Class_::MODIFIER_FINAL;
+    }
+    /**
+     * This way "abstract", "static", "final" are kept
+     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Property|\PhpParser\Node\Stmt\ClassConst $node
+     */
+    public function removeVisibility($node) : void
+    {
+        // no modifier
+        if ($node->flags === 0) {
+            return;
+        }
+        if ($node->isPublic()) {
+            $node->flags |= Class_::MODIFIER_PUBLIC;
+            $node->flags -= Class_::MODIFIER_PUBLIC;
+        }
+        if ($node->isProtected()) {
+            $node->flags -= Class_::MODIFIER_PROTECTED;
+        }
+        if ($node->isPrivate()) {
+            $node->flags -= Class_::MODIFIER_PRIVATE;
+        }
     }
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Property|\PhpParser\Node\Stmt\ClassConst $node
@@ -101,12 +129,15 @@ final class VisibilityManipulator
         $this->replaceVisibilityFlag($node, Visibility::PRIVATE);
     }
     /**
-     * @api
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\ClassConst $node
      */
     public function removeFinal($node) : void
     {
         $node->flags -= Class_::MODIFIER_FINAL;
+    }
+    public function removeAbstract(ClassMethod $classMethod) : void
+    {
+        $classMethod->flags -= Class_::MODIFIER_ABSTRACT;
     }
     /**
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Property|\PhpParser\Node\Param $node
@@ -116,7 +147,6 @@ final class VisibilityManipulator
         $this->addVisibilityFlag($node, Visibility::READONLY);
     }
     /**
-     * @api
      * @param \PhpParser\Node\Stmt\Class_|\PhpParser\Node\Stmt\Property|\PhpParser\Node\Param $node
      */
     public function isReadonly($node) : bool
@@ -129,44 +159,6 @@ final class VisibilityManipulator
     public function removeReadonly($node) : void
     {
         $this->removeVisibilityFlag($node, Visibility::READONLY);
-    }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassConst|\PhpParser\Node\Stmt\ClassMethod $node
-     * @return \PhpParser\Node\Stmt\ClassConst|\PhpParser\Node\Stmt\ClassMethod|null
-     */
-    public function publicize($node)
-    {
-        // already non-public
-        if (!$node->isPublic()) {
-            return null;
-        }
-        // explicitly public
-        if ($this->hasVisibility($node, Visibility::PUBLIC)) {
-            return null;
-        }
-        $this->makePublic($node);
-        return $node;
-    }
-    /**
-     * This way "abstract", "static", "final" are kept
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Stmt\Property|\PhpParser\Node\Stmt\ClassConst $node
-     */
-    private function removeVisibility($node) : void
-    {
-        // no modifier
-        if ($node->flags === 0) {
-            return;
-        }
-        if ($node->isPublic()) {
-            $node->flags |= Class_::MODIFIER_PUBLIC;
-            $node->flags -= Class_::MODIFIER_PUBLIC;
-        }
-        if ($node->isProtected()) {
-            $node->flags -= Class_::MODIFIER_PROTECTED;
-        }
-        if ($node->isPrivate()) {
-            $node->flags -= Class_::MODIFIER_PRIVATE;
-        }
     }
     /**
      * @api

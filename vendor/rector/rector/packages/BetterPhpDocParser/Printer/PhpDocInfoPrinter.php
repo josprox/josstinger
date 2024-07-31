@@ -3,8 +3,7 @@
 declare (strict_types=1);
 namespace Rector\BetterPhpDocParser\Printer;
 
-use RectorPrefix202312\Nette\Utils\Strings;
-use PhpParser\Comment;
+use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node\Stmt\InlineHTML;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use PHPStan\PhpDocParser\Ast\PhpDoc\PhpDocChildNode;
@@ -28,39 +27,25 @@ use Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser;
 final class PhpDocInfoPrinter
 {
     /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\Printer\EmptyPhpDocDetector
-     */
-    private $emptyPhpDocDetector;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\Printer\DocBlockInliner
-     */
-    private $docBlockInliner;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\Printer\RemoveNodesStartAndEndResolver
-     */
-    private $removeNodesStartAndEndResolver;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocNodeVisitor\ChangedPhpDocNodeVisitor
-     */
-    private $changedPhpDocNodeVisitor;
-    /**
      * @var string
      * @see https://regex101.com/r/Ab0Vey/1
      */
     private const CLOSING_DOCBLOCK_REGEX = '#\\*\\/(\\s+)?$#';
     /**
      * @var string
+     * @see https://regex101.com/r/mVmOCY/2
+     */
+    private const OPENING_DOCBLOCK_REGEX = '#^(/\\*\\*)#';
+    /**
+     * @var string
      * @see https://regex101.com/r/5fJyws/1
      */
     private const CALLABLE_REGEX = '#callable(\\s+)\\(#';
     /**
-     * @var string[]
+     * @var string
+     * @see https://regex101.com/r/LLWiPl/1
      */
-    private const DOCBLOCK_STARTS = ['//', '/**', '/*', '#'];
+    private const DOCBLOCK_START_REGEX = '#^(\\/\\/|\\/\\*\\*|\\/\\*|\\#)#';
     /**
      * @var string Uses a hardcoded unix-newline since most codes use it (even on windows) - otherwise we would need to normalize newlines
      */
@@ -86,6 +71,26 @@ final class PhpDocInfoPrinter
      * @var \Rector\PhpDocParser\PhpDocParser\PhpDocNodeTraverser
      */
     private $changedPhpDocNodeTraverser;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\Printer\EmptyPhpDocDetector
+     */
+    private $emptyPhpDocDetector;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\Printer\DocBlockInliner
+     */
+    private $docBlockInliner;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\Printer\RemoveNodesStartAndEndResolver
+     */
+    private $removeNodesStartAndEndResolver;
+    /**
+     * @readonly
+     * @var \Rector\BetterPhpDocParser\PhpDocNodeVisitor\ChangedPhpDocNodeVisitor
+     */
+    private $changedPhpDocNodeVisitor;
     public function __construct(\Rector\BetterPhpDocParser\Printer\EmptyPhpDocDetector $emptyPhpDocDetector, \Rector\BetterPhpDocParser\Printer\DocBlockInliner $docBlockInliner, \Rector\BetterPhpDocParser\Printer\RemoveNodesStartAndEndResolver $removeNodesStartAndEndResolver, ChangedPhpDocNodeVisitor $changedPhpDocNodeVisitor)
     {
         $this->emptyPhpDocDetector = $emptyPhpDocDetector;
@@ -138,17 +143,9 @@ final class PhpDocInfoPrinter
         // hotfix of extra space with callable ()
         return Strings::replace($phpDocString, self::CALLABLE_REGEX, 'callable(');
     }
-    /**
-     * @return Comment[]
-     */
-    public function printToComments(PhpDocInfo $phpDocInfo) : array
+    public function getCurrentPhpDocInfo() : PhpDocInfo
     {
-        $printedPhpDocContents = $this->printFormatPreserving($phpDocInfo);
-        return [new Comment($printedPhpDocContents)];
-    }
-    private function getCurrentPhpDocInfo() : PhpDocInfo
-    {
-        if (!$this->phpDocInfo instanceof PhpDocInfo) {
+        if ($this->phpDocInfo === null) {
             throw new ShouldNotHappenException();
         }
         return $this->phpDocInfo;
@@ -167,23 +164,14 @@ final class PhpDocInfoPrinter
         }
         $output = $this->printEnd($output);
         // fix missing start
-        if (!$this->hasDocblockStart($output) && $output !== '') {
+        if (!StringUtils::isMatch($output, self::DOCBLOCK_START_REGEX) && $output !== '') {
             $output = '/**' . $output;
         }
         // fix missing end
-        if (\strncmp($output, '/**', \strlen('/**')) === 0 && !StringUtils::isMatch($output, self::CLOSING_DOCBLOCK_REGEX)) {
+        if (StringUtils::isMatch($output, self::OPENING_DOCBLOCK_REGEX) && !StringUtils::isMatch($output, self::CLOSING_DOCBLOCK_REGEX)) {
             $output .= ' */';
         }
-        return \str_replace(" \n", "\n", $output);
-    }
-    private function hasDocblockStart(string $output) : bool
-    {
-        foreach (self::DOCBLOCK_STARTS as $docblockStart) {
-            if (\strncmp($output, $docblockStart, \strlen($docblockStart)) === 0) {
-                return \true;
-            }
-        }
-        return \false;
+        return $output;
     }
     private function printDocChildNode(PhpDocChildNode $phpDocChildNode, int $key = 0, int $nodeCount = 0) : string
     {
@@ -221,7 +209,7 @@ final class PhpDocInfoPrinter
             $lastTokenPosition = $this->currentTokenPosition;
         }
         if ($lastTokenPosition === 0) {
-            return $output . "\n */";
+            $lastTokenPosition = 1;
         }
         return $this->addTokensFromTo($output, $lastTokenPosition, $this->tokenCount, \true);
     }

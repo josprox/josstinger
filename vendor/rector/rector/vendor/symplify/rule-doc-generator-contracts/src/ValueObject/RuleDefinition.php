@@ -3,18 +3,13 @@
 declare (strict_types=1);
 namespace Symplify\RuleDocGenerator\ValueObject;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use Symplify\RuleDocGenerator\Contract\CodeSampleInterface;
 use Symplify\RuleDocGenerator\Exception\PoorDocumentationException;
 use Symplify\RuleDocGenerator\Exception\ShouldNotHappenException;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 final class RuleDefinition
 {
-    /**
-     * @readonly
-     * @var string
-     */
-    private $description;
     /**
      * @var string|null
      */
@@ -27,6 +22,10 @@ final class RuleDefinition
      * @var CodeSampleInterface[]
      */
     private $codeSamples = [];
+    /**
+     * @var string
+     */
+    private $description;
     /**
      * @param CodeSampleInterface[] $codeSamples
      */

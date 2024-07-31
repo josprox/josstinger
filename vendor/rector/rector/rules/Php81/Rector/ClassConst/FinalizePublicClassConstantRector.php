@@ -5,9 +5,10 @@ namespace Rector\Php81\Rector\ClassConst;
 
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
-use PHPStan\Analyser\Scope;
+use PhpParser\Node\Stmt\ClassConst;
 use PHPStan\Reflection\ReflectionProvider;
-use Rector\Core\Rector\AbstractScopeAwareRector;
+use Rector\Core\NodeAnalyzer\ClassAnalyzer;
+use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\FamilyTree\Reflection\FamilyRelationsAnalyzer;
 use Rector\Privatization\NodeManipulator\VisibilityManipulator;
@@ -19,7 +20,7 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  *
  * @see \Rector\Tests\Php81\Rector\ClassConst\FinalizePublicClassConstantRector\FinalizePublicClassConstantRectorTest
  */
-final class FinalizePublicClassConstantRector extends AbstractScopeAwareRector implements MinPhpVersionInterface
+final class FinalizePublicClassConstantRector extends AbstractRector implements MinPhpVersionInterface
 {
     /**
      * @readonly
@@ -33,13 +34,19 @@ final class FinalizePublicClassConstantRector extends AbstractScopeAwareRector i
     private $reflectionProvider;
     /**
      * @readonly
+     * @var \Rector\Core\NodeAnalyzer\ClassAnalyzer
+     */
+    private $classAnalyzer;
+    /**
+     * @readonly
      * @var \Rector\Privatization\NodeManipulator\VisibilityManipulator
      */
     private $visibilityManipulator;
-    public function __construct(FamilyRelationsAnalyzer $familyRelationsAnalyzer, ReflectionProvider $reflectionProvider, VisibilityManipulator $visibilityManipulator)
+    public function __construct(FamilyRelationsAnalyzer $familyRelationsAnalyzer, ReflectionProvider $reflectionProvider, ClassAnalyzer $classAnalyzer, VisibilityManipulator $visibilityManipulator)
     {
         $this->familyRelationsAnalyzer = $familyRelationsAnalyzer;
         $this->reflectionProvider = $reflectionProvider;
+        $this->classAnalyzer = $classAnalyzer;
         $this->visibilityManipulator = $visibilityManipulator;
     }
     public function getRuleDefinition() : RuleDefinition
@@ -63,41 +70,34 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [ClassConst::class];
     }
     /**
-     * @param Class_ $node
+     * @param ClassConst $node
      */
-    public function refactorWithScope(Node $node, Scope $scope) : ?Node
+    public function refactor(Node $node) : ?Node
     {
+        $class = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$class instanceof Class_) {
+            return null;
+        }
+        if ($class->isFinal()) {
+            return null;
+        }
+        if (!$node->isPublic()) {
+            return null;
+        }
         if ($node->isFinal()) {
             return null;
         }
-        if (!$scope->isInClass()) {
+        if ($this->classAnalyzer->isAnonymousClass($class)) {
             return null;
         }
-        $classReflection = $scope->getClassReflection();
-        if ($classReflection->isAnonymous()) {
+        if ($this->isClassHasChildren($class)) {
             return null;
         }
-        $hasChanged = \false;
-        foreach ($node->getConstants() as $classConst) {
-            if (!$classConst->isPublic()) {
-                continue;
-            }
-            if ($classConst->isFinal()) {
-                continue;
-            }
-            if ($this->isClassHasChildren($node)) {
-                continue;
-            }
-            $hasChanged = \true;
-            $this->visibilityManipulator->makeFinal($classConst);
-        }
-        if ($hasChanged) {
-            return $node;
-        }
-        return null;
+        $this->visibilityManipulator->makeFinal($node);
+        return $node;
     }
     public function provideMinPhpVersion() : int
     {

@@ -6,17 +6,21 @@ namespace Rector\Removing\Rector\Class_;
 use PhpParser\Node;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\Trait_;
-use PhpParser\Node\Stmt\TraitUse;
 use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Core\Rector\AbstractRector;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Removing\Rector\Class_\RemoveTraitUseRector\RemoveTraitUseRectorTest
  */
 final class RemoveTraitUseRector extends AbstractRector implements ConfigurableRectorInterface
 {
+    /**
+     * @var bool
+     */
+    private $classHasChanged = \false;
     /**
      * @var string[]
      */
@@ -48,24 +52,19 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $hasChanged = \false;
-        foreach ($node->stmts as $key => $stmt) {
-            if (!$stmt instanceof TraitUse) {
-                continue;
-            }
-            foreach ($stmt->traits as $traitKey => $trait) {
+        $this->classHasChanged = \false;
+        foreach ($node->getTraitUses() as $traitUse) {
+            foreach ($traitUse->traits as $trait) {
                 if (!$this->isNames($trait, $this->traitsToRemove)) {
                     continue;
                 }
-                unset($stmt->traits[$traitKey]);
-                $hasChanged = \true;
-            }
-            // remove empty trait uses
-            if ($stmt->traits === []) {
-                unset($node->stmts[$key]);
+                $this->removeNode($traitUse);
+                $this->classHasChanged = \true;
             }
         }
-        if ($hasChanged) {
+        // invoke re-print
+        if ($this->classHasChanged) {
+            $node->setAttribute(AttributeKey::ORIGINAL_NODE, null);
             return $node;
         }
         return null;

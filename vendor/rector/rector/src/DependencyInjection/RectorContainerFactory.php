@@ -3,19 +3,28 @@
 declare (strict_types=1);
 namespace Rector\Core\DependencyInjection;
 
-use RectorPrefix202312\Illuminate\Container\Container;
+use RectorPrefix202211\Nette\Utils\FileSystem;
+use RectorPrefix202211\Psr\Container\ContainerInterface;
 use Rector\Caching\Detector\ChangedFilesDetector;
 use Rector\Core\Autoloading\BootstrapFilesIncluder;
+use Rector\Core\Exception\DeprecatedException;
+use Rector\Core\Kernel\RectorKernel;
 use Rector\Core\ValueObject\Bootstrap\BootstrapConfigs;
 final class RectorContainerFactory
 {
-    public function createFromBootstrapConfigs(BootstrapConfigs $bootstrapConfigs) : Container
+    public function createFromBootstrapConfigs(BootstrapConfigs $bootstrapConfigs) : ContainerInterface
     {
         $container = $this->createFromConfigs($bootstrapConfigs->getConfigFiles());
         $mainConfigFile = $bootstrapConfigs->getMainConfigFile();
         if ($mainConfigFile !== null) {
+            // warning about old syntax before RectorConfig
+            $fileContents = FileSystem::read($mainConfigFile);
+            if (\strpos($fileContents, 'ContainerConfigurator $containerConfigurator') !== \false) {
+                $warningMessage = \sprintf('Your "%s" config uses deprecated syntax with "ContainerConfigurator".%sUpgrade to "RectorConfig": https://getrector.org/blog/new-in-rector-012-introducing-rector-config-with-autocomplete', $mainConfigFile, \PHP_EOL);
+                throw new DeprecatedException($warningMessage);
+            }
             /** @var ChangedFilesDetector $changedFilesDetector */
-            $changedFilesDetector = $container->make(ChangedFilesDetector::class);
+            $changedFilesDetector = $container->get(ChangedFilesDetector::class);
             $changedFilesDetector->setFirstResolvedConfigFileInfo($mainConfigFile);
         }
         /** @var BootstrapFilesIncluder $bootstrapFilesIncluder */
@@ -25,15 +34,11 @@ final class RectorContainerFactory
     }
     /**
      * @param string[] $configFiles
+     * @api
      */
-    private function createFromConfigs(array $configFiles) : Container
+    private function createFromConfigs(array $configFiles) : ContainerInterface
     {
-        $lazyContainerFactory = new \Rector\Core\DependencyInjection\LazyContainerFactory();
-        $container = $lazyContainerFactory->create();
-        foreach ($configFiles as $configFile) {
-            $container->import($configFile);
-        }
-        $container->boot();
-        return $container;
+        $rectorKernel = new RectorKernel();
+        return $rectorKernel->createFromConfigs($configFiles);
     }
 }

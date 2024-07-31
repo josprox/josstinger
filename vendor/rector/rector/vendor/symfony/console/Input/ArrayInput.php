@@ -8,10 +8,10 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Input;
+namespace RectorPrefix202211\Symfony\Component\Console\Input;
 
-use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidArgumentException;
-use RectorPrefix202312\Symfony\Component\Console\Exception\InvalidOptionException;
+use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidArgumentException;
+use RectorPrefix202211\Symfony\Component\Console\Exception\InvalidOptionException;
 /**
  * ArrayInput represents an input provided as an array.
  *
@@ -32,6 +32,9 @@ class ArrayInput extends Input
         $this->parameters = $parameters;
         parent::__construct($definition);
     }
+    /**
+     * {@inheritdoc}
+     */
     public function getFirstArgument() : ?string
     {
         foreach ($this->parameters as $param => $value) {
@@ -43,6 +46,7 @@ class ArrayInput extends Input
         return null;
     }
     /**
+     * {@inheritdoc}
      * @param string|mixed[] $values
      */
     public function hasParameterOption($values, bool $onlyParams = \false) : bool
@@ -62,6 +66,7 @@ class ArrayInput extends Input
         return \false;
     }
     /**
+     * {@inheritdoc}
      * @param string|mixed[] $values
      * @param string|bool|int|float|mixed[]|null $default
      * @return mixed
@@ -106,7 +111,7 @@ class ArrayInput extends Input
         return \implode(' ', $params);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     protected function parse()
     {
@@ -129,7 +134,7 @@ class ArrayInput extends Input
      * @throws InvalidOptionException When option given doesn't exist
      * @param mixed $value
      */
-    private function addShortOption(string $shortcut, $value) : void
+    private function addShortOption(string $shortcut, $value)
     {
         if (!$this->definition->hasShortcut($shortcut)) {
             throw new InvalidOptionException(\sprintf('The "-%s" option does not exist.', $shortcut));
@@ -143,7 +148,7 @@ class ArrayInput extends Input
      * @throws InvalidOptionException When a required value is missing
      * @param mixed $value
      */
-    private function addLongOption(string $name, $value) : void
+    private function addLongOption(string $name, $value)
     {
         if (!$this->definition->hasOption($name)) {
             if (!$this->definition->hasNegation($name)) {
@@ -171,7 +176,7 @@ class ArrayInput extends Input
      * @param string|int $name
      * @param mixed $value
      */
-    private function addArgument($name, $value) : void
+    private function addArgument($name, $value)
     {
         if (!$this->definition->hasArgument($name)) {
             throw new InvalidArgumentException(\sprintf('The "%s" argument does not exist.', $name));

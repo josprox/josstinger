@@ -3,26 +3,16 @@
 declare (strict_types=1);
 namespace Rector\ChangesReporting\Output;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use Rector\ChangesReporting\Annotation\RectorsChangelogResolver;
 use Rector\ChangesReporting\Contract\Output\OutputFormatterInterface;
+use Rector\Core\Contract\Console\OutputStyleInterface;
 use Rector\Core\ValueObject\Configuration;
 use Rector\Core\ValueObject\Error\SystemError;
 use Rector\Core\ValueObject\ProcessResult;
 use Rector\Core\ValueObject\Reporting\FileDiff;
-use RectorPrefix202312\Symfony\Component\Console\Style\SymfonyStyle;
 final class ConsoleOutputFormatter implements OutputFormatterInterface
 {
-    /**
-     * @readonly
-     * @var \Symfony\Component\Console\Style\SymfonyStyle
-     */
-    private $symfonyStyle;
-    /**
-     * @readonly
-     * @var \Rector\ChangesReporting\Annotation\RectorsChangelogResolver
-     */
-    private $rectorsChangelogResolver;
     /**
      * @var string
      */
@@ -32,9 +22,19 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
      * @see https://regex101.com/r/q8I66g/1
      */
     private const ON_LINE_REGEX = '# on line #';
-    public function __construct(SymfonyStyle $symfonyStyle, RectorsChangelogResolver $rectorsChangelogResolver)
+    /**
+     * @readonly
+     * @var \Rector\Core\Contract\Console\OutputStyleInterface
+     */
+    private $rectorOutputStyle;
+    /**
+     * @readonly
+     * @var \Rector\ChangesReporting\Annotation\RectorsChangelogResolver
+     */
+    private $rectorsChangelogResolver;
+    public function __construct(OutputStyleInterface $rectorOutputStyle, RectorsChangelogResolver $rectorsChangelogResolver)
     {
-        $this->symfonyStyle = $symfonyStyle;
+        $this->rectorOutputStyle = $rectorOutputStyle;
         $this->rectorsChangelogResolver = $rectorsChangelogResolver;
     }
     public function report(ProcessResult $processResult, Configuration $configuration) : void
@@ -42,16 +42,17 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
         if ($configuration->shouldShowDiffs()) {
             $this->reportFileDiffs($processResult->getFileDiffs());
         }
-        $this->reportErrors($processResult->getSystemErrors());
-        if ($processResult->getSystemErrors() !== []) {
+        $this->reportErrors($processResult->getErrors());
+        $this->reportRemovedFilesAndNodes($processResult);
+        if ($processResult->getErrors() !== []) {
             return;
         }
         // to keep space between progress bar and success message
         if ($configuration->shouldShowProgressBar() && $processResult->getFileDiffs() === []) {
-            $this->symfonyStyle->newLine();
+            $this->rectorOutputStyle->newLine();
         }
         $message = $this->createSuccessMessage($processResult, $configuration);
-        $this->symfonyStyle->success($message);
+        $this->rectorOutputStyle->success($message);
     }
     public function getName() : string
     {
@@ -68,7 +69,7 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
         // normalize
         \ksort($fileDiffs);
         $message = \sprintf('%d file%s with changes', \count($fileDiffs), \count($fileDiffs) === 1 ? '' : 's');
-        $this->symfonyStyle->title($message);
+        $this->rectorOutputStyle->title($message);
         $i = 0;
         foreach ($fileDiffs as $fileDiff) {
             $relativeFilePath = $fileDiff->getRelativeFilePath();
@@ -78,14 +79,14 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
                 $relativeFilePath .= ':' . $firstLineNumber;
             }
             $message = \sprintf('<options=bold>%d) %s</>', ++$i, $relativeFilePath);
-            $this->symfonyStyle->writeln($message);
-            $this->symfonyStyle->newLine();
-            $this->symfonyStyle->writeln($fileDiff->getDiffConsoleFormatted());
+            $this->rectorOutputStyle->writeln($message);
+            $this->rectorOutputStyle->newLine();
+            $this->rectorOutputStyle->writeln($fileDiff->getDiffConsoleFormatted());
             $rectorsChangelogsLines = $this->createRectorChangelogLines($fileDiff);
             if ($fileDiff->getRectorChanges() !== []) {
-                $this->symfonyStyle->writeln('<options=underscore>Applied rules:</>');
-                $this->symfonyStyle->listing($rectorsChangelogsLines);
-                $this->symfonyStyle->newLine();
+                $this->rectorOutputStyle->writeln('<options=underscore>Applied rules:</>');
+                $this->rectorOutputStyle->listing($rectorsChangelogsLines);
+                $this->rectorOutputStyle->newLine();
             }
         }
     }
@@ -101,18 +102,38 @@ final class ConsoleOutputFormatter implements OutputFormatterInterface
             if ($error->getLine() !== null) {
                 $message .= ' On line: ' . $error->getLine();
             }
-            $this->symfonyStyle->error($message);
+            $this->rectorOutputStyle->error($message);
         }
+    }
+    private function reportRemovedFilesAndNodes(ProcessResult $processResult) : void
+    {
+        if ($processResult->getAddedFilesCount() !== 0) {
+            $message = \sprintf('%d files were added', $processResult->getAddedFilesCount());
+            $this->rectorOutputStyle->note($message);
+        }
+        if ($processResult->getRemovedFilesCount() !== 0) {
+            $message = \sprintf('%d files were removed', $processResult->getRemovedFilesCount());
+            $this->rectorOutputStyle->note($message);
+        }
+        $this->reportRemovedNodes($processResult);
     }
     private function normalizePathsToRelativeWithLine(string $errorMessage) : string
     {
         $regex = '#' . \preg_quote(\getcwd(), '#') . '/#';
-        $errorMessage = Strings::replace($errorMessage, $regex);
-        return Strings::replace($errorMessage, self::ON_LINE_REGEX);
+        $errorMessage = Strings::replace($errorMessage, $regex, '');
+        return Strings::replace($errorMessage, self::ON_LINE_REGEX, ':');
+    }
+    private function reportRemovedNodes(ProcessResult $processResult) : void
+    {
+        if ($processResult->getRemovedNodeCount() === 0) {
+            return;
+        }
+        $message = \sprintf('%d nodes were removed', $processResult->getRemovedNodeCount());
+        $this->rectorOutputStyle->warning($message);
     }
     private function createSuccessMessage(ProcessResult $processResult, Configuration $configuration) : string
     {
-        $changeCount = \count($processResult->getFileDiffs());
+        $changeCount = \count($processResult->getFileDiffs()) + $processResult->getRemovedAndAddedFilesCount();
         if ($changeCount === 0) {
             return 'Rector is done!';
         }

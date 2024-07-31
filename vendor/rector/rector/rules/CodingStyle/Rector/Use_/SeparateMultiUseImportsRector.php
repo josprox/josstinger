@@ -4,11 +4,8 @@ declare (strict_types=1);
 namespace Rector\CodingStyle\Rector\Use_;
 
 use PhpParser\Node;
-use PhpParser\Node\Stmt\Class_;
-use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\TraitUse;
 use PhpParser\Node\Stmt\Use_;
-use Rector\Core\PhpParser\Node\CustomNode\FileWithoutNamespace;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -44,38 +41,18 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [FileWithoutNamespace::class, Namespace_::class, Class_::class];
+        return [Use_::class, TraitUse::class];
     }
     /**
-     * @param FileWithoutNamespace|Namespace_|Class_ $node
-     * @return \Rector\Core\PhpParser\Node\CustomNode\FileWithoutNamespace|\PhpParser\Node\Stmt\Namespace_|\PhpParser\Node\Stmt\Class_|null
+     * @param Use_|TraitUse $node
+     * @return Use_[]|TraitUse[]|null
      */
-    public function refactor(Node $node)
+    public function refactor(Node $node) : ?array
     {
-        $hasChanged = \false;
-        foreach ($node->stmts as $key => $stmt) {
-            if ($stmt instanceof Use_) {
-                $refactorUseImport = $this->refactorUseImport($stmt);
-                if ($refactorUseImport !== null) {
-                    unset($node->stmts[$key]);
-                    \array_splice($node->stmts, $key, 0, $refactorUseImport);
-                    $hasChanged = \true;
-                }
-                continue;
-            }
-            if ($stmt instanceof TraitUse) {
-                $refactorTraitUse = $this->refactorTraitUse($stmt);
-                if ($refactorTraitUse !== null) {
-                    unset($node->stmts[$key]);
-                    \array_splice($node->stmts, $key, 0, $refactorTraitUse);
-                    $hasChanged = \true;
-                }
-            }
+        if ($node instanceof Use_) {
+            return $this->refactorUseImport($node);
         }
-        if (!$hasChanged) {
-            return null;
-        }
-        return $node;
+        return $this->refactorTraitUse($node);
     }
     /**
      * @return Use_[]|null $use

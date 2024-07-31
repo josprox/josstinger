@@ -69,7 +69,7 @@ CODE_SAMPLE
      */
     public function refactorWithScope(Node $node, Scope $scope) : ?Node
     {
-        if ($node->var instanceof Variable) {
+        if ($node->var !== null) {
             return null;
         }
         $exceptionVarName = $this->variableNaming->createCountedValueName('exception', $scope);

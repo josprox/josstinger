@@ -9,7 +9,6 @@ use PhpParser\Node\Stmt\Property;
 use PHPStan\Reflection\ClassReflection;
 use PHPStan\Reflection\Php\PhpPropertyReflection;
 use PHPStan\Reflection\ReflectionProvider;
-use PHPStan\Type\Type;
 use PHPStan\Type\TypeWithClassName;
 use Rector\Core\PhpParser\AstResolver;
 use Rector\NodeNameResolver\NodeNameResolver;
@@ -64,6 +63,9 @@ final class PropertyPresenceChecker
         if ($className === null) {
             return null;
         }
+        if (!$this->reflectionProvider->hasClass($className)) {
+            return null;
+        }
         $property = $class->getProperty($propertyMetadata->getName());
         if ($property instanceof Property) {
             return $property;
@@ -103,7 +105,7 @@ final class PropertyPresenceChecker
      */
     private function matchPropertyByType(PropertyMetadata $propertyMetadata, PhpPropertyReflection $phpPropertyReflection)
     {
-        if (!$propertyMetadata->getType() instanceof Type) {
+        if ($propertyMetadata->getType() === null) {
             return null;
         }
         if (!$propertyMetadata->getType() instanceof TypeWithClassName) {
@@ -112,8 +114,8 @@ final class PropertyPresenceChecker
         if (!$phpPropertyReflection->getWritableType() instanceof TypeWithClassName) {
             return null;
         }
-        $propertyObjectTypeWithClassName = $propertyMetadata->getType();
-        if (!$propertyObjectTypeWithClassName->equals($phpPropertyReflection->getWritableType())) {
+        $propertyObjectType = $propertyMetadata->getType();
+        if (!$propertyObjectType->equals($phpPropertyReflection->getWritableType())) {
             return null;
         }
         return $this->astResolver->resolvePropertyFromPropertyReflection($phpPropertyReflection);

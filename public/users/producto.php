@@ -261,7 +261,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                         <div class="grid_4_auto">
 
                             <div class="capsula">
-                                <a class="btn btn-success" target="_blank" rel="noopener noreferrer" href="https://<?php echo $consulta_panel['host'] . ":" . $consulta_panel['port']; ?>/" role="button">Ingresar al panel</a>
+                                <a class="btn btn-success" href="https://<?php echo $consulta_panel['host'] . ":" . $consulta_panel['port']; ?>/" role="button">Ingresar al panel</a>
                             </div>
     
                             <div class="capsula">

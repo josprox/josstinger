@@ -30,7 +30,7 @@ final class AlwaysStrictBoolExprAnalyzer
     public function isStrictBoolExpr(Expr $expr) : bool
     {
         foreach (self::BOOL_TYPE_NODES as $boolTypeNode) {
-            if ($expr instanceof $boolTypeNode) {
+            if (\is_a($expr, $boolTypeNode, \true)) {
                 return \true;
             }
         }

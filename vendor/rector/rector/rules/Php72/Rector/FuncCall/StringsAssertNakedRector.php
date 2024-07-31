@@ -67,11 +67,10 @@ CODE_SAMPLE
         if (!$this->isName($node, 'assert')) {
             return null;
         }
-        if ($node->isFirstClassCallable()) {
+        if (!$node->args[0] instanceof Arg) {
             return null;
         }
-        $firstArg = $node->getArgs()[0];
-        $firstArgValue = $firstArg->value;
+        $firstArgValue = $node->args[0]->value;
         if (!$firstArgValue instanceof String_) {
             return null;
         }

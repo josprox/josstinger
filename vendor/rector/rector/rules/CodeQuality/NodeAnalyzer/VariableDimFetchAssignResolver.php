@@ -81,7 +81,7 @@ final class VariableDimFetchAssignResolver
         $alwaysNullKey = \true;
         $alwaysStringKey = \true;
         foreach ($keysAndExprs as $keyAndExpr) {
-            if ($keyAndExpr->getKeyExpr() instanceof Expr) {
+            if ($keyAndExpr->getKeyExpr() !== null) {
                 $alwaysNullKey = \false;
             } else {
                 $alwaysStringKey = \false;

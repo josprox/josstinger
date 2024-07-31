@@ -7,6 +7,7 @@ use PhpParser\Node;
 use PhpParser\Node\Stmt\Function_;
 use PHPStan\Analyser\Scope;
 use Rector\NodeNameResolver\Contract\NodeNameResolverInterface;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 /**
  * @implements NodeNameResolverInterface<Function_>
  */
@@ -19,9 +20,10 @@ final class FunctionNameResolver implements NodeNameResolverInterface
     /**
      * @param Function_ $node
      */
-    public function resolve(Node $node, ?Scope $scope) : ?string
+    public function resolve(Node $node) : ?string
     {
         $bareName = (string) $node->name;
+        $scope = $node->getAttribute(AttributeKey::SCOPE);
         if (!$scope instanceof Scope) {
             return $bareName;
         }

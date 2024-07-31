@@ -35,19 +35,26 @@ final class ConstructorAssignPropertyAnalyzer
         $this->nodeNameResolver = $nodeNameResolver;
         $this->propertyFetchAnalyzer = $propertyFetchAnalyzer;
     }
-    public function resolveConstructorAssign(Class_ $class, Property $property) : ?Node
+    public function resolveConstructorAssign(Property $property) : ?Node
     {
+        $class = $this->betterNodeFinder->findParentType($property, Class_::class);
+        if (!$class instanceof Class_) {
+            return null;
+        }
         $constructClassMethod = $class->getMethod(MethodName::CONSTRUCT);
         if (!$constructClassMethod instanceof ClassMethod) {
             return null;
         }
         /** @var string $propertyName */
         $propertyName = $this->nodeNameResolver->getName($property);
-        return $this->betterNodeFinder->findFirst((array) $constructClassMethod->stmts, function (Node $node) use($propertyName) : bool {
+        return $this->betterNodeFinder->findFirst((array) $constructClassMethod->stmts, function (Node $node) use($propertyName) : ?Assign {
             if (!$node instanceof Assign) {
-                return \false;
+                return null;
             }
-            return $this->propertyFetchAnalyzer->isLocalPropertyFetchName($node->var, $propertyName);
+            if (!$this->propertyFetchAnalyzer->isLocalPropertyFetchName($node->var, $propertyName)) {
+                return null;
+            }
+            return $node;
         });
     }
 }

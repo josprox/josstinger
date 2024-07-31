@@ -12,6 +12,10 @@ final class SetList implements SetListInterface
     /**
      * @var string
      */
+    public const ACTION_INJECTION_TO_CONSTRUCTOR_INJECTION = __DIR__ . '/../../../config/set/action-injection-to-constructor-injection.php';
+    /**
+     * @var string
+     */
     public const CODE_QUALITY = __DIR__ . '/../../../config/set/code-quality.php';
     /**
      * @var string
@@ -24,11 +28,15 @@ final class SetList implements SetListInterface
     /**
      * @var string
      */
-    public const STRICT_BOOLEANS = __DIR__ . '/../../../config/set/strict-booleans.php';
+    public const GMAGICK_TO_IMAGICK = __DIR__ . '/../../../config/set/gmagick-to-imagick.php';
     /**
      * @var string
      */
-    public const GMAGICK_TO_IMAGICK = __DIR__ . '/../../../config/set/gmagick-to-imagick.php';
+    public const MONOLOG_20 = __DIR__ . '/../../../config/set/monolog20.php';
+    /**
+     * @var string
+     */
+    public const MYSQL_TO_MYSQLI = __DIR__ . '/../../../config/set/mysql-to-mysqli.php';
     /**
      * @var string
      */
@@ -88,11 +96,11 @@ final class SetList implements SetListInterface
     /**
      * @var string
      */
-    public const PHP_83 = __DIR__ . '/../../../config/set/php83.php';
+    public const PRIVATIZATION = __DIR__ . '/../../../config/set/privatization.php';
     /**
      * @var string
      */
-    public const PRIVATIZATION = __DIR__ . '/../../../config/set/privatization.php';
+    public const PSR_4 = __DIR__ . '/../../../config/set/psr-4.php';
     /**
      * @var string
      */
@@ -100,9 +108,9 @@ final class SetList implements SetListInterface
     /**
      * @var string
      */
-    public const EARLY_RETURN = __DIR__ . '/../../../config/set/early-return.php';
+    public const TYPE_DECLARATION_STRICT = __DIR__ . '/../../../config/set/type-declaration-strict.php';
     /**
      * @var string
      */
-    public const INSTANCEOF = __DIR__ . '/../../../config/set/instanceof.php';
+    public const EARLY_RETURN = __DIR__ . '/../../../config/set/early-return.php';
 }

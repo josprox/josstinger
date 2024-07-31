@@ -5,13 +5,12 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202312\Nette\Utils;
+namespace RectorPrefix202211\Nette\Utils;
 
-use RectorPrefix202312\Nette;
-use RectorPrefix202312\Nette\MemberAccessException;
+use RectorPrefix202211\Nette;
+use RectorPrefix202211\Nette\MemberAccessException;
 /**
  * Nette\SmartObject helpers.
- * @internal
  */
 final class ObjectHelpers
 {
@@ -163,7 +162,6 @@ final class ObjectHelpers
             $prop = \false;
             try {
                 $rp = new \ReflectionProperty($class, $name);
-                $rp->setAccessible(\true);
                 if ($rp->isPublic() && !$rp->isStatic()) {
                     $prop = $name >= 'onA' && $name < 'on_' ? 'event' : \true;
                 }

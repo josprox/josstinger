@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Formatter;
+namespace RectorPrefix202211\Symfony\Component\Console\Formatter;
 
-use RectorPrefix202312\Symfony\Component\Console\Color;
+use RectorPrefix202211\Symfony\Component\Console\Color;
 /**
  * Formatter style class for defining styles.
  *
@@ -53,23 +53,17 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         $this->color = new Color($this->foreground = $foreground ?: '', $this->background = $background ?: '', $this->options = $options);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setForeground(string $color = null)
     {
-        if (1 > \func_num_args()) {
-            // \trigger_deprecation('symfony/console', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
-        }
         $this->color = new Color($this->foreground = $color ?: '', $this->background, $this->options);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setBackground(string $color = null)
     {
-        if (1 > \func_num_args()) {
-            // \trigger_deprecation('symfony/console', '6.2', 'Calling "%s()" without any arguments is deprecated, pass null explicitly instead.', __METHOD__);
-        }
         $this->color = new Color($this->foreground, $this->background = $color ?: '', $this->options);
     }
     public function setHref(string $url) : void
@@ -77,7 +71,7 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         $this->href = $url;
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setOption(string $option)
     {
@@ -85,7 +79,7 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         $this->color = new Color($this->foreground, $this->background, $this->options);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function unsetOption(string $option)
     {
@@ -96,15 +90,18 @@ class OutputFormatterStyle implements OutputFormatterStyleInterface
         $this->color = new Color($this->foreground, $this->background, $this->options);
     }
     /**
-     * @return void
+     * {@inheritdoc}
      */
     public function setOptions(array $options)
     {
         $this->color = new Color($this->foreground, $this->background, $this->options = $options);
     }
+    /**
+     * {@inheritdoc}
+     */
     public function apply(string $text) : string
     {
-        $this->handlesHrefGracefully = $this->handlesHrefGracefully ?? 'JetBrains-JediTerm' !== \getenv('TERMINAL_EMULATOR') && (!\getenv('KONSOLE_VERSION') || (int) \getenv('KONSOLE_VERSION') > 201100) && !isset($_SERVER['IDEA_INITIAL_DIRECTORY']);
+        $this->handlesHrefGracefully = $this->handlesHrefGracefully ?? 'JetBrains-JediTerm' !== \getenv('TERMINAL_EMULATOR') && (!\getenv('KONSOLE_VERSION') || (int) \getenv('KONSOLE_VERSION') > 201100);
         if (null !== $this->href && $this->handlesHrefGracefully) {
             $text = "\x1b]8;;{$this->href}\x1b\\{$text}\x1b]8;;\x1b\\";
         }

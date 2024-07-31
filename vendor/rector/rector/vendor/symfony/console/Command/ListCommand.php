@@ -8,14 +8,14 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Command;
+namespace RectorPrefix202211\Symfony\Component\Console\Command;
 
-use RectorPrefix202312\Symfony\Component\Console\Descriptor\ApplicationDescription;
-use RectorPrefix202312\Symfony\Component\Console\Helper\DescriptorHelper;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputArgument;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputInterface;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
-use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Descriptor\ApplicationDescription;
+use RectorPrefix202211\Symfony\Component\Console\Helper\DescriptorHelper;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputArgument;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
 /**
  * ListCommand displays the list of all available commands for the application.
  *
@@ -24,7 +24,7 @@ use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
 class ListCommand extends Command
 {
     /**
-     * @return void
+     * {@inheritdoc}
      */
     protected function configure()
     {
@@ -51,6 +51,9 @@ It's also possible to get raw list of commands (useful for embedding command run
 EOF
 );
     }
+    /**
+     * {@inheritdoc}
+     */
     protected function execute(InputInterface $input, OutputInterface $output) : int
     {
         $helper = new DescriptorHelper();

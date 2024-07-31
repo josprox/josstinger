@@ -4,8 +4,8 @@ declare (strict_types=1);
 namespace Rector\Caching\ValueObject\Storage;
 
 use FilesystemIterator;
-use RectorPrefix202312\Nette\Utils\FileSystem;
-use RectorPrefix202312\Nette\Utils\Random;
+use RectorPrefix202211\Nette\Utils\FileSystem;
+use RectorPrefix202211\Nette\Utils\Random;
 use Rector\Caching\Contract\ValueObject\Storage\CacheStorageInterface;
 use Rector\Caching\ValueObject\CacheFilePaths;
 use Rector\Caching\ValueObject\CacheItem;
@@ -17,23 +17,18 @@ use Rector\Core\Exception\Cache\CachingException;
 final class FileCacheStorage implements CacheStorageInterface
 {
     /**
-     * @readonly
      * @var string
      */
     private $directory;
     /**
-     * @readonly
      * @var \Symfony\Component\Filesystem\Filesystem
      */
     private $filesystem;
-    public function __construct(string $directory, \RectorPrefix202312\Symfony\Component\Filesystem\Filesystem $filesystem)
+    public function __construct(string $directory, \RectorPrefix202211\Symfony\Component\Filesystem\Filesystem $filesystem)
     {
         $this->directory = $directory;
         $this->filesystem = $filesystem;
     }
-    /**
-     * @return mixed
-     */
     public function load(string $key, string $variableKey)
     {
         return (function (string $key, string $variableKey) {
@@ -60,7 +55,7 @@ final class FileCacheStorage implements CacheStorageInterface
         $cacheFilePaths = $this->getCacheFilePaths($key);
         $this->filesystem->mkdir($cacheFilePaths->getFirstDirectory());
         $this->filesystem->mkdir($cacheFilePaths->getSecondDirectory());
-        $filePath = $cacheFilePaths->getFilePath();
+        $path = $cacheFilePaths->getFilePath();
         $tmpPath = \sprintf('%s/%s.tmp', $this->directory, Random::generate());
         $errorBefore = \error_get_last();
         $exported = @\var_export(new CacheItem($variableKey, $data), \true);
@@ -70,13 +65,13 @@ final class FileCacheStorage implements CacheStorageInterface
         }
         // for performance reasons we don't use SmartFileSystem
         FileSystem::write($tmpPath, \sprintf("<?php declare(strict_types = 1);\n\nreturn %s;", $exported));
-        $renameSuccess = @\rename($tmpPath, $filePath);
+        $renameSuccess = @\rename($tmpPath, $path);
         if ($renameSuccess) {
             return;
         }
         @\unlink($tmpPath);
-        if (\DIRECTORY_SEPARATOR === '/' || !\file_exists($filePath)) {
-            throw new CachingException(\sprintf('Could not write data to cache file %s.', $filePath));
+        if (\DIRECTORY_SEPARATOR === '/' || !\file_exists($path)) {
+            throw new CachingException(\sprintf('Could not write data to cache file %s.', $path));
         }
     }
     public function clean(string $key) : void

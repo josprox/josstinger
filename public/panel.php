@@ -90,7 +90,8 @@ login_cookie("users");
             $cookies = "si";
         }
         $checking = consulta_mysqli_where("id_user", "check_users","url", "'$llave'");
-        $checker = consulta_mysqli_where("email", "users", "id", $checking['id_user']);
+        $id_user_login = $checking['id_user'];
+        $checker = consulta_mysqli_where("email", "users", "id", "$id_user_login");
         if($checker["email"] == $_GET['correo']){
             eliminar_datos_con_where("check_users","id_user",$checking['id_user']);
             $check = logins($_GET['correo'],$_GET['contra'],"users",$cookies);

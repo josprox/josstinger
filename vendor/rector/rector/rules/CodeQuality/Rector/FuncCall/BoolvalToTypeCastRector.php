@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Cast\Bool_;
 use PhpParser\Node\Expr\FuncCall;
 use Rector\Core\Rector\AbstractRector;
@@ -48,15 +49,15 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->isFirstClassCallable()) {
-            return null;
-        }
         if (!$this->isName($node, 'boolval')) {
             return null;
         }
-        if (!isset($node->getArgs()[0])) {
+        if (!isset($node->args[0])) {
             return null;
         }
-        return new Bool_($node->getArgs()[0]->value);
+        if (!$node->args[0] instanceof Arg) {
+            return null;
+        }
+        return new Bool_($node->args[0]->value);
     }
 }

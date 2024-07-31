@@ -88,17 +88,17 @@ CODE_SAMPLE
         if ($this->exprAnalyzer->isNonTypedFromParam($node->right)) {
             return null;
         }
-        if ($this->isStringOrStaticNonNumericString($node->left) && $this->nodeTypeResolver->isNumberType($node->right)) {
+        if ($this->isStringOrStaticNonNumbericString($node->left) && $this->nodeTypeResolver->isNumberType($node->right)) {
             $node->left = new LNumber(0);
             return $node;
         }
-        if ($this->isStringOrStaticNonNumericString($node->right) && $this->nodeTypeResolver->isNumberType($node->left)) {
+        if ($this->isStringOrStaticNonNumbericString($node->right) && $this->nodeTypeResolver->isNumberType($node->left)) {
             $node->right = new LNumber(0);
             return $node;
         }
         return null;
     }
-    private function isStringOrStaticNonNumericString(Expr $expr) : bool
+    private function isStringOrStaticNonNumbericString(Expr $expr) : bool
     {
         // replace only scalar values, not variables/constants/etc.
         if (!$expr instanceof Scalar && !$expr instanceof Variable) {
@@ -107,13 +107,15 @@ CODE_SAMPLE
         if ($expr instanceof Line) {
             return \false;
         }
-        if ($expr instanceof String_) {
-            return !\is_numeric($expr->value);
-        }
+        $value = null;
         $exprStaticType = $this->getType($expr);
-        if ($exprStaticType instanceof ConstantStringType) {
-            return !\is_numeric($exprStaticType->getValue());
+        if ($expr instanceof String_) {
+            $value = $expr->value;
+        } elseif ($exprStaticType instanceof ConstantStringType) {
+            $value = $exprStaticType->getValue();
+        } else {
+            return \false;
         }
-        return \false;
+        return !\is_numeric($value);
     }
 }

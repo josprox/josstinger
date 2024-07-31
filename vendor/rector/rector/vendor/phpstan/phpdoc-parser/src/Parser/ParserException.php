@@ -8,7 +8,6 @@ use PHPStan\PhpDocParser\Lexer\Lexer;
 use function assert;
 use function json_encode;
 use function sprintf;
-use const JSON_INVALID_UTF8_SUBSTITUTE;
 use const JSON_UNESCAPED_SLASHES;
 use const JSON_UNESCAPED_UNICODE;
 class ParserException extends Exception
@@ -23,17 +22,14 @@ class ParserException extends Exception
     private $expectedTokenType;
     /** @var string|null */
     private $expectedTokenValue;
-    /** @var int|null */
-    private $currentTokenLine;
-    public function __construct(string $currentTokenValue, int $currentTokenType, int $currentOffset, int $expectedTokenType, ?string $expectedTokenValue = null, ?int $currentTokenLine = null)
+    public function __construct(string $currentTokenValue, int $currentTokenType, int $currentOffset, int $expectedTokenType, ?string $expectedTokenValue = null)
     {
         $this->currentTokenValue = $currentTokenValue;
         $this->currentTokenType = $currentTokenType;
         $this->currentOffset = $currentOffset;
         $this->expectedTokenType = $expectedTokenType;
         $this->expectedTokenValue = $expectedTokenValue;
-        $this->currentTokenLine = $currentTokenLine;
-        parent::__construct(sprintf('Unexpected token %s, expected %s%s at offset %d%s', $this->formatValue($currentTokenValue), Lexer::TOKEN_LABELS[$expectedTokenType], $expectedTokenValue !== null ? sprintf(' (%s)', $this->formatValue($expectedTokenValue)) : '', $currentOffset, $currentTokenLine === null ? '' : sprintf(' on line %d', $currentTokenLine)));
+        parent::__construct(sprintf('Unexpected token %s, expected %s%s at offset %d', $this->formatValue($currentTokenValue), Lexer::TOKEN_LABELS[$expectedTokenType], $expectedTokenValue !== null ? sprintf(' (%s)', $this->formatValue($expectedTokenValue)) : '', $currentOffset));
     }
     public function getCurrentTokenValue() : string
     {
@@ -55,13 +51,9 @@ class ParserException extends Exception
     {
         return $this->expectedTokenValue;
     }
-    public function getCurrentTokenLine() : ?int
-    {
-        return $this->currentTokenLine;
-    }
     private function formatValue(string $value) : string
     {
-        $json = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE);
+        $json = json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
         assert($json !== \false);
         return $json;
     }

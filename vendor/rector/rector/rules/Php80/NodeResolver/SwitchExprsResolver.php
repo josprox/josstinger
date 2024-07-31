@@ -29,13 +29,9 @@ final class SwitchExprsResolver
             if (!$this->isValidCase($case)) {
                 return [];
             }
-            if ($case->stmts !== []) {
-                continue;
+            if ($case->stmts === [] && $case->cond instanceof Expr) {
+                $collectionEmptyCasesCond[$key] = $case->cond;
             }
-            if (!$case->cond instanceof Expr) {
-                continue;
-            }
-            $collectionEmptyCasesCond[$key] = $case->cond;
         }
         foreach ($newSwitch->cases as $key => $case) {
             if ($case->stmts === []) {
@@ -46,7 +42,7 @@ final class SwitchExprsResolver
                 $expr = $expr->expr;
             }
             $condExprs = [];
-            if ($case->cond instanceof Expr) {
+            if ($case->cond !== null) {
                 $emptyCasesCond = [];
                 foreach ($collectionEmptyCasesCond as $i => $collectionEmptyCaseCond) {
                     if ($i > $key) {
@@ -125,6 +121,6 @@ final class SwitchExprsResolver
             return \true;
         }
         // default value
-        return !$case->cond instanceof Expr;
+        return $case->cond === null;
     }
 }

@@ -3,7 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Arguments\NodeAnalyzer;
 
-use PhpParser\Node\Expr;
 use PhpParser\Node\Param;
 use PHPStan\Type\Type;
 use Rector\Core\PhpParser\Node\Value\ValueResolver;
@@ -37,7 +36,7 @@ final class ChangedArgumentsDetector
      */
     public function isDefaultValueChanged(Param $param, $value) : bool
     {
-        if (!$param->default instanceof Expr) {
+        if ($param->default === null) {
             return \false;
         }
         return !$this->valueResolver->isValue($param->default, $value);
@@ -47,7 +46,7 @@ final class ChangedArgumentsDetector
         if ($param->type === null) {
             return \false;
         }
-        if (!$newType instanceof Type) {
+        if ($newType === null) {
             return \true;
         }
         $currentParamType = $this->staticTypeMapper->mapPhpParserNodePHPStanType($param->type);

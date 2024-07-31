@@ -14,15 +14,26 @@ use Rector\BetterPhpDocParser\PhpDocParser\BetterPhpDocParser;
 use Rector\BetterPhpDocParser\ValueObject\Parser\BetterTokenIterator;
 use Rector\BetterPhpDocParser\ValueObject\PhpDocAttributeKey;
 use Rector\BetterPhpDocParser\ValueObject\StartAndEnd;
+use Rector\ChangesReporting\Collector\RectorChangeCollector;
+use Rector\Core\Configuration\CurrentNodeProvider;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\StaticTypeMapper\StaticTypeMapper;
 final class PhpDocInfoFactory
 {
     /**
+     * @var array<string, PhpDocInfo>
+     */
+    private $phpDocInfosByObjectHash = [];
+    /**
      * @readonly
      * @var \Rector\BetterPhpDocParser\PhpDocNodeMapper
      */
     private $phpDocNodeMapper;
+    /**
+     * @readonly
+     * @var \Rector\Core\Configuration\CurrentNodeProvider
+     */
+    private $currentNodeProvider;
     /**
      * @readonly
      * @var \PHPStan\PhpDocParser\Lexer\Lexer
@@ -45,20 +56,23 @@ final class PhpDocInfoFactory
     private $annotationNaming;
     /**
      * @readonly
+     * @var \Rector\ChangesReporting\Collector\RectorChangeCollector
+     */
+    private $rectorChangeCollector;
+    /**
+     * @readonly
      * @var \Rector\BetterPhpDocParser\PhpDocNodeFinder\PhpDocNodeByTypeFinder
      */
     private $phpDocNodeByTypeFinder;
-    /**
-     * @var array<int, PhpDocInfo>
-     */
-    private $phpDocInfosByObjectId = [];
-    public function __construct(PhpDocNodeMapper $phpDocNodeMapper, Lexer $lexer, BetterPhpDocParser $betterPhpDocParser, StaticTypeMapper $staticTypeMapper, AnnotationNaming $annotationNaming, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder)
+    public function __construct(PhpDocNodeMapper $phpDocNodeMapper, CurrentNodeProvider $currentNodeProvider, Lexer $lexer, BetterPhpDocParser $betterPhpDocParser, StaticTypeMapper $staticTypeMapper, AnnotationNaming $annotationNaming, RectorChangeCollector $rectorChangeCollector, PhpDocNodeByTypeFinder $phpDocNodeByTypeFinder)
     {
         $this->phpDocNodeMapper = $phpDocNodeMapper;
+        $this->currentNodeProvider = $currentNodeProvider;
         $this->lexer = $lexer;
         $this->betterPhpDocParser = $betterPhpDocParser;
         $this->staticTypeMapper = $staticTypeMapper;
         $this->annotationNaming = $annotationNaming;
+        $this->rectorChangeCollector = $rectorChangeCollector;
         $this->phpDocNodeByTypeFinder = $phpDocNodeByTypeFinder;
     }
     public function createFromNodeOrEmpty(Node $node) : \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo
@@ -76,33 +90,38 @@ final class PhpDocInfoFactory
     }
     public function createFromNode(Node $node) : ?\Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo
     {
-        $objectId = \spl_object_id($node);
-        if (isset($this->phpDocInfosByObjectId[$objectId])) {
-            return $this->phpDocInfosByObjectId[$objectId];
+        $objectHash = \spl_object_hash($node);
+        if (isset($this->phpDocInfosByObjectHash[$objectHash])) {
+            return $this->phpDocInfosByObjectHash[$objectHash];
         }
+        /** @see \Rector\BetterPhpDocParser\PhpDocParser\DoctrineAnnotationDecorator::decorate() */
+        $this->currentNodeProvider->setNode($node);
         $docComment = $node->getDocComment();
         if (!$docComment instanceof Doc) {
-            if ($node->getComments() === []) {
+            if ($node->getComments() !== []) {
                 return null;
             }
             // create empty node
             $tokenIterator = new BetterTokenIterator([]);
             $phpDocNode = new PhpDocNode([]);
         } else {
-            $tokens = $this->lexer->tokenize($docComment->getText());
+            $text = $docComment->getText();
+            $tokens = $this->lexer->tokenize($text);
             $tokenIterator = new BetterTokenIterator($tokens);
-            $phpDocNode = $this->betterPhpDocParser->parseWithNode($tokenIterator, $node);
+            $phpDocNode = $this->betterPhpDocParser->parse($tokenIterator);
             $this->setPositionOfLastToken($phpDocNode);
         }
         $phpDocInfo = $this->createFromPhpDocNode($phpDocNode, $tokenIterator, $node);
-        $this->phpDocInfosByObjectId[$objectId] = $phpDocInfo;
+        $this->phpDocInfosByObjectHash[$objectHash] = $phpDocInfo;
         return $phpDocInfo;
     }
     /**
-     * @api downgrade
+     * @api
      */
     public function createEmpty(Node $node) : \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo
     {
+        /** @see \Rector\BetterPhpDocParser\PhpDocParser\DoctrineAnnotationDecorator::decorate() */
+        $this->currentNodeProvider->setNode($node);
         $phpDocNode = new PhpDocNode([]);
         $phpDocInfo = $this->createFromPhpDocNode($phpDocNode, new BetterTokenIterator([]), $node);
         // multiline by default
@@ -127,7 +146,7 @@ final class PhpDocInfoFactory
     private function createFromPhpDocNode(PhpDocNode $phpDocNode, BetterTokenIterator $betterTokenIterator, Node $node) : \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo
     {
         $this->phpDocNodeMapper->transform($phpDocNode, $betterTokenIterator);
-        $phpDocInfo = new \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo($phpDocNode, $betterTokenIterator, $this->staticTypeMapper, $node, $this->annotationNaming, $this->phpDocNodeByTypeFinder);
+        $phpDocInfo = new \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo($phpDocNode, $betterTokenIterator, $this->staticTypeMapper, $node, $this->annotationNaming, $this->currentNodeProvider, $this->rectorChangeCollector, $this->phpDocNodeByTypeFinder);
         $node->setAttribute(AttributeKey::PHP_DOC_INFO, $phpDocInfo);
         return $phpDocInfo;
     }

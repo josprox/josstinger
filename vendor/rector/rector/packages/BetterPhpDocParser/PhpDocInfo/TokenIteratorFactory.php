@@ -10,6 +10,10 @@ use Rector\Core\Util\Reflection\PrivatesAccessor;
 final class TokenIteratorFactory
 {
     /**
+     * @var string
+     */
+    private const INDEX = 'index';
+    /**
      * @readonly
      * @var \PHPStan\PhpDocParser\Lexer\Lexer
      */
@@ -19,10 +23,6 @@ final class TokenIteratorFactory
      * @var \Rector\Core\Util\Reflection\PrivatesAccessor
      */
     private $privatesAccessor;
-    /**
-     * @var string
-     */
-    private const INDEX = 'index';
     public function __construct(Lexer $lexer, PrivatesAccessor $privatesAccessor)
     {
         $this->lexer = $lexer;

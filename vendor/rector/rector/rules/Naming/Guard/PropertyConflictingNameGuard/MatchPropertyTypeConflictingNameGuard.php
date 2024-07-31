@@ -39,11 +39,11 @@ final class MatchPropertyTypeConflictingNameGuard
     /**
      * @return string[]
      */
-    private function resolve(ClassLike $classLike) : array
+    public function resolve(ClassLike $classLike) : array
     {
         $expectedNames = [];
         foreach ($classLike->getProperties() as $property) {
-            $expectedName = $this->matchPropertyTypeExpectedNameResolver->resolve($property, $classLike);
+            $expectedName = $this->matchPropertyTypeExpectedNameResolver->resolve($property);
             if ($expectedName === null) {
                 // fallback to existing name
                 $expectedName = $this->nodeNameResolver->getName($property);

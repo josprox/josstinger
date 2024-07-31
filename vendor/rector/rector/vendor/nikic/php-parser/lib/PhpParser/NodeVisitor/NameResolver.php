@@ -110,9 +110,6 @@ class NameResolver extends NodeVisitorAbstract
             }
         } else {
             if ($node instanceof Stmt\ClassConst) {
-                if (null !== $node->type) {
-                    $node->type = $this->resolveType($node->type);
-                }
                 $this->resolveAttrGroups($node);
             } else {
                 if ($node instanceof Stmt\EnumCase) {
@@ -150,7 +147,7 @@ class NameResolver extends NodeVisitorAbstract
         }
         return null;
     }
-    private function addAlias(Stmt\UseUse $use, int $type, Name $prefix = null)
+    private function addAlias(Stmt\UseUse $use, $type, Name $prefix = null)
     {
         // Add prefix for group uses
         $name = $prefix ? Name::concat($prefix, $use->name) : $use->name;

@@ -3,7 +3,6 @@
 declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FunctionLike;
 
-use PhpParser\Comment\Doc;
 use PhpParser\Node;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\AssignOp;
@@ -12,16 +11,16 @@ use PhpParser\Node\Stmt;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Return_;
 use PHPStan\Type\MixedType;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
+use Rector\CodeQuality\NodeAnalyzer\ReturnAnalyzer;
 use Rector\Core\Contract\PhpParser\Node\StmtsAwareInterface;
 use Rector\Core\NodeAnalyzer\CallAnalyzer;
 use Rector\Core\NodeAnalyzer\VariableAnalyzer;
 use Rector\Core\PhpParser\Node\AssignAndBinaryMap;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
+ * @see Based on https://github.com/slevomat/coding-standard/blob/master/SlevomatCodingStandard/Sniffs/Variables/UselessVariableSniff.php
  * @see \Rector\Tests\CodeQuality\Rector\FunctionLike\SimplifyUselessVariableRector\SimplifyUselessVariableRectorTest
  */
 final class SimplifyUselessVariableRector extends AbstractRector
@@ -43,15 +42,15 @@ final class SimplifyUselessVariableRector extends AbstractRector
     private $callAnalyzer;
     /**
      * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
+     * @var \Rector\CodeQuality\NodeAnalyzer\ReturnAnalyzer
      */
-    private $phpDocInfoFactory;
-    public function __construct(AssignAndBinaryMap $assignAndBinaryMap, VariableAnalyzer $variableAnalyzer, CallAnalyzer $callAnalyzer, PhpDocInfoFactory $phpDocInfoFactory)
+    private $returnAnalyzer;
+    public function __construct(AssignAndBinaryMap $assignAndBinaryMap, VariableAnalyzer $variableAnalyzer, CallAnalyzer $callAnalyzer, ReturnAnalyzer $returnAnalyzer)
     {
         $this->assignAndBinaryMap = $assignAndBinaryMap;
         $this->variableAnalyzer = $variableAnalyzer;
         $this->callAnalyzer = $callAnalyzer;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
+        $this->returnAnalyzer = $returnAnalyzer;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -85,7 +84,6 @@ CODE_SAMPLE
             return null;
         }
         foreach ($stmts as $key => $stmt) {
-            // has previous node?
             if (!isset($stmts[$key - 1])) {
                 continue;
             }
@@ -96,13 +94,13 @@ CODE_SAMPLE
             if ($this->shouldSkipStmt($stmt, $previousStmt)) {
                 return null;
             }
-            if ($this->hasSomeComment($previousStmt)) {
-                return null;
-            }
             if ($this->isReturnWithVarAnnotation($stmt)) {
                 return null;
             }
-            /** @var Expression<Assign|AssignOp> $previousStmt */
+            /**
+             * @var Expression $previousStmt
+             * @var Assign|AssignOp $assign
+             */
             $assign = $previousStmt->expr;
             return $this->processSimplifyUselessVariable($node, $stmt, $assign, $key);
         }
@@ -127,12 +125,17 @@ CODE_SAMPLE
     }
     private function shouldSkipStmt(Return_ $return, Stmt $previousStmt) : bool
     {
+        if ($this->hasSomeComment($previousStmt)) {
+            return \true;
+        }
         if (!$return->expr instanceof Variable) {
             return \true;
         }
-        if ($return->getAttribute(AttributeKey::IS_BYREF_RETURN) === \true) {
+        if ($this->returnAnalyzer->hasByRefReturn($return)) {
             return \true;
         }
+        /** @var Variable $variable */
+        $variable = $return->expr;
         if (!$previousStmt instanceof Expression) {
             return \true;
         }
@@ -141,7 +144,6 @@ CODE_SAMPLE
         if (!$previousNode instanceof AssignOp && !$previousNode instanceof Assign) {
             return \true;
         }
-        $variable = $return->expr;
         // is the same variable
         if (!$this->nodeComparator->areNodesEqual($previousNode->var, $variable)) {
             return \true;
@@ -149,9 +151,7 @@ CODE_SAMPLE
         if ($this->variableAnalyzer->isStaticOrGlobal($variable)) {
             return \true;
         }
-        /** @var Variable $previousVar */
-        $previousVar = $previousNode->var;
-        if ($this->callAnalyzer->isNewInstance($previousVar)) {
+        if ($this->callAnalyzer->isNewInstance($previousNode->var)) {
             return \true;
         }
         return $this->variableAnalyzer->isUsedByReference($variable);
@@ -161,7 +161,7 @@ CODE_SAMPLE
         if ($stmt->getComments() !== []) {
             return \true;
         }
-        return $stmt->getDocComment() instanceof Doc;
+        return $stmt->getDocComment() !== null;
     }
     private function isReturnWithVarAnnotation(Return_ $return) : bool
     {

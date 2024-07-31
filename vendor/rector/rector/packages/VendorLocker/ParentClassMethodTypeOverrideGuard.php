@@ -5,14 +5,19 @@ namespace Rector\VendorLocker;
 
 use PhpParser\Node\Stmt\ClassMethod;
 use PHPStan\Reflection\ClassReflection;
+use PHPStan\Reflection\FunctionVariantWithPhpDocs;
 use PHPStan\Reflection\MethodReflection;
+use PHPStan\Reflection\ParametersAcceptorSelector;
+use PHPStan\Type\MixedType;
 use PHPStan\Type\Type;
-use Rector\Core\Reflection\ClassReflectionAnalyzer;
+use Rector\Core\FileSystem\FilePathHelper;
+use Rector\Core\PhpParser\AstResolver;
 use Rector\Core\Reflection\ReflectionResolver;
+use Rector\Core\ValueObject\MethodName;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\NodeTypeResolver\TypeComparator\TypeComparator;
 use Rector\StaticTypeMapper\StaticTypeMapper;
-use Rector\VendorLocker\Exception\UnresolvableClassException;
+use Rector\TypeDeclaration\TypeInferer\ParamTypeInferer;
 final class ParentClassMethodTypeOverrideGuard
 {
     /**
@@ -20,6 +25,16 @@ final class ParentClassMethodTypeOverrideGuard
      * @var \Rector\NodeNameResolver\NodeNameResolver
      */
     private $nodeNameResolver;
+    /**
+     * @readonly
+     * @var \Rector\Core\PhpParser\AstResolver
+     */
+    private $astResolver;
+    /**
+     * @readonly
+     * @var \Rector\TypeDeclaration\TypeInferer\ParamTypeInferer
+     */
+    private $paramTypeInferer;
     /**
      * @readonly
      * @var \Rector\Core\Reflection\ReflectionResolver
@@ -37,41 +52,106 @@ final class ParentClassMethodTypeOverrideGuard
     private $staticTypeMapper;
     /**
      * @readonly
-     * @var \Rector\Core\Reflection\ClassReflectionAnalyzer
+     * @var \Rector\Core\FileSystem\FilePathHelper
      */
-    private $classReflectionAnalyzer;
-    public function __construct(NodeNameResolver $nodeNameResolver, ReflectionResolver $reflectionResolver, TypeComparator $typeComparator, StaticTypeMapper $staticTypeMapper, ClassReflectionAnalyzer $classReflectionAnalyzer)
+    private $filePathHelper;
+    public function __construct(NodeNameResolver $nodeNameResolver, AstResolver $astResolver, ParamTypeInferer $paramTypeInferer, ReflectionResolver $reflectionResolver, TypeComparator $typeComparator, StaticTypeMapper $staticTypeMapper, FilePathHelper $filePathHelper)
     {
         $this->nodeNameResolver = $nodeNameResolver;
+        $this->astResolver = $astResolver;
+        $this->paramTypeInferer = $paramTypeInferer;
         $this->reflectionResolver = $reflectionResolver;
         $this->typeComparator = $typeComparator;
         $this->staticTypeMapper = $staticTypeMapper;
-        $this->classReflectionAnalyzer = $classReflectionAnalyzer;
+        $this->filePathHelper = $filePathHelper;
     }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
-     */
-    public function hasParentClassMethod($classMethod) : bool
+    public function isReturnTypeChangeAllowed(ClassMethod $classMethod) : bool
     {
-        try {
-            $parentClassMethod = $this->resolveParentClassMethod($classMethod);
-            return $parentClassMethod instanceof MethodReflection;
-        } catch (UnresolvableClassException $exception) {
-            // we don't know all involved parents,
-            // marking as parent exists which usually means the method is guarded against overrides.
+        // __construct cannot declare a return type
+        // so the return type change is not allowed
+        if ($this->nodeNameResolver->isName($classMethod, MethodName::CONSTRUCT)) {
+            return \false;
+        }
+        // make sure return type is not protected by parent contract
+        $parentClassMethodReflection = $this->getParentClassMethod($classMethod);
+        // nothing to check
+        if (!$parentClassMethodReflection instanceof MethodReflection) {
             return \true;
         }
+        $parametersAcceptor = ParametersAcceptorSelector::selectSingle($parentClassMethodReflection->getVariants());
+        if ($parametersAcceptor instanceof FunctionVariantWithPhpDocs && !$parametersAcceptor->getNativeReturnType() instanceof MixedType) {
+            return \false;
+        }
+        $classReflection = $parentClassMethodReflection->getDeclaringClass();
+        $fileName = $classReflection->getFileName();
+        // probably internal
+        if ($fileName === null) {
+            return \false;
+        }
+        /*
+         * Below verify that both current file name and parent file name is not in the /vendor/, if yes, then allowed.
+         * This can happen when rector run into /vendor/ directory while child and parent both are there.
+         *
+         *  @see https://3v4l.org/Rc0RF#v8.0.13
+         *
+         *     - both in /vendor/ -> allowed
+         *     - one of them in /vendor/ -> not allowed
+         *     - both not in /vendor/ -> allowed
+         */
+        /** @var ClassReflection $currentClassReflection */
+        $currentClassReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
+        /** @var string $currentFileName */
+        $currentFileName = $currentClassReflection->getFileName();
+        // child (current)
+        $normalizedCurrentFileName = $this->filePathHelper->normalizePathAndSchema($currentFileName);
+        $isCurrentInVendor = \strpos($normalizedCurrentFileName, '/vendor/') !== \false;
+        // parent
+        $normalizedFileName = $this->filePathHelper->normalizePathAndSchema($fileName);
+        $isParentInVendor = \strpos($normalizedFileName, '/vendor/') !== \false;
+        return $isCurrentInVendor && $isParentInVendor || !$isCurrentInVendor && !$isParentInVendor;
     }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
-     */
-    public function getParentClassMethod($classMethod) : ?MethodReflection
+    public function hasParentClassMethod(ClassMethod $classMethod) : bool
     {
-        try {
-            return $this->resolveParentClassMethod($classMethod);
-        } catch (UnresolvableClassException $exception) {
+        return $this->getParentClassMethod($classMethod) instanceof MethodReflection;
+    }
+    public function hasParentClassMethodDifferentType(ClassMethod $classMethod, int $position, Type $currentType) : bool
+    {
+        if ($classMethod->isPrivate()) {
+            return \false;
+        }
+        $methodReflection = $this->getParentClassMethod($classMethod);
+        if (!$methodReflection instanceof MethodReflection) {
+            return \false;
+        }
+        $classMethod = $this->astResolver->resolveClassMethodFromMethodReflection($methodReflection);
+        if (!$classMethod instanceof ClassMethod) {
+            return \false;
+        }
+        if ($classMethod->isPrivate()) {
+            return \false;
+        }
+        if (!isset($classMethod->params[$position])) {
+            return \false;
+        }
+        $inferedType = $this->paramTypeInferer->inferParam($classMethod->params[$position]);
+        return \get_class($inferedType) !== \get_class($currentType);
+    }
+    public function getParentClassMethod(ClassMethod $classMethod) : ?MethodReflection
+    {
+        $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
+        if (!$classReflection instanceof ClassReflection) {
             return null;
         }
+        /** @var string $methodName */
+        $methodName = $this->nodeNameResolver->getName($classMethod);
+        $parentClassReflections = \array_merge($classReflection->getParents(), $classReflection->getInterfaces());
+        foreach ($parentClassReflections as $parentClassReflection) {
+            if (!$parentClassReflection->hasNativeMethod($methodName)) {
+                continue;
+            }
+            return $parentClassReflection->getNativeMethod($methodName);
+        }
+        return null;
     }
     public function shouldSkipReturnTypeChange(ClassMethod $classMethod, Type $parentType) : bool
     {
@@ -83,46 +163,5 @@ final class ParentClassMethodTypeOverrideGuard
             return \true;
         }
         return $this->typeComparator->areTypesEqual($currentReturnType, $parentType);
-    }
-    /**
-     * @param \PhpParser\Node\Stmt\ClassMethod|\PHPStan\Reflection\MethodReflection $classMethod
-     */
-    private function resolveParentClassMethod($classMethod) : ?MethodReflection
-    {
-        if ($classMethod instanceof ClassMethod) {
-            $classReflection = $this->reflectionResolver->resolveClassReflection($classMethod);
-            if (!$classReflection instanceof ClassReflection) {
-                // we can't resolve the class, so we don't know.
-                throw new UnresolvableClassException();
-            }
-            /** @var string $methodName */
-            $methodName = $this->nodeNameResolver->getName($classMethod);
-        } else {
-            $classReflection = $classMethod->getDeclaringClass();
-            $methodName = $classMethod->getName();
-        }
-        $currentClassReflection = $classReflection;
-        while ($this->hasClassParent($currentClassReflection)) {
-            $parentClassReflection = $currentClassReflection->getParentClass();
-            if (!$parentClassReflection instanceof ClassReflection) {
-                // per AST we have a parent class, but our reflection classes are not able to load its class definition/signature
-                throw new UnresolvableClassException();
-            }
-            if ($parentClassReflection->hasNativeMethod($methodName)) {
-                return $parentClassReflection->getNativeMethod($methodName);
-            }
-            $currentClassReflection = $parentClassReflection;
-        }
-        foreach ($classReflection->getInterfaces() as $interfaceReflection) {
-            if (!$interfaceReflection->hasNativeMethod($methodName)) {
-                continue;
-            }
-            return $interfaceReflection->getNativeMethod($methodName);
-        }
-        return null;
-    }
-    private function hasClassParent(ClassReflection $classReflection) : bool
-    {
-        return $this->classReflectionAnalyzer->resolveParentClassName($classReflection) !== null;
     }
 }

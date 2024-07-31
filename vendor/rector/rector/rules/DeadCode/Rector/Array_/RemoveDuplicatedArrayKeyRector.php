@@ -4,12 +4,9 @@ declare (strict_types=1);
 namespace Rector\DeadCode\Rector\Array_;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrayItem;
-use PhpParser\Node\Expr\PreDec;
-use PhpParser\Node\Expr\PreInc;
-use Rector\Core\PhpParser\Printer\BetterStandardPrinter;
+use Rector\Core\Contract\PhpParser\NodePrinterInterface;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -21,12 +18,12 @@ final class RemoveDuplicatedArrayKeyRector extends AbstractRector
 {
     /**
      * @readonly
-     * @var \Rector\Core\PhpParser\Printer\BetterStandardPrinter
+     * @var \Rector\Core\Contract\PhpParser\NodePrinterInterface
      */
-    private $betterStandardPrinter;
-    public function __construct(BetterStandardPrinter $betterStandardPrinter)
+    private $nodePrinter;
+    public function __construct(NodePrinterInterface $nodePrinter)
     {
-        $this->betterStandardPrinter = $betterStandardPrinter;
+        $this->nodePrinter = $nodePrinter;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -55,70 +52,47 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $duplicatedKeysArrayItems = $this->resolveDuplicateKeysArrayItems($node);
-        if ($duplicatedKeysArrayItems === []) {
+        $arrayItemsWithDuplicatedKey = $this->getArrayItemsWithDuplicatedKey($node);
+        if ($arrayItemsWithDuplicatedKey === []) {
             return null;
         }
-        foreach ($node->items as $key => $arrayItem) {
-            if (!$arrayItem instanceof ArrayItem) {
-                continue;
-            }
-            if (!$this->isArrayItemDuplicated($duplicatedKeysArrayItems, $arrayItem)) {
-                continue;
-            }
-            unset($node->items[$key]);
+        foreach ($arrayItemsWithDuplicatedKey as $arrayItemWithDuplicatedKey) {
+            // keep last item
+            \array_pop($arrayItemWithDuplicatedKey);
+            $this->nodeRemover->removeNodes($arrayItemWithDuplicatedKey);
         }
         return $node;
     }
     /**
-     * @return ArrayItem[]
+     * @return ArrayItem[][]
      */
-    private function resolveDuplicateKeysArrayItems(Array_ $array) : array
+    private function getArrayItemsWithDuplicatedKey(Array_ $array) : array
     {
         $arrayItemsByKeys = [];
         foreach ($array->items as $arrayItem) {
             if (!$arrayItem instanceof ArrayItem) {
                 continue;
             }
-            if (!$arrayItem->key instanceof Expr) {
+            if ($arrayItem->key === null) {
                 continue;
             }
-            $keyValue = $this->betterStandardPrinter->print($arrayItem->key);
+            $keyValue = $this->nodePrinter->print($arrayItem->key);
             $arrayItemsByKeys[$keyValue][] = $arrayItem;
         }
         return $this->filterItemsWithSameKey($arrayItemsByKeys);
     }
     /**
-     * @param array<mixed, ArrayItem[]> $arrayItemsByKeys
-     * @return array<ArrayItem>
+     * @param ArrayItem[][] $arrayItemsByKeys
+     * @return ArrayItem[][]
      */
     private function filterItemsWithSameKey(array $arrayItemsByKeys) : array
     {
-        $duplicatedArrayItems = [];
-        foreach ($arrayItemsByKeys as $arrayItems) {
-            if (\count($arrayItems) <= 1) {
-                continue;
-            }
-            $currentArrayItem = \current($arrayItems);
-            /** @var Expr $currentArrayItemKey */
-            $currentArrayItemKey = $currentArrayItem->key;
-            if ($currentArrayItemKey instanceof PreInc) {
-                continue;
-            }
-            if ($currentArrayItemKey instanceof PreDec) {
-                continue;
-            }
-            // keep last one
-            \array_pop($arrayItems);
-            $duplicatedArrayItems = \array_merge($duplicatedArrayItems, $arrayItems);
-        }
-        return $duplicatedArrayItems;
-    }
-    /**
-     * @param ArrayItem[] $duplicatedKeysArrayItems
-     */
-    private function isArrayItemDuplicated(array $duplicatedKeysArrayItems, ArrayItem $arrayItem) : bool
-    {
-        return \in_array($arrayItem, $duplicatedKeysArrayItems, \true);
+        /** @var ArrayItem[][] $arrayItemsByKeys */
+        $arrayItemsByKeys = \array_filter($arrayItemsByKeys, static function (array $arrayItems) : bool {
+            return \count($arrayItems) > 1;
+        });
+        return \array_filter($arrayItemsByKeys, static function (array $arrayItems) : bool {
+            return \count($arrayItems) > 1;
+        });
     }
 }

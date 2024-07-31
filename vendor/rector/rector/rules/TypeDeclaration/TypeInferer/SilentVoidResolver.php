@@ -3,23 +3,21 @@
 declare (strict_types=1);
 namespace Rector\TypeDeclaration\TypeInferer;
 
-use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\ArrowFunction;
 use PhpParser\Node\Expr\Closure;
 use PhpParser\Node\Expr\Yield_;
 use PhpParser\Node\FunctionLike;
 use PhpParser\Node\Stmt;
+use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Function_;
+use PhpParser\Node\Stmt\Interface_;
 use PhpParser\Node\Stmt\Return_;
 use PhpParser\Node\Stmt\Switch_;
 use PhpParser\Node\Stmt\Throw_;
 use PhpParser\Node\Stmt\TryCatch;
-use PHPStan\Reflection\ClassReflection;
 use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\Core\Reflection\ReflectionResolver;
 final class SilentVoidResolver
 {
     /**
@@ -27,32 +25,33 @@ final class SilentVoidResolver
      * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
      */
     private $betterNodeFinder;
-    /**
-     * @readonly
-     * @var \Rector\Core\Reflection\ReflectionResolver
-     */
-    private $reflectionResolver;
-    public function __construct(BetterNodeFinder $betterNodeFinder, ReflectionResolver $reflectionResolver)
+    public function __construct(BetterNodeFinder $betterNodeFinder)
     {
         $this->betterNodeFinder = $betterNodeFinder;
-        $this->reflectionResolver = $reflectionResolver;
     }
     /**
      * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Expr\Closure|\PhpParser\Node\Stmt\Function_ $functionLike
      */
     public function hasExclusiveVoid($functionLike) : bool
     {
-        $classReflection = $this->reflectionResolver->resolveClassReflection($functionLike);
-        if ($classReflection instanceof ClassReflection && $classReflection->isInterface()) {
+        $classLike = $this->betterNodeFinder->findParentType($functionLike, ClassLike::class);
+        if ($classLike instanceof Interface_) {
+            return \false;
+        }
+        if ($this->hasNeverType($functionLike)) {
             return \false;
         }
         if ($this->betterNodeFinder->hasInstancesOfInFunctionLikeScoped($functionLike, Yield_::class)) {
             return \false;
         }
-        $return = $this->betterNodeFinder->findFirstInFunctionLikeScoped($functionLike, static function (Node $node) : bool {
-            return $node instanceof Return_ && $node->expr instanceof Expr;
-        });
-        return !$return instanceof Return_;
+        /** @var Return_[] $returns */
+        $returns = $this->betterNodeFinder->findInstancesOfInFunctionLikeScoped($functionLike, Return_::class);
+        foreach ($returns as $return) {
+            if ($return->expr !== null) {
+                return \false;
+            }
+        }
+        return \true;
     }
     public function hasSilentVoid(FunctionLike $functionLike) : bool
     {
@@ -97,7 +96,7 @@ final class SilentVoidResolver
     {
         $hasDefault = \false;
         foreach ($switch->cases as $case) {
-            if (!$case->cond instanceof Expr) {
+            if ($case->cond === null) {
                 $hasDefault = \true;
                 break;
             }
@@ -118,6 +117,14 @@ final class SilentVoidResolver
             return $this->hasStmtsAlwaysReturn($catch->stmts);
         }
         return \true;
+    }
+    /**
+     * @see https://phpstan.org/writing-php-code/phpdoc-types#bottom-type
+     * @param \PhpParser\Node\Stmt\ClassMethod|\PhpParser\Node\Expr\Closure|\PhpParser\Node\Stmt\Function_ $functionLike
+     */
+    private function hasNeverType($functionLike) : bool
+    {
+        return $this->betterNodeFinder->hasInstancesOf($functionLike, [Throw_::class]);
     }
     private function resolveReturnCount(Switch_ $switch) : int
     {

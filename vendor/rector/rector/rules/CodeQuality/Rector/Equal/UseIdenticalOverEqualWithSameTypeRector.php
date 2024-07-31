@@ -4,12 +4,14 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\Equal;
 
 use PhpParser\Node;
+use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\BinaryOp\NotEqual;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use PHPStan\Type\MixedType;
 use PHPStan\Type\ObjectType;
+use Rector\Core\NodeAnalyzer\ExprAnalyzer;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -18,6 +20,15 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class UseIdenticalOverEqualWithSameTypeRector extends AbstractRector
 {
+    /**
+     * @readonly
+     * @var \Rector\Core\NodeAnalyzer\ExprAnalyzer
+     */
+    private $exprAnalyzer;
+    public function __construct(ExprAnalyzer $exprAnalyzer)
+    {
+        $this->exprAnalyzer = $exprAnalyzer;
+    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Use ===/!== over ==/!=, it values have the same type', [new CodeSample(<<<'CODE_SAMPLE'
@@ -54,7 +65,8 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $leftStaticType = $this->nodeTypeResolver->getNativeType($node->left);
+        $leftStaticType = $this->getType($node->left);
+        $rightStaticType = $this->getType($node->right);
         // objects can be different by content
         if ($leftStaticType instanceof ObjectType) {
             return null;
@@ -62,7 +74,6 @@ CODE_SAMPLE
         if ($leftStaticType instanceof MixedType) {
             return null;
         }
-        $rightStaticType = $this->nodeTypeResolver->getNativeType($node->right);
         if ($rightStaticType instanceof MixedType) {
             return null;
         }
@@ -70,9 +81,19 @@ CODE_SAMPLE
         if (!$leftStaticType->equals($rightStaticType)) {
             return null;
         }
+        if ($this->areNonTypedFromParam($node->left, $node->right)) {
+            return null;
+        }
         if ($node instanceof Equal) {
             return new Identical($node->left, $node->right);
         }
         return new NotIdentical($node->left, $node->right);
+    }
+    private function areNonTypedFromParam(Expr $left, Expr $right) : bool
+    {
+        if ($this->exprAnalyzer->isNonTypedFromParam($left)) {
+            return \true;
+        }
+        return $this->exprAnalyzer->isNonTypedFromParam($right);
     }
 }

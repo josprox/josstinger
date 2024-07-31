@@ -5,14 +5,11 @@ namespace Rector\CodeQuality\Rector\If_;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\BinaryOp\BooleanAnd;
-use PhpParser\Node\Stmt\Else_;
 use PhpParser\Node\Stmt\If_;
 use PHPStan\PhpDocParser\Ast\PhpDoc\VarTagValueNode;
 use Rector\BetterPhpDocParser\Comment\CommentsMerger;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\Core\Rector\AbstractRector;
-use Rector\NodeTypeResolver\Node\AttributeKey;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
 /**
@@ -25,15 +22,9 @@ final class CombineIfRector extends AbstractRector
      * @var \Rector\BetterPhpDocParser\Comment\CommentsMerger
      */
     private $commentsMerger;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
-     */
-    private $phpDocInfoFactory;
-    public function __construct(CommentsMerger $commentsMerger, PhpDocInfoFactory $phpDocInfoFactory)
+    public function __construct(CommentsMerger $commentsMerger)
     {
         $this->commentsMerger = $commentsMerger;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -83,7 +74,6 @@ CODE_SAMPLE
         if ($this->hasVarTag($subIf)) {
             return null;
         }
-        $node->cond->setAttribute(AttributeKey::ORIGINAL_NODE, null);
         $node->cond = new BooleanAnd($node->cond, $subIf->cond);
         $node->stmts = $subIf->stmts;
         $this->commentsMerger->keepComments($node, [$subIf]);
@@ -91,7 +81,7 @@ CODE_SAMPLE
     }
     private function shouldSkip(If_ $if) : bool
     {
-        if ($if->else instanceof Else_) {
+        if ($if->else !== null) {
             return \true;
         }
         if (\count($if->stmts) !== 1) {
@@ -103,7 +93,7 @@ CODE_SAMPLE
         if (!$if->stmts[0] instanceof If_) {
             return \true;
         }
-        if ($if->stmts[0]->else instanceof Else_) {
+        if ($if->stmts[0]->else !== null) {
             return \true;
         }
         return (bool) $if->stmts[0]->elseifs;

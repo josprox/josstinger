@@ -17,14 +17,19 @@ final class BetterTokenIterator extends TokenIterator
      */
     private const INDEX = 'index';
     /**
+     * @readonly
+     * @var \Rector\Core\Util\Reflection\PrivatesAccessor
+     */
+    private $privatesAccessor;
+    /**
      * @param array<int, mixed> $tokens
      */
     public function __construct(array $tokens, int $index = 0)
     {
-        $privatesAccessor = new PrivatesAccessor();
+        $this->privatesAccessor = new PrivatesAccessor();
         if ($tokens === []) {
-            $privatesAccessor->setPrivateProperty($this, self::TOKENS, []);
-            $privatesAccessor->setPrivateProperty($this, self::INDEX, 0);
+            $this->privatesAccessor->setPrivateProperty($this, self::TOKENS, []);
+            $this->privatesAccessor->setPrivateProperty($this, self::INDEX, 0);
         } else {
             parent::__construct($tokens, $index);
         }
@@ -75,9 +80,38 @@ final class BetterTokenIterator extends TokenIterator
         }
         return $content;
     }
+    public function print() : string
+    {
+        $content = '';
+        foreach ($this->getTokens() as $token) {
+            $content .= $token[0];
+        }
+        return $content;
+    }
+    public function nextTokenType() : ?int
+    {
+        $tokens = $this->getTokens();
+        // does next token exist?
+        $nextIndex = $this->currentPosition() + 1;
+        if (!isset($tokens[$nextIndex])) {
+            return null;
+        }
+        $this->pushSavePoint();
+        $this->next();
+        $nextTokenType = $this->currentTokenType();
+        $this->rollback();
+        return $nextTokenType;
+    }
     public function currentPosition() : int
     {
-        return $this->currentTokenIndex();
+        return $this->privatesAccessor->getPrivateProperty($this, self::INDEX);
+    }
+    /**
+     * @return array<array{0: string, 1: int}>
+     */
+    public function getTokens() : array
+    {
+        return $this->privatesAccessor->getPrivateProperty($this, self::TOKENS);
     }
     public function count() : int
     {
@@ -98,19 +132,5 @@ final class BetterTokenIterator extends TokenIterator
             }
         }
         return \false;
-    }
-    private function nextTokenType() : ?int
-    {
-        $tokens = $this->getTokens();
-        // does next token exist?
-        $nextIndex = $this->currentPosition() + 1;
-        if (!isset($tokens[$nextIndex])) {
-            return null;
-        }
-        $this->pushSavePoint();
-        $this->next();
-        $nextTokenType = $this->currentTokenType();
-        $this->rollback();
-        return $nextTokenType;
     }
 }

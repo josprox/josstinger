@@ -8,9 +8,9 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console;
+namespace RectorPrefix202211\Symfony\Component\Console;
 
-use RectorPrefix202312\Symfony\Component\Console\Output\OutputInterface;
+use RectorPrefix202211\Symfony\Component\Console\Output\OutputInterface;
 /**
  * @author Pierre du Plessis <pdples@gmail.com>
  */
@@ -20,7 +20,6 @@ final class Cursor
      * @var \Symfony\Component\Console\Output\OutputInterface
      */
     private $output;
-    /** @var resource */
     private $input;
     /**
      * @param resource|null $input
@@ -154,7 +153,10 @@ final class Cursor
     public function getCurrentPosition() : array
     {
         static $isTtySupported;
-        if (!($isTtySupported = $isTtySupported ?? '/' === \DIRECTORY_SEPARATOR && \stream_isatty(\STDOUT))) {
+        if (null === $isTtySupported && \function_exists('proc_open')) {
+            $isTtySupported = (bool) @\proc_open('echo 1 >/dev/null', [['file', '/dev/tty', 'r'], ['file', '/dev/tty', 'w'], ['file', '/dev/tty', 'w']], $pipes);
+        }
+        if (!$isTtySupported) {
             return [1, 1];
         }
         $sttyMode = \shell_exec('stty -g');

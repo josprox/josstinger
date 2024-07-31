@@ -8,12 +8,12 @@
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
  */
-namespace RectorPrefix202312\Symfony\Component\Console\Completion;
+namespace RectorPrefix202211\Symfony\Component\Console\Completion;
 
-use RectorPrefix202312\Symfony\Component\Console\Exception\RuntimeException;
-use RectorPrefix202312\Symfony\Component\Console\Input\ArgvInput;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputDefinition;
-use RectorPrefix202312\Symfony\Component\Console\Input\InputOption;
+use RectorPrefix202211\Symfony\Component\Console\Exception\RuntimeException;
+use RectorPrefix202211\Symfony\Component\Console\Input\ArgvInput;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputDefinition;
+use RectorPrefix202211\Symfony\Component\Console\Input\InputOption;
 /**
  * An input specialized for shell completion.
  *
@@ -28,25 +28,10 @@ final class CompletionInput extends ArgvInput
     public const TYPE_OPTION_VALUE = 'option_value';
     public const TYPE_OPTION_NAME = 'option_name';
     public const TYPE_NONE = 'none';
-    /**
-     * @var mixed[]
-     */
     private $tokens;
-    /**
-     * @var int
-     */
     private $currentIndex;
-    /**
-     * @var string
-     */
     private $completionType;
-    /**
-     * @var string|null
-     */
-    private $completionName;
-    /**
-     * @var string
-     */
+    private $completionName = null;
     private $completionValue = '';
     /**
      * Converts a terminal string into tokens.
@@ -71,6 +56,9 @@ final class CompletionInput extends ArgvInput
         $input->currentIndex = $currentIndex;
         return $input;
     }
+    /**
+     * {@inheritdoc}
+     */
     public function bind(InputDefinition $definition) : void
     {
         parent::bind($definition);
@@ -84,7 +72,7 @@ final class CompletionInput extends ArgvInput
                 $this->completionValue = $relevantToken;
                 return;
             }
-            if (($nullsafeVariable1 = $option) ? $nullsafeVariable1->acceptValue() : null) {
+            if (($option2 = $option) ? $option2->acceptValue() : null) {
                 $this->completionType = self::TYPE_OPTION_VALUE;
                 $this->completionName = $option->getName();
                 $this->completionValue = $optionValue ?: (\strncmp($optionToken, '--', \strlen('--')) !== 0 ? \substr($optionToken, 2) : '');
@@ -95,7 +83,7 @@ final class CompletionInput extends ArgvInput
         if ('-' === $previousToken[0] && '' !== \trim($previousToken, '-')) {
             // check if previous option accepted a value
             $previousOption = $this->getOptionFromToken($previousToken);
-            if (($nullsafeVariable2 = $previousOption) ? $nullsafeVariable2->acceptValue() : null) {
+            if (($previousOption2 = $previousOption) ? $previousOption2->acceptValue() : null) {
                 $this->completionType = self::TYPE_OPTION_VALUE;
                 $this->completionName = $previousOption->getName();
                 $this->completionValue = $relevantToken;
@@ -137,9 +125,7 @@ final class CompletionInput extends ArgvInput
      * TYPE_OPTION_NAME    when completing the name of an input option
      * TYPE_NONE           when nothing should be completed
      *
-     * TYPE_OPTION_NAME and TYPE_NONE are already implemented by the Console component.
-     *
-     * @return self::TYPE_*
+     * @return string One of self::TYPE_* constants. TYPE_OPTION_NAME and TYPE_NONE are already implemented by the Console component
      */
     public function getCompletionType() : string
     {

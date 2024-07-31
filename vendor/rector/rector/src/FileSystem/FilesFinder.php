@@ -5,9 +5,10 @@ namespace Rector\Core\FileSystem;
 
 use Rector\Caching\UnchangedFilesFilter;
 use Rector\Core\Util\StringUtils;
+use Rector\Skipper\Enum\AsteriskMatch;
 use Rector\Skipper\SkipCriteriaResolver\SkippedPathsResolver;
-use RectorPrefix202312\Symfony\Component\Finder\Finder;
-use RectorPrefix202312\Symfony\Component\Finder\SplFileInfo;
+use RectorPrefix202211\Symfony\Component\Finder\Finder;
+use RectorPrefix202211\Symfony\Component\Finder\SplFileInfo;
 /**
  * @see \Rector\Core\Tests\FileSystem\FilesFinder\FilesFinderTest
  */
@@ -45,28 +46,25 @@ final class FilesFinder
      * @param string[] $suffixes
      * @return string[]
      */
-    public function findInDirectoriesAndFiles(array $source, array $suffixes = [], bool $sortByName = \true) : array
+    public function findInDirectoriesAndFiles(array $source, array $suffixes = []) : array
     {
         $filesAndDirectories = $this->filesystemTweaker->resolveWithFnmatch($source);
         $filePaths = $this->fileAndDirectoryFilter->filterFiles($filesAndDirectories);
         $directories = $this->fileAndDirectoryFilter->filterDirectories($filesAndDirectories);
-        $currentAndDependentFilePaths = $this->unchangedFilesFilter->filterFileInfos($filePaths);
-        return \array_merge($currentAndDependentFilePaths, $this->findInDirectories($directories, $suffixes, $sortByName));
+        $currentAndDependentFilePaths = $this->unchangedFilesFilter->filterAndJoinWithDependentFileInfos($filePaths);
+        return \array_merge($currentAndDependentFilePaths, $this->findInDirectories($directories, $suffixes));
     }
     /**
      * @param string[] $directories
      * @param string[] $suffixes
      * @return string[]
      */
-    private function findInDirectories(array $directories, array $suffixes, bool $sortByName = \true) : array
+    private function findInDirectories(array $directories, array $suffixes) : array
     {
         if ($directories === []) {
             return [];
         }
-        $finder = Finder::create()->files()->size('> 0')->in($directories);
-        if ($sortByName) {
-            $finder->sortByName();
-        }
+        $finder = Finder::create()->files()->size('> 0')->in($directories)->sortByName();
         if ($suffixes !== []) {
             $suffixesPattern = $this->normalizeSuffixesToPattern($suffixes);
             $finder->name($suffixesPattern);
@@ -82,7 +80,7 @@ final class FilesFinder
                 $filePaths[] = $path;
             }
         }
-        return $this->unchangedFilesFilter->filterFileInfos($filePaths);
+        return $this->unchangedFilesFilter->filterAndJoinWithDependentFileInfos($filePaths);
     }
     /**
      * @param string[] $suffixes
@@ -111,15 +109,11 @@ final class FilesFinder
             foreach ($excludePaths as $excludePath) {
                 // make the path work accross different OSes
                 $excludePath = \str_replace('\\', '/', $excludePath);
-                if (\fnmatch($this->normalizeForFnmatch($excludePath), $realPath)) {
+                if (StringUtils::isMatch($realPath, '#' . \preg_quote($excludePath, '#') . '#')) {
                     return \false;
                 }
-                if (\strpos($excludePath, '**') !== \false) {
-                    // prevent matching a fnmatch pattern as a regex
-                    // which is a waste of resources
-                    continue;
-                }
-                if (StringUtils::isMatch($realPath, '#' . \preg_quote($excludePath, '#') . '#')) {
+                $excludePath = $this->normalizeForFnmatch($excludePath);
+                if (\fnmatch($excludePath, $realPath)) {
                     return \false;
                 }
             }
@@ -132,8 +126,13 @@ final class FilesFinder
      */
     private function normalizeForFnmatch(string $path) : string
     {
-        if (\substr_compare($path, '*', -\strlen('*')) === 0 || \strncmp($path, '*', \strlen('*')) === 0) {
-            return '*' . \trim($path, '*') . '*';
+        // ends with *
+        if (StringUtils::isMatch($path, AsteriskMatch::ONLY_ENDS_WITH_ASTERISK_REGEX)) {
+            return '*' . $path;
+        }
+        // starts with *
+        if (StringUtils::isMatch($path, AsteriskMatch::ONLY_STARTS_WITH_ASTERISK_REGEX)) {
+            return $path . '*';
         }
         return $path;
     }

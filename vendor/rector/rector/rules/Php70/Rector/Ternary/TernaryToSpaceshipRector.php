@@ -9,7 +9,6 @@ use PhpParser\Node\Expr\BinaryOp\Greater;
 use PhpParser\Node\Expr\BinaryOp\Smaller;
 use PhpParser\Node\Expr\BinaryOp\Spaceship;
 use PhpParser\Node\Expr\Ternary;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
@@ -21,15 +20,6 @@ use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
  */
 final class TernaryToSpaceshipRector extends AbstractRector implements MinPhpVersionInterface
 {
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(ValueResolver $valueResolver)
-    {
-        $this->valueResolver = $valueResolver;
-    }
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Use <=> spaceship instead of ternary with same effect', [new CodeSample(<<<'CODE_SAMPLE'
@@ -62,7 +52,7 @@ CODE_SAMPLE
         /** @var Ternary $nestedTernary */
         $nestedTernary = $node->else;
         $spaceshipNode = $this->processSmallerThanTernary($node, $nestedTernary);
-        if ($spaceshipNode instanceof Spaceship) {
+        if ($spaceshipNode !== null) {
             return $spaceshipNode;
         }
         return $this->processGreaterThanTernary($node, $nestedTernary);

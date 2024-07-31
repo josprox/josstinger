@@ -25,24 +25,15 @@ final class RectorParser
         $this->parser = $parser;
     }
     /**
-     * @api used by rector-symfony
-     *
      * @return Stmt[]
      */
     public function parseFile(string $filePath) : array
     {
         return $this->parser->parseFile($filePath);
     }
-    /**
-     * @return Stmt[]
-     */
-    public function parseString(string $filePath) : array
+    public function parseFileToStmtsAndTokens(string $filePath) : StmtsAndTokens
     {
-        return $this->parser->parseString($filePath);
-    }
-    public function parseFileContentToStmtsAndTokens(string $fileContent) : StmtsAndTokens
-    {
-        $stmts = $this->parser->parseString($fileContent);
+        $stmts = $this->parseFile($filePath);
         $tokens = $this->lexer->getTokens();
         return new StmtsAndTokens($stmts, $tokens);
     }

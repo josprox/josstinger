@@ -4,9 +4,6 @@ declare (strict_types=1);
 namespace Rector\PHPUnit\Set;
 
 use Rector\Set\Contract\SetListInterface;
-/**
- * @api
- */
 final class PHPUnitLevelSetList implements SetListInterface
 {
     /**
@@ -29,11 +26,6 @@ final class PHPUnitLevelSetList implements SetListInterface
      * @var string
      */
     public const UP_TO_PHPUNIT_90 = __DIR__ . '/../../config/sets/level/up-to-phpunit-90.php';
-    /**
-     * @var string
-     * @deprecated Use PHPUnitSetList::PHPUNIT_100 directly
-     */
-    public const UP_TO_PHPUNIT_91 = __DIR__ . '/../../config/sets/level/up-to-phpunit-91.php';
     /**
      * @var string
      */

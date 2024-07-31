@@ -21,7 +21,7 @@ final class NewStaticToNewSelfRector extends AbstractRector
     public function getRuleDefinition() : RuleDefinition
     {
         return new RuleDefinition('Change unsafe new static() to new self()', [new CodeSample(<<<'CODE_SAMPLE'
-final class SomeClass
+class SomeClass
 {
     public function build()
     {
@@ -30,7 +30,7 @@ final class SomeClass
 }
 CODE_SAMPLE
 , <<<'CODE_SAMPLE'
-final class SomeClass
+class SomeClass
 {
     public function build()
     {
@@ -45,31 +45,24 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [New_::class];
     }
     /**
-     * @param Class_ $node
+     * @param New_ $node
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$node->isFinal()) {
+        $class = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$class instanceof Class_) {
             return null;
         }
-        $hasChanged = \false;
-        $this->traverseNodesWithCallable($node, function (Node $node) use(&$hasChanged) : ?New_ {
-            if (!$node instanceof New_) {
-                return null;
-            }
-            if (!$this->isName($node->class, ObjectReference::STATIC)) {
-                return null;
-            }
-            $hasChanged = \true;
-            $node->class = new Name(ObjectReference::SELF);
-            return $node;
-        });
-        if ($hasChanged) {
-            return $node;
+        if (!$class->isFinal()) {
+            return null;
         }
-        return null;
+        if (!$this->isName($node->class, ObjectReference::STATIC)) {
+            return null;
+        }
+        $node->class = new Name(ObjectReference::SELF);
+        return $node;
     }
 }

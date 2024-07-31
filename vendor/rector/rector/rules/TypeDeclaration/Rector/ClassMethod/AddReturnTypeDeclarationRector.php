@@ -14,18 +14,26 @@ use Rector\Core\Contract\Rector\ConfigurableRectorInterface;
 use Rector\Core\Php\PhpVersionProvider;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
+use Rector\NodeTypeResolver\Node\AttributeKey;
 use Rector\PHPStanStaticTypeMapper\Enum\TypeKind;
-use Rector\StaticTypeMapper\StaticTypeMapper;
 use Rector\TypeDeclaration\ValueObject\AddReturnTypeDeclaration;
 use Rector\VendorLocker\ParentClassMethodTypeOverrideGuard;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\TypeDeclaration\Rector\ClassMethod\AddReturnTypeDeclarationRector\AddReturnTypeDeclarationRectorTest
  */
 final class AddReturnTypeDeclarationRector extends AbstractRector implements ConfigurableRectorInterface
 {
+    /**
+     * @var AddReturnTypeDeclaration[]
+     */
+    private $methodReturnTypes = [];
+    /**
+     * @var bool
+     */
+    private $hasChanged = \false;
     /**
      * @readonly
      * @var \Rector\Core\Php\PhpVersionProvider
@@ -36,24 +44,10 @@ final class AddReturnTypeDeclarationRector extends AbstractRector implements Con
      * @var \Rector\VendorLocker\ParentClassMethodTypeOverrideGuard
      */
     private $parentClassMethodTypeOverrideGuard;
-    /**
-     * @readonly
-     * @var \Rector\StaticTypeMapper\StaticTypeMapper
-     */
-    private $staticTypeMapper;
-    /**
-     * @var AddReturnTypeDeclaration[]
-     */
-    private $methodReturnTypes = [];
-    /**
-     * @var bool
-     */
-    private $hasChanged = \false;
-    public function __construct(PhpVersionProvider $phpVersionProvider, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard, StaticTypeMapper $staticTypeMapper)
+    public function __construct(PhpVersionProvider $phpVersionProvider, ParentClassMethodTypeOverrideGuard $parentClassMethodTypeOverrideGuard)
     {
         $this->phpVersionProvider = $phpVersionProvider;
         $this->parentClassMethodTypeOverrideGuard = $parentClassMethodTypeOverrideGuard;
-        $this->staticTypeMapper = $staticTypeMapper;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -81,30 +75,28 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [ClassMethod::class];
     }
     /**
-     * @param Class_ $node
+     * @param ClassMethod $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $this->hasChanged = \false;
         foreach ($this->methodReturnTypes as $methodReturnType) {
             $objectType = $methodReturnType->getObjectType();
             if (!$this->isObjectType($node, $objectType)) {
                 continue;
             }
-            foreach ($node->getMethods() as $classMethod) {
-                if (!$this->isName($classMethod, $methodReturnType->getMethod())) {
-                    continue;
-                }
-                $this->processClassMethodNodeWithTypehints($classMethod, $node, $methodReturnType->getReturnType(), $objectType);
+            if (!$this->isName($node, $methodReturnType->getMethod())) {
+                continue;
             }
+            $this->processClassMethodNodeWithTypehints($node, $methodReturnType->getReturnType(), $objectType);
+            if (!$this->hasChanged) {
+                return null;
+            }
+            return $node;
         }
-        if (!$this->hasChanged) {
-            return null;
-        }
-        return $node;
+        return null;
     }
     /**
      * @param mixed[] $configuration
@@ -114,10 +106,14 @@ CODE_SAMPLE
         Assert::allIsAOf($configuration, AddReturnTypeDeclaration::class);
         $this->methodReturnTypes = $configuration;
     }
-    private function processClassMethodNodeWithTypehints(ClassMethod $classMethod, Class_ $class, Type $newType, ObjectType $objectType) : void
+    private function processClassMethodNodeWithTypehints(ClassMethod $classMethod, Type $newType, ObjectType $objectType) : void
     {
         if ($newType instanceof MixedType) {
-            $className = (string) $this->nodeNameResolver->getName($class);
+            $parentNode = $classMethod->getAttribute(AttributeKey::PARENT_NODE);
+            if (!$parentNode instanceof Class_) {
+                return;
+            }
+            $className = (string) $this->nodeNameResolver->getName($parentNode);
             $currentObjectType = new ObjectType($className);
             if (!$objectType->equals($currentObjectType) && $classMethod->returnType !== null) {
                 return;

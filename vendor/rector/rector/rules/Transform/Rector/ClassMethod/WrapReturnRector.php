@@ -4,7 +4,6 @@ declare (strict_types=1);
 namespace Rector\Transform\Rector\ClassMethod;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\Array_;
 use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -14,7 +13,7 @@ use Rector\Core\Rector\AbstractRector;
 use Rector\Transform\ValueObject\WrapReturn;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\ConfiguredCodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
-use RectorPrefix202312\Webmozart\Assert\Assert;
+use RectorPrefix202211\Webmozart\Assert\Assert;
 /**
  * @see \Rector\Tests\Transform\Rector\ClassMethod\WrapReturnRector\WrapReturnRectorTest
  */
@@ -59,10 +58,10 @@ CODE_SAMPLE
     public function refactor(Node $node) : ?Node
     {
         foreach ($this->typeMethodWraps as $typeMethodWrap) {
-            if (!$this->isName($node, $typeMethodWrap->getMethod())) {
+            if (!$this->isObjectType($node, $typeMethodWrap->getObjectType())) {
                 continue;
             }
-            if (!$this->isObjectType($node, $typeMethodWrap->getObjectType())) {
+            if (!$this->isName($node, $typeMethodWrap->getMethod())) {
                 continue;
             }
             if ($node->stmts === null) {
@@ -70,7 +69,7 @@ CODE_SAMPLE
             }
             return $this->wrap($node, $typeMethodWrap->isArrayWrap());
         }
-        return null;
+        return $node;
     }
     /**
      * @param mixed[] $configuration
@@ -86,7 +85,7 @@ CODE_SAMPLE
             return null;
         }
         foreach ($classMethod->stmts as $key => $stmt) {
-            if ($stmt instanceof Return_ && $stmt->expr instanceof Expr) {
+            if ($stmt instanceof Return_ && $stmt->expr !== null) {
                 if ($isArrayWrap && !$stmt->expr instanceof Array_) {
                     $stmt->expr = new Array_([new ArrayItem($stmt->expr)]);
                 }

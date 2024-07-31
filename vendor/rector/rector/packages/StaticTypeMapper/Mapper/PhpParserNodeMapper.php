@@ -22,7 +22,7 @@ final class PhpParserNodeMapper
     /**
      * @param PhpParserNodeMapperInterface[] $phpParserNodeMappers
      */
-    public function __construct(iterable $phpParserNodeMappers)
+    public function __construct(array $phpParserNodeMappers)
     {
         $this->phpParserNodeMappers = $phpParserNodeMappers;
     }

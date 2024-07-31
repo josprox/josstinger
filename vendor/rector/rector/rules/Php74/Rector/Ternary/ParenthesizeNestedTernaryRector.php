@@ -54,14 +54,14 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if ($node->cond instanceof Ternary || $node->else instanceof Ternary) {
-            if ($this->parenthesizedNestedTernaryAnalyzer->isParenthesized($this->file, $node)) {
-                return null;
-            }
-            // re-print with brackets
-            $node->setAttribute(AttributeKey::ORIGINAL_NODE, null);
-            return $node;
+        $parentNode = $node->getAttribute(AttributeKey::PARENT_NODE);
+        if (!$parentNode instanceof Ternary) {
+            return null;
         }
-        return null;
+        if ($this->parenthesizedNestedTernaryAnalyzer->isParenthesized($this->file, $parentNode)) {
+            return null;
+        }
+        $node->setAttribute(AttributeKey::ORIGINAL_NODE, null);
+        return $node;
     }
 }

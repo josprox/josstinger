@@ -1,7 +1,7 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202312;
+namespace RectorPrefix202211;
 
 use PHPStan\Type\IterableType;
 use PHPStan\Type\MixedType;
@@ -18,9 +18,9 @@ use Rector\Removing\ValueObject\ArgumentRemover;
 use Rector\Renaming\Rector\MethodCall\RenameMethodRector;
 use Rector\Renaming\Rector\Name\RenameClassRector;
 use Rector\Renaming\ValueObject\MethodCallRename;
-use Rector\Symfony\Symfony42\Rector\MethodCall\ContainerGetToConstructorInjectionRector;
-use Rector\Symfony\Symfony42\Rector\New_\RootNodeTreeBuilderRector;
-use Rector\Symfony\Symfony42\Rector\New_\StringToArrayArgumentProcessRector;
+use Rector\Symfony\Rector\MethodCall\ContainerGetToConstructorInjectionRector;
+use Rector\Symfony\Rector\New_\RootNodeTreeBuilderRector;
+use Rector\Symfony\Rector\New_\StringToArrayArgumentProcessRector;
 use Rector\Transform\Rector\ClassMethod\WrapReturnRector;
 use Rector\Transform\Rector\New_\NewToStaticCallRector;
 use Rector\Transform\ValueObject\NewToStaticCall;
@@ -39,7 +39,7 @@ return static function (RectorConfig $rectorConfig) : void {
         'Symfony\\Bundle\\FrameworkBundle\\Command\\ContainerAwareCommand' => 'Symfony\\Component\\Console\\Command\\Command',
         'Symfony\\Component\\Translation\\TranslatorInterface' => 'Symfony\\Contracts\\Translation\\TranslatorInterface',
     ]);
-    # related to "Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand" deprecation, @see https://github.com/rectorphp/rector/issues/1629
+    # related to "Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand" deprecation, see https://github.com/rectorphp/rector/issues/1629
     $rectorConfig->rule(ContainerGetToConstructorInjectionRector::class);
     # https://symfony.com/blog/new-in-symfony-4-2-important-deprecations
     $rectorConfig->rule(StringToArrayArgumentProcessRector::class);

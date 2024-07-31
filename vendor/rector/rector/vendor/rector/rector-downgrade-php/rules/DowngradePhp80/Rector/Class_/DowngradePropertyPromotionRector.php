@@ -5,7 +5,6 @@ namespace Rector\DowngradePhp80\Rector\Class_;
 
 use PhpParser\Comment;
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\Class_;
@@ -15,10 +14,10 @@ use PhpParser\Node\Stmt\Property;
 use PhpParser\Node\Stmt\PropertyProperty;
 use PHPStan\PhpDocParser\Ast\PhpDoc\ParamTagValueNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
-use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger;
-use Rector\Core\PhpParser\Node\BetterNodeFinder;
-use Rector\Core\PhpParser\Printer\BetterStandardPrinter;
+use Rector\Core\Contract\PhpParser\NodePrinterInterface;
+use Rector\Core\Exception\ShouldNotHappenException;
+use Rector\Core\NodeManipulator\ClassInsertManipulator;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\MethodName;
 use Rector\NodeTypeResolver\Node\AttributeKey;
@@ -33,30 +32,24 @@ final class DowngradePropertyPromotionRector extends AbstractRector
 {
     /**
      * @readonly
+     * @var \Rector\Core\NodeManipulator\ClassInsertManipulator
+     */
+    private $classInsertManipulator;
+    /**
+     * @readonly
      * @var \Rector\BetterPhpDocParser\PhpDocManipulator\PhpDocTypeChanger
      */
     private $phpDocTypeChanger;
     /**
      * @readonly
-     * @var \Rector\Core\PhpParser\Printer\BetterStandardPrinter
+     * @var \Rector\Core\Contract\PhpParser\NodePrinterInterface
      */
-    private $betterStandardPrinter;
-    /**
-     * @readonly
-     * @var \Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory
-     */
-    private $phpDocInfoFactory;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
-     */
-    private $betterNodeFinder;
-    public function __construct(PhpDocTypeChanger $phpDocTypeChanger, BetterStandardPrinter $betterStandardPrinter, PhpDocInfoFactory $phpDocInfoFactory, BetterNodeFinder $betterNodeFinder)
+    private $nodePrinter;
+    public function __construct(ClassInsertManipulator $classInsertManipulator, PhpDocTypeChanger $phpDocTypeChanger, NodePrinterInterface $nodePrinter)
     {
+        $this->classInsertManipulator = $classInsertManipulator;
         $this->phpDocTypeChanger = $phpDocTypeChanger;
-        $this->betterStandardPrinter = $betterStandardPrinter;
-        $this->phpDocInfoFactory = $phpDocInfoFactory;
-        $this->betterNodeFinder = $betterNodeFinder;
+        $this->nodePrinter = $nodePrinter;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -93,16 +86,12 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        $constructorClassMethod = $node->getMethod(MethodName::CONSTRUCT);
-        if (!$constructorClassMethod instanceof ClassMethod) {
-            return null;
-        }
-        $oldComments = $this->getOldComments($constructorClassMethod);
-        $promotedParams = $this->resolvePromotedParams($constructorClassMethod);
+        $oldComments = $this->getOldComments($node);
+        $promotedParams = $this->resolvePromotedParams($node);
         if ($promotedParams === []) {
             return null;
         }
-        $properties = $this->resolvePropertiesFromPromotedParams($constructorClassMethod, $promotedParams, $node);
+        $properties = $this->resolvePropertiesFromPromotedParams($promotedParams, $node);
         $this->addPropertyAssignsToConstructorClassMethod($properties, $node, $oldComments);
         foreach ($promotedParams as $promotedParam) {
             $promotedParam->flags = 0;
@@ -112,8 +101,12 @@ CODE_SAMPLE
     /**
      * @return array<string, Comment|null>
      */
-    private function getOldComments(ClassMethod $constructorClassMethod) : array
+    private function getOldComments(Class_ $class) : array
     {
+        $constructorClassMethod = $class->getMethod(MethodName::CONSTRUCT);
+        if (!$constructorClassMethod instanceof ClassMethod) {
+            return [];
+        }
         $oldComments = [];
         foreach ($constructorClassMethod->params as $param) {
             $oldComments[$this->getName($param->var)] = $param->getAttribute(AttributeKey::COMMENTS);
@@ -123,8 +116,12 @@ CODE_SAMPLE
     /**
      * @return Param[]
      */
-    private function resolvePromotedParams(ClassMethod $constructorClassMethod) : array
+    private function resolvePromotedParams(Class_ $class) : array
     {
+        $constructorClassMethod = $class->getMethod(MethodName::CONSTRUCT);
+        if (!$constructorClassMethod instanceof ClassMethod) {
+            return [];
+        }
         $promotedParams = [];
         foreach ($constructorClassMethod->params as $param) {
             if ($param->flags === 0) {
@@ -137,7 +134,7 @@ CODE_SAMPLE
     }
     private function setParamAttrGroupAsComment(Param $param) : void
     {
-        $attrGroupsPrint = $this->betterStandardPrinter->print($param->attrGroups);
+        $attrGroupsPrint = $this->nodePrinter->print($param->attrGroups);
         $comments = $param->getAttribute(AttributeKey::COMMENTS);
         if (\is_array($comments)) {
             /** @var Comment[] $comments */
@@ -153,10 +150,10 @@ CODE_SAMPLE
      * @param Param[] $promotedParams
      * @return Property[]
      */
-    private function resolvePropertiesFromPromotedParams(ClassMethod $classMethod, array $promotedParams, Class_ $class) : array
+    private function resolvePropertiesFromPromotedParams(array $promotedParams, Class_ $class) : array
     {
-        $properties = $this->createPropertiesFromParams($classMethod, $promotedParams);
-        $class->stmts = \array_merge($properties, $class->stmts);
+        $properties = $this->createPropertiesFromParams($promotedParams);
+        $this->classInsertManipulator->addPropertiesToClass($class, $properties);
         return $properties;
     }
     /**
@@ -181,24 +178,28 @@ CODE_SAMPLE
      * @param Param[] $params
      * @return Property[]
      */
-    private function createPropertiesFromParams(ClassMethod $classMethod, array $params) : array
+    private function createPropertiesFromParams(array $params) : array
     {
         $properties = [];
         foreach ($params as $param) {
             /** @var string $name */
             $name = $this->getName($param->var);
             $property = new Property($param->flags, [new PropertyProperty($name)], [], $param->type);
-            $this->decoratePropertyWithParamDocInfo($classMethod, $param, $property);
-            $hasNew = $param->default instanceof Expr && (bool) $this->betterNodeFinder->findFirstInstanceOf($param->default, New_::class);
-            if ($param->default instanceof Expr && !$hasNew) {
+            $this->decoratePropertyWithParamDocInfo($param, $property);
+            $hasNew = $param->default === null ? \false : (bool) $this->betterNodeFinder->findFirstInstanceOf($param->default, New_::class);
+            if ($param->default !== null && !$hasNew) {
                 $property->props[0]->default = $param->default;
             }
             $properties[] = $property;
         }
         return $properties;
     }
-    private function decoratePropertyWithParamDocInfo(ClassMethod $constructorClassMethod, Param $param, Property $property) : void
+    private function decoratePropertyWithParamDocInfo(Param $param, Property $property) : void
     {
+        $constructorClassMethod = $this->betterNodeFinder->findParentType($param, ClassMethod::class);
+        if (!$constructorClassMethod instanceof ClassMethod) {
+            throw new ShouldNotHappenException();
+        }
         $phpDocInfo = $this->phpDocInfoFactory->createFromNode($constructorClassMethod);
         if (!$phpDocInfo instanceof PhpDocInfo) {
             return;
@@ -212,6 +213,6 @@ CODE_SAMPLE
             return;
         }
         $propertyDocInfo = $this->phpDocInfoFactory->createEmpty($property);
-        $this->phpDocTypeChanger->changeVarTypeNode($property, $propertyDocInfo, $paramTagValueNode->type);
+        $this->phpDocTypeChanger->changeVarTypeNode($propertyDocInfo, $paramTagValueNode->type);
     }
 }

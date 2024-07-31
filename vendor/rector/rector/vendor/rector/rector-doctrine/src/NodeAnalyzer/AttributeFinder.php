@@ -6,7 +6,6 @@ namespace Rector\Doctrine\NodeAnalyzer;
 use PhpParser\Node\Attribute;
 use PhpParser\Node\AttributeGroup;
 use PhpParser\Node\Expr;
-use PhpParser\Node\Identifier;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Param;
 use PhpParser\Node\Stmt\ClassLike;
@@ -83,7 +82,7 @@ final class AttributeFinder
     private function findArgByName(Attribute $attribute, string $argName) : ?\PhpParser\Node\Expr
     {
         foreach ($attribute->args as $arg) {
-            if (!$arg->name instanceof Identifier) {
+            if ($arg->name === null) {
                 continue;
             }
             if (!$this->nodeNameResolver->isName($arg->name, $argName)) {

@@ -4,14 +4,12 @@ declare (strict_types=1);
 namespace Rector\DowngradePhp72\Rector\FuncCall;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr;
 use PhpParser\Node\Expr\BinaryOp\Identical;
 use PhpParser\Node\Expr\ConstFetch;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\Ternary;
 use PHPStan\Type\BooleanType;
 use Rector\Core\NodeAnalyzer\ArgsAnalyzer;
-use Rector\Core\PhpParser\Node\Value\ValueResolver;
 use Rector\Core\Rector\AbstractRector;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -27,15 +25,9 @@ final class DowngradeJsonDecodeNullAssociativeArgRector extends AbstractRector
      * @var \Rector\Core\NodeAnalyzer\ArgsAnalyzer
      */
     private $argsAnalyzer;
-    /**
-     * @readonly
-     * @var \Rector\Core\PhpParser\Node\Value\ValueResolver
-     */
-    private $valueResolver;
-    public function __construct(ArgsAnalyzer $argsAnalyzer, ValueResolver $valueResolver)
+    public function __construct(ArgsAnalyzer $argsAnalyzer)
     {
         $this->argsAnalyzer = $argsAnalyzer;
-        $this->valueResolver = $valueResolver;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -87,7 +79,7 @@ CODE_SAMPLE
         }
         $associativeValue = $args[1]->value;
         // already converted
-        if ($associativeValue instanceof Ternary && !$associativeValue->if instanceof Expr) {
+        if ($associativeValue instanceof Ternary && $associativeValue->if === null) {
             return null;
         }
         $associativeValueType = $this->nodeTypeResolver->getType($associativeValue);
@@ -100,7 +92,8 @@ CODE_SAMPLE
         }
         // add conditional ternary
         $nullIdentical = new Identical($associativeValue, $this->nodeFactory->createNull());
-        $args[1]->value = new Ternary($nullIdentical, null, $associativeValue);
+        $ternary = new Ternary($nullIdentical, null, $associativeValue);
+        $args[1]->value = $ternary;
         return $node;
     }
 }

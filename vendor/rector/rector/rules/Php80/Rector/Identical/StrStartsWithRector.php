@@ -4,16 +4,11 @@ declare (strict_types=1);
 namespace Rector\Php80\Rector\Identical;
 
 use PhpParser\Node;
-use PhpParser\Node\Expr\BinaryOp\Equal;
 use PhpParser\Node\Expr\BinaryOp\Identical;
-use PhpParser\Node\Expr\BinaryOp\NotEqual;
 use PhpParser\Node\Expr\BinaryOp\NotIdentical;
 use Rector\Core\Rector\AbstractRector;
 use Rector\Core\ValueObject\PhpVersionFeature;
 use Rector\Php80\Contract\StrStartWithMatchAndRefactorInterface;
-use Rector\Php80\MatchAndRefactor\StrStartsWithMatchAndRefactor\StrncmpMatchAndRefactor;
-use Rector\Php80\MatchAndRefactor\StrStartsWithMatchAndRefactor\StrposMatchAndRefactor;
-use Rector\Php80\MatchAndRefactor\StrStartsWithMatchAndRefactor\SubstrMatchAndRefactor;
 use Rector\Php80\ValueObject\StrStartsWith;
 use Rector\VersionBonding\Contract\MinPhpVersionInterface;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
@@ -30,11 +25,15 @@ final class StrStartsWithRector extends AbstractRector implements MinPhpVersionI
 {
     /**
      * @var StrStartWithMatchAndRefactorInterface[]
+     * @readonly
      */
-    private $strStartWithMatchAndRefactors = [];
-    public function __construct(StrncmpMatchAndRefactor $strncmpMatchAndRefactor, SubstrMatchAndRefactor $substrMatchAndRefactor, StrposMatchAndRefactor $strposMatchAndRefactor)
+    private $strStartWithMatchAndRefactors;
+    /**
+     * @param StrStartWithMatchAndRefactorInterface[] $strStartWithMatchAndRefactors
+     */
+    public function __construct(array $strStartWithMatchAndRefactors)
     {
-        $this->strStartWithMatchAndRefactors = [$strncmpMatchAndRefactor, $substrMatchAndRefactor, $strposMatchAndRefactor];
+        $this->strStartWithMatchAndRefactors = $strStartWithMatchAndRefactors;
     }
     public function provideMinPhpVersion() : int
     {
@@ -71,10 +70,10 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Identical::class, NotIdentical::class, Equal::class, NotEqual::class];
+        return [Identical::class, NotIdentical::class];
     }
     /**
-     * @param Identical|NotIdentical|Equal|NotEqual $node
+     * @param Identical|NotIdentical $node
      */
     public function refactor(Node $node) : ?Node
     {

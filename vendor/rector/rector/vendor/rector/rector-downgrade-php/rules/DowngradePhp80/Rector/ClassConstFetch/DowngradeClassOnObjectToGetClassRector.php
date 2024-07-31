@@ -51,10 +51,10 @@ CODE_SAMPLE
      */
     public function refactor(Node $node) : ?Node
     {
-        if (!$node->class instanceof Expr) {
+        if (!$this->isName($node->name, 'class')) {
             return null;
         }
-        if (!$this->isName($node->name, 'class')) {
+        if (!$node->class instanceof Expr) {
             return null;
         }
         return new FuncCall(new Name('get_class'), [new Arg($node->class)]);

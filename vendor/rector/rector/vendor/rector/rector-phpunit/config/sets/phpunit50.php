@@ -1,10 +1,10 @@
 <?php
 
 declare (strict_types=1);
-namespace RectorPrefix202312;
+namespace RectorPrefix202211;
 
 use Rector\Config\RectorConfig;
-use Rector\PHPUnit\PHPUnit50\Rector\StaticCall\GetMockRector;
+use Rector\PHPUnit\Rector\StaticCall\GetMockRector;
 return static function (RectorConfig $rectorConfig) : void {
     $rectorConfig->rule(GetMockRector::class);
 };

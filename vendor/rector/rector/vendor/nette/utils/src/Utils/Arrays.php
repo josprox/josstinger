@@ -5,10 +5,9 @@
  * Copyright (c) 2004 David Grudl (https://davidgrudl.com)
  */
 declare (strict_types=1);
-namespace RectorPrefix202312\Nette\Utils;
+namespace RectorPrefix202211\Nette\Utils;
 
-use RectorPrefix202312\JetBrains\PhpStorm\Language;
-use RectorPrefix202312\Nette;
+use RectorPrefix202211\Nette;
 use function is_array, is_int, is_object, count;
 /**
  * Array tools library.
@@ -167,14 +166,7 @@ class Arrays
      * @param  string[]  $array
      * @return string[]
      */
-    public static function grep(
-        array $array,
-        /**
-         * @language
-         */
-        string $pattern,
-        int $flags = 0
-    ) : array
+    public static function grep(array $array, string $pattern, int $flags = 0) : array
     {
         return Strings::pcre('preg_grep', [$pattern, $array, $flags]);
     }
@@ -198,7 +190,7 @@ class Arrays
      */
     public static function isList($value) : bool
     {
-        $arrayIsListFunction = function (array $array) : bool {
+        $arrayIsList = function (array $array) : bool {
             if (\function_exists('array_is_list')) {
                 return \array_is_list($array);
             }
@@ -214,7 +206,7 @@ class Arrays
             }
             return \true;
         };
-        return is_array($value) && (\PHP_VERSION_ID < 80100 ? !$value || \array_keys($value) === \range(0, count($value) - 1) : $arrayIsListFunction($value));
+        return is_array($value) && (\PHP_VERSION_ID < 80100 ? !$value || \array_keys($value) === \range(0, count($value) - 1) : $arrayIsList($value));
     }
     /**
      * Reformats table to associative tree. Path looks like 'field|field[]field->field=field'.

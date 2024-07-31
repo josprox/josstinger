@@ -3,67 +3,29 @@
 declare (strict_types=1);
 namespace Rector\NodeTypeResolver\NodeTypeResolver;
 
-use PhpParser\Node;
 use PhpParser\Node\Identifier;
-use PHPStan\Type\ArrayType;
 use PHPStan\Type\BooleanType;
-use PHPStan\Type\Constant\ConstantBooleanType;
 use PHPStan\Type\FloatType;
 use PHPStan\Type\IntegerType;
-use PHPStan\Type\IterableType;
 use PHPStan\Type\MixedType;
-use PHPStan\Type\NullType;
-use PHPStan\Type\ObjectWithoutClassType;
 use PHPStan\Type\StringType;
-use PHPStan\Type\Type;
-use Rector\NodeTypeResolver\Contract\NodeTypeResolverInterface;
-/**
- * @implements NodeTypeResolverInterface<Identifier>
- */
-final class IdentifierTypeResolver implements NodeTypeResolverInterface
+final class IdentifierTypeResolver
 {
     /**
-     * @return array<class-string<Node>>
+     * @return \PHPStan\Type\StringType|\PHPStan\Type\BooleanType|\PHPStan\Type\IntegerType|\PHPStan\Type\FloatType|\PHPStan\Type\MixedType
      */
-    public function getNodeClasses() : array
+    public function resolve(Identifier $identifier)
     {
-        return [Identifier::class];
-    }
-    /**
-     * @param Identifier $node
-     * @return StringType|BooleanType|ConstantBooleanType|NullType|ObjectWithoutClassType|ArrayType|IterableType|IntegerType|FloatType|MixedType
-     */
-    public function resolve(Node $node) : Type
-    {
-        $lowerString = $node->toLowerString();
-        if ($lowerString === 'string') {
+        if ($identifier->toLowerString() === 'string') {
             return new StringType();
         }
-        if ($lowerString === 'bool') {
+        if ($identifier->toLowerString() === 'bool') {
             return new BooleanType();
         }
-        if ($lowerString === 'false') {
-            return new ConstantBooleanType(\false);
-        }
-        if ($lowerString === 'true') {
-            return new ConstantBooleanType(\true);
-        }
-        if ($lowerString === 'null') {
-            return new NullType();
-        }
-        if ($lowerString === 'object') {
-            return new ObjectWithoutClassType();
-        }
-        if ($lowerString === 'array') {
-            return new ArrayType(new MixedType(), new MixedType());
-        }
-        if ($lowerString === 'int') {
+        if ($identifier->toLowerString() === 'int') {
             return new IntegerType();
         }
-        if ($lowerString === 'iterable') {
-            return new IterableType(new MixedType(), new MixedType());
-        }
-        if ($lowerString === 'float') {
+        if ($identifier->toLowerString() === 'float') {
             return new FloatType();
         }
         return new MixedType();

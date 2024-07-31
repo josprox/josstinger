@@ -4,6 +4,7 @@ declare (strict_types=1);
 namespace Rector\CodeQuality\Rector\FuncCall;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Cast\Double;
 use PhpParser\Node\Expr\FuncCall;
 use Rector\Core\Rector\AbstractRector;
@@ -62,11 +63,13 @@ CODE_SAMPLE
         if (!\in_array($methodName, self::VAL_FUNCTION_NAMES, \true)) {
             return null;
         }
-        if ($node->isFirstClassCallable()) {
+        if (!isset($node->args[0])) {
             return null;
         }
-        $firstArg = $node->getArgs()[0];
-        $double = new Double($firstArg->value);
+        if (!$node->args[0] instanceof Arg) {
+            return null;
+        }
+        $double = new Double($node->args[0]->value);
         $double->setAttribute(AttributeKey::KIND, Double::KIND_FLOAT);
         return $double;
     }

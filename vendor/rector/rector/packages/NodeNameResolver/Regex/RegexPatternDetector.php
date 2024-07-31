@@ -3,6 +3,7 @@
 declare (strict_types=1);
 namespace Rector\NodeNameResolver\Regex;
 
+use RectorPrefix202211\Nette\Utils\Strings;
 final class RegexPatternDetector
 {
     /**
@@ -13,7 +14,7 @@ final class RegexPatternDetector
     private const POSSIBLE_DELIMITERS = ['#', '~', '/'];
     public function isRegexPattern(string $name) : bool
     {
-        if (\strlen($name) <= 2) {
+        if (Strings::length($name) <= 2) {
             return \false;
         }
         $firstChar = $name[0];

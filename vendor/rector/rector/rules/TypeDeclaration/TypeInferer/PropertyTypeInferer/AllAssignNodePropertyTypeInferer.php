@@ -5,9 +5,8 @@ namespace Rector\TypeDeclaration\TypeInferer\PropertyTypeInferer;
 
 use PhpParser\Node\Stmt\ClassLike;
 use PhpParser\Node\Stmt\Property;
-use PHPStan\Reflection\ClassReflection;
 use PHPStan\Type\Type;
-use Rector\Core\PhpParser\AstResolver;
+use Rector\Core\PhpParser\Node\BetterNodeFinder;
 use Rector\NodeNameResolver\NodeNameResolver;
 use Rector\TypeDeclaration\TypeInferer\AssignToPropertyTypeInferer;
 final class AllAssignNodePropertyTypeInferer
@@ -24,19 +23,21 @@ final class AllAssignNodePropertyTypeInferer
     private $nodeNameResolver;
     /**
      * @readonly
-     * @var \Rector\Core\PhpParser\AstResolver
+     * @var \Rector\Core\PhpParser\Node\BetterNodeFinder
      */
-    private $astResolver;
-    public function __construct(AssignToPropertyTypeInferer $assignToPropertyTypeInferer, NodeNameResolver $nodeNameResolver, AstResolver $astResolver)
+    private $betterNodeFinder;
+    public function __construct(AssignToPropertyTypeInferer $assignToPropertyTypeInferer, NodeNameResolver $nodeNameResolver, BetterNodeFinder $betterNodeFinder)
     {
         $this->assignToPropertyTypeInferer = $assignToPropertyTypeInferer;
         $this->nodeNameResolver = $nodeNameResolver;
-        $this->astResolver = $astResolver;
+        $this->betterNodeFinder = $betterNodeFinder;
     }
-    public function inferProperty(Property $property, ClassReflection $classReflection) : ?Type
+    public function inferProperty(Property $property) : ?Type
     {
-        /** @var ClassLike $classLike */
-        $classLike = $this->astResolver->resolveClassFromClassReflection($classReflection);
+        $classLike = $this->betterNodeFinder->findParentType($property, ClassLike::class);
+        if (!$classLike instanceof ClassLike) {
+            return null;
+        }
         $propertyName = $this->nodeNameResolver->getName($property);
         return $this->assignToPropertyTypeInferer->inferPropertyInClassLike($property, $propertyName, $classLike);
     }

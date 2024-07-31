@@ -3,7 +3,7 @@
 declare (strict_types=1);
 namespace Rector\Doctrine\NodeManipulator;
 
-use RectorPrefix202312\Nette\Utils\Strings;
+use RectorPrefix202211\Nette\Utils\Strings;
 use PhpParser\Node\Expr;
 use PhpParser\Node\Stmt\Property;
 use PHPStan\PhpDocParser\Ast\ConstExpr\ConstExprTrueNode;
@@ -13,7 +13,6 @@ use PHPStan\Type\Type;
 use PHPStan\Type\TypeCombinator;
 use Rector\BetterPhpDocParser\PhpDoc\ArrayItemNode;
 use Rector\BetterPhpDocParser\PhpDoc\DoctrineAnnotationTagValueNode;
-use Rector\BetterPhpDocParser\PhpDoc\StringNode;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfo;
 use Rector\BetterPhpDocParser\PhpDocInfo\PhpDocInfoFactory;
 use Rector\BetterPhpDocParser\PhpDocParser\ClassAnnotationMatcher;
@@ -23,6 +22,10 @@ use Rector\NodeTypeResolver\PHPStan\Type\TypeFactory;
 use Rector\StaticTypeMapper\ValueObject\Type\FullyQualifiedObjectType;
 final class ToOneRelationPropertyTypeResolver
 {
+    /**
+     * @var class-string[]
+     */
+    private const TO_ONE_ANNOTATION_CLASSES = ['Doctrine\\ORM\\Mapping\\ManyToOne', 'Doctrine\\ORM\\Mapping\\OneToOne'];
     /**
      * @readonly
      * @var \Rector\NodeTypeResolver\PHPStan\Type\TypeFactory
@@ -48,10 +51,6 @@ final class ToOneRelationPropertyTypeResolver
      * @var \Rector\Doctrine\NodeAnalyzer\TargetEntityResolver
      */
     private $targetEntityResolver;
-    /**
-     * @var class-string[]
-     */
-    private const TO_ONE_ANNOTATION_CLASSES = ['Doctrine\\ORM\\Mapping\\ManyToOne', 'Doctrine\\ORM\\Mapping\\OneToOne'];
     public function __construct(TypeFactory $typeFactory, PhpDocInfoFactory $phpDocInfoFactory, ClassAnnotationMatcher $classAnnotationMatcher, AttributeFinder $attributeFinder, TargetEntityResolver $targetEntityResolver)
     {
         $this->typeFactory = $typeFactory;
@@ -86,9 +85,6 @@ final class ToOneRelationPropertyTypeResolver
             return new MixedType();
         }
         $targetEntityClass = $targetEntityArrayItemNode->value;
-        if ($targetEntityClass instanceof StringNode) {
-            $targetEntityClass = $targetEntityClass->value;
-        }
         if (!\is_string($targetEntityClass)) {
             return new MixedType();
         }
@@ -97,6 +93,9 @@ final class ToOneRelationPropertyTypeResolver
         }
         // resolve to FQN
         $tagFullyQualifiedName = $this->classAnnotationMatcher->resolveTagFullyQualifiedName($targetEntityClass, $property);
+        if ($tagFullyQualifiedName === null) {
+            return new MixedType();
+        }
         $fullyQualifiedObjectType = new FullyQualifiedObjectType($tagFullyQualifiedName);
         $isNullable = $this->isNullableType($joinDoctrineAnnotationTagValueNode);
         return $this->resolveFromObjectType($fullyQualifiedObjectType, $isNullable);

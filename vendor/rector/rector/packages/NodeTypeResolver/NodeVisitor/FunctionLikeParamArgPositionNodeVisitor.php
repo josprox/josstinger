@@ -13,6 +13,9 @@ use PhpParser\NodeVisitorAbstract;
 use Rector\NodeTypeResolver\Node\AttributeKey;
 final class FunctionLikeParamArgPositionNodeVisitor extends NodeVisitorAbstract
 {
+    /**
+     * @return Node
+     */
     public function enterNode(Node $node) : ?Node
     {
         if ($node instanceof FunctionLike) {

@@ -63,31 +63,30 @@ CODE_SAMPLE
      */
     public function getNodeTypes() : array
     {
-        return [Class_::class];
+        return [ClassMethod::class];
     }
     /**
-     * @param Class_ $node
+     * @param ClassMethod $node
      */
     public function refactor(Node $node) : ?Node
     {
-        $constructorClassMethod = $node->getMethod(MethodName::CONSTRUCT);
-        if (!$constructorClassMethod instanceof ClassMethod) {
+        if (!$this->isName($node, MethodName::CONSTRUCT)) {
             return null;
         }
-        if ($constructorClassMethod->params === []) {
+        if ($node->params === []) {
             return null;
         }
-        if ($this->paramAnalyzer->hasPropertyPromotion($constructorClassMethod->params)) {
+        if ($this->paramAnalyzer->hasPropertyPromotion($node->params)) {
             return null;
         }
-        if ($constructorClassMethod->isAbstract()) {
+        $class = $this->betterNodeFinder->findParentType($node, Class_::class);
+        if (!$class instanceof Class_) {
             return null;
         }
-        $changedConstructorClassMethod = $this->processRemoveParams($constructorClassMethod);
-        if (!$changedConstructorClassMethod instanceof ClassMethod) {
+        if ($node->isAbstract()) {
             return null;
         }
-        return $node;
+        return $this->processRemoveParams($node);
     }
     private function processRemoveParams(ClassMethod $classMethod) : ?ClassMethod
     {
@@ -98,13 +97,10 @@ CODE_SAMPLE
             }
             $paramKeysToBeRemoved[] = $key;
         }
-        if ($paramKeysToBeRemoved === []) {
+        $removedParamKeys = $this->complexNodeRemover->processRemoveParamWithKeys($classMethod->params, $paramKeysToBeRemoved);
+        if ($removedParamKeys === []) {
             return null;
         }
-        $removedParamKeys = $this->complexNodeRemover->processRemoveParamWithKeys($classMethod, $paramKeysToBeRemoved);
-        if ($removedParamKeys !== []) {
-            return $classMethod;
-        }
-        return null;
+        return $classMethod;
     }
 }

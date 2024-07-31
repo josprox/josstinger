@@ -15,7 +15,6 @@ use Rector\CodeQuality\NodeFactory\MissingPropertiesFactory;
 use Rector\Core\NodeAnalyzer\ClassAnalyzer;
 use Rector\Core\NodeAnalyzer\PropertyPresenceChecker;
 use Rector\Core\Rector\AbstractRector;
-use Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer;
 use Rector\PostRector\ValueObject\PropertyMetadata;
 use Symplify\RuleDocGenerator\ValueObject\CodeSample\CodeSample;
 use Symplify\RuleDocGenerator\ValueObject\RuleDefinition;
@@ -58,12 +57,7 @@ final class CompleteDynamicPropertiesRector extends AbstractRector
      * @var \Rector\Core\NodeAnalyzer\PropertyPresenceChecker
      */
     private $propertyPresenceChecker;
-    /**
-     * @readonly
-     * @var \Rector\Php80\NodeAnalyzer\PhpAttributeAnalyzer
-     */
-    private $phpAttributeAnalyzer;
-    public function __construct(MissingPropertiesFactory $missingPropertiesFactory, LocalPropertyAnalyzer $localPropertyAnalyzer, ClassLikeAnalyzer $classLikeAnalyzer, ReflectionProvider $reflectionProvider, ClassAnalyzer $classAnalyzer, PropertyPresenceChecker $propertyPresenceChecker, PhpAttributeAnalyzer $phpAttributeAnalyzer)
+    public function __construct(MissingPropertiesFactory $missingPropertiesFactory, LocalPropertyAnalyzer $localPropertyAnalyzer, ClassLikeAnalyzer $classLikeAnalyzer, ReflectionProvider $reflectionProvider, ClassAnalyzer $classAnalyzer, PropertyPresenceChecker $propertyPresenceChecker)
     {
         $this->missingPropertiesFactory = $missingPropertiesFactory;
         $this->localPropertyAnalyzer = $localPropertyAnalyzer;
@@ -71,7 +65,6 @@ final class CompleteDynamicPropertiesRector extends AbstractRector
         $this->reflectionProvider = $reflectionProvider;
         $this->classAnalyzer = $classAnalyzer;
         $this->propertyPresenceChecker = $propertyPresenceChecker;
-        $this->phpAttributeAnalyzer = $phpAttributeAnalyzer;
     }
     public function getRuleDefinition() : RuleDefinition
     {
@@ -146,9 +139,6 @@ CODE_SAMPLE
         if (!$this->reflectionProvider->hasClass($className)) {
             return \true;
         }
-        if ($this->phpAttributeAnalyzer->hasPhpAttribute($class, 'AllowDynamicProperties')) {
-            return \true;
-        }
         $classReflection = $this->reflectionProvider->getClass($className);
         // properties are accessed via magic, nothing we can do
         if ($classReflection->hasMethod('__set')) {
@@ -180,7 +170,7 @@ CODE_SAMPLE
             if ($classReflection->hasProperty($propertyToComplete)) {
                 continue;
             }
-            $propertyMetadata = new PropertyMetadata($propertyToComplete, new ObjectType($className));
+            $propertyMetadata = new PropertyMetadata($propertyToComplete, new ObjectType($className), Class_::MODIFIER_PRIVATE);
             $hasClassContextProperty = $this->propertyPresenceChecker->hasClassContextProperty($class, $propertyMetadata);
             if ($hasClassContextProperty) {
                 continue;

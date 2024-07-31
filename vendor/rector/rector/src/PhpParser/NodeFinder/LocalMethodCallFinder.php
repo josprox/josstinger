@@ -3,7 +3,6 @@
 declare (strict_types=1);
 namespace Rector\Core\PhpParser\NodeFinder;
 
-use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Stmt\Class_;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -37,27 +36,33 @@ final class LocalMethodCallFinder
     /**
      * @return MethodCall[]
      */
-    public function match(Class_ $class, ClassMethod $classMethod) : array
+    public function match(ClassMethod $classMethod) : array
     {
+        $class = $this->betterNodeFinder->findParentType($classMethod, Class_::class);
+        if (!$class instanceof Class_) {
+            return [];
+        }
         $className = $this->nodeNameResolver->getName($class);
         if (!\is_string($className)) {
             return [];
         }
+        /** @var MethodCall[] $methodCalls */
+        $methodCalls = $this->betterNodeFinder->findInstanceOf($class, MethodCall::class);
         $classMethodName = $this->nodeNameResolver->getName($classMethod);
-        /** @var MethodCall[] $matchingMethodCalls */
-        $matchingMethodCalls = $this->betterNodeFinder->find($class->getMethods(), function (Node $subNode) use($className, $classMethodName) : bool {
-            if (!$subNode instanceof MethodCall) {
-                return \false;
-            }
-            if (!$this->nodeNameResolver->isName($subNode->name, $classMethodName)) {
-                return \false;
-            }
-            $callerType = $this->nodeTypeResolver->getType($subNode->var);
+        $matchingMethodCalls = [];
+        foreach ($methodCalls as $methodCall) {
+            $callerType = $this->nodeTypeResolver->getType($methodCall->var);
             if (!$callerType instanceof TypeWithClassName) {
-                return \false;
+                continue;
             }
-            return $callerType->getClassName() === $className;
-        });
+            if ($callerType->getClassName() !== $className) {
+                continue;
+            }
+            if (!$this->nodeNameResolver->isName($methodCall->name, $classMethodName)) {
+                continue;
+            }
+            $matchingMethodCalls[] = $methodCall;
+        }
         return $matchingMethodCalls;
     }
 }
