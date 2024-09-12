@@ -16,6 +16,9 @@ $dotenv = Dotenv\Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 use PragmaRX\Google2FAQRCode\Google2FA;
 use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
+use chillerlan\QRCode\QRCode;
+use chillerlan\QRCode\QROptions;
+use chillerlan\QRCode\Output\QROutputInterface;
 session_start();
 date_default_timezone_set($_ENV['ZONA_HORARIA']);
 
@@ -36,18 +39,32 @@ if ($_ENV['DEBUG'] == 1) {
     echo "<script>console.log('".$nombre_app." está funcionando.');</script>";
 }
 
-function head(){
+function head($bootstrap=0){
+
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head está activo.');</script>";
     }
     return include (__DIR__ . "/config/general_rutes/head/head.php");
+    $pagina = nombre_de_pagina();
+    if($pagina != "panel.php" && $bootstrap !=0){
+        ?>
+        <!-- Bootstrap min -->
+        <link rel="stylesheet" href="../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <?php
+    }
 }
 
-function head_users(){
+function head_users($bootstrap=0){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." Head admin está activo.');</script>";
     }
     return include (__DIR__ . "/config/general_rutes/head/head_users.php");
+    if($bootstrap !=0){
+        ?>
+        <!-- Bootstrap min -->
+        <link rel="stylesheet" href="../../node_modules/bootstrap/dist/css/bootstrap.min.css">
+        <?php
+    }
 }
 
 function head_admin(){
@@ -78,16 +95,28 @@ function navbar_admin(){
     return include (__DIR__ . "/config/general_rutes/navbar/navbar_admin.php");
 }
 
-function footer(){
+function footer($bootstrap = 0){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer está activo.');</script>";
     }
     return include (__DIR__ . "/config/general_rutes/footer/footer.php");
+    if($bootstrap !=0){
+        ?>
+        <!-- Bootstrap JavaScript Libraries -->
+    <script src="./../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" integrity="<?php echo $_ENV['BOOTSTRAP']; ?>" crossorigin="anonymous"></script>
+        <?php
+    }
 }
 
-function footer_users(){
+function footer_users($bootstrap = 0){
     if ($_ENV['DEBUG'] == 1){
         echo "<script>console.log('".$_ENV['NAME_APP']." footer admin está activo.');</script>";
+    }
+    if($bootstrap !=0){
+        ?>
+        <!-- Bootstrap JavaScript Libraries -->
+        <script src="./../../node_modules/bootstrap/dist/js/bootstrap.bundle.min.js" integrity="<?php echo $_ENV['BOOTSTRAP']; ?>" crossorigin="anonymous"></script>
+        <?php
     }
     return include (__DIR__ . "/config/general_rutes/footer/footer_users.php");
 }
@@ -1083,6 +1112,92 @@ class fecha_cliente{
     }
 }
 
+// Sistema de QR texto.
+function qrcode($datos = "https://josprox.com/", $formato = "svg", $color_fondo = "rgb(103, 255, 213)", $color_plano = "rgba(0, 0, 0, 0.8)", $versionQR = 10, $escalaQR = 5, $imageBase64 = false) {
+    // Comprobación de formato y configuración de encabezado
+    switch($formato){
+        case "png":
+            $salida = [
+                "Tipo" => QROutputInterface::GDIMAGE_PNG,
+                "header" => 'Content-Type: image/png'
+            ];
+            break;
+        case "svg":
+            $salida = [
+                "Tipo" => QROutputInterface::MARKUP_SVG,
+                "header" => 'Content-Type: image/svg+xml'
+            ];
+            break;
+        case "webp":
+            $salida = [
+                "Tipo" => QROutputInterface::GDIMAGE_WEBP,
+                "header" => 'Content-Type: image/webp'
+            ];
+            break;
+        case "jpg":
+        case "jpeg":
+            $salida = [
+                "Tipo" => QROutputInterface::GDIMAGE_JPG,
+                "header" => 'Content-Type: image/jpeg'
+            ];
+            break;
+        default:
+            throw new InvalidArgumentException('Formato no soportado.');
+    }
+
+    // Configuración de las opciones del QR
+    $options = new QROptions([
+        'version'      => $versionQR, // Versión del código QR
+        'outputType'   => $salida["Tipo"], // Tipo de salida dinámico basado en el formato
+        'eccLevel'     => QRCode::ECC_H, // Nivel de corrección de errores
+        'scale'        => $escalaQR, // Escala del código QR
+        'imageBase64'  => $imageBase64, // Opcionalmente, puedes devolver en base64 si lo prefieres
+        'imageTransparent' => true,
+        'bgColor'      => colorToRgb($color_fondo), // Convertir el color de fondo a formato RGB
+        'fgColor'      => colorToRgb($color_plano), // Convertir el color de primer plano a formato RGB
+        'drawCircularModules' => true,
+        'drawLightModules' => true,
+        'circleRadius' => 0.4, // Ajustar el radio de los círculos
+    ]);
+
+    // Generar el código QR
+    $qrcode = (new QRCode($options))->render($datos);
+
+    // Enviar el encabezado adecuado y mostrar el QR
+    header($salida["header"]);
+    echo $qrcode;
+}
+
+// Función para convertir color HEX o RGB a RGB
+function colorToRgb($color) {
+    if (preg_match('/^#/', $color)) {
+        // Si el color comienza con '#', se asume que es HEX
+        return hexToRgb($color);
+    } elseif (preg_match('/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/', $color, $matches)) {
+        // Si el color está en formato RGB
+        return [$matches[1], $matches[2], $matches[3]];
+    } elseif (preg_match('/^rgba\((\d+),\s*(\d+),\s*(\d+),\s*(\d+(\.\d+)?)\)$/', $color, $matches)) {
+        // Si el color está en formato RGBA
+        return [$matches[1], $matches[2], $matches[3]]; // Ignora el componente alfa
+    } else {
+        return [255, 255, 255]; // Color blanco por defecto si el formato es incorrecto
+    }
+}
+
+// Función para convertir color HEX a RGB
+function hexToRgb($hex) {
+    $hex = ltrim($hex, '#');
+    if (strlen($hex) === 6) {
+        list($r, $g, $b) = sscanf($hex, "%02x%02x%02x");
+        return [$r, $g, $b];
+    } elseif (strlen($hex) === 8) { // Soporta RGBA si se da un valor de 8 caracteres
+        list($r, $g, $b, $a) = sscanf($hex, "%02x%02x%02x%02x");
+        return [$r, $g, $b]; // Ignora el componente alfa
+    } else {
+        return [255, 255, 255]; // Color blanco por defecto si el formato es incorrecto
+    }
+}
+
 //Sistema de Recaptcha
 
 if($_ENV['RECAPTCHA'] != 1 || !isset($_ENV['RECAPTCHA'])){
@@ -1136,30 +1251,12 @@ if ($_ENV['PLUGINS'] != 1 || !isset($_ENV['PLUGINS'])){
             return allinone_zip_finish($select);
         }
     }
+
     function not_pay(){
         include (__DIR__ . "/plugins/dont_pay/index.php");
         return check_not_paid();
     }
-    function qrcode($datos = "https://josprox.com/", $formato = "png",$color_de_fondo="FFFFFF",$color_plano = "000000"){
-        // URL de la API de QR Code Generator
-        $apiUrl = 'https://qrcode.tec-it.com/API/QRCode';
 
-        // Parámetros de configuración del código QR
-        $params = [
-            'data' => $datos, // URL o texto para codificar en el código QR
-            'backcolor' => $color_de_fondo, // Color de fondo del código QR (en formato hexadecimal)
-            'forecolor' => $color_plano, // Color de primer plano del código QR (en formato hexadecimal)
-            'format' => $formato, // Formato de imagen del código QR
-            'version' => '10', // Versión del código QR
-            'eclevel' => 'H', // Nivel de corrección de errores del código QR
-        ];
-
-        // Construir la URL de la API con los parámetros
-        $apiUrl .= '?' . http_build_query($params);
-
-        header('Content-Type: image/png');
-        return file_get_contents($apiUrl);
-    }
     if($_ENV['MERCADO_PAGO'] == 1){
         include (__DIR__ . "/plugins/mercado_pago/sdk.php");
     }

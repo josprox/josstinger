@@ -256,6 +256,10 @@ if(isset($_POST['instalar'])){
 
   fwrite($env_create, "# Funcionamiento de cookies.\n");
   fwrite($env_create, "COOKIE_SESSION=31622400\n\n");
+  
+  fwrite($env_create, "# Bootstrap codigo encriptado.\n");
+  fwrite($env_create, "BOOTSTRAP='sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz'\n\n");
+  
   fclose($env_create);
   
   if(isset($_POST['homedir'])){
