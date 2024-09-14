@@ -39,13 +39,19 @@ secure_auth_admin($iduser,"../");
     (string)$msg_ing = mysqli_real_escape_string($conexion, (string) $_POST['mensaje_ing']);
     (string)$msg_esp = mysqli_real_escape_string($conexion, (string) $_POST['mensaje_esp']);
     (string)$url = mysqli_real_escape_string($conexion, (string) $_POST['url']);
+    if(isset($_POST['moodTester'])){
+      $moodTester = true;
+    }else{
+      $moodTester = false;
+    }
     $conexion -> close();
-    $push = new Nuevo_Push();
-    $push -> titulo_esp = $titulo;
-    $push -> titulo_ing = $titulo_ing;
-    $push -> mensaje_esp = $msg_esp;
-    $push -> mensaje_ing = $msg_esp;
-    $push -> url_personalizado = $url;
+    $push = new NuevoPush();
+    $push -> tituloEsp = $titulo;
+    $push -> tituloIng = $titulo_ing;
+    $push -> mensajeEsp = $msg_esp;
+    $push -> mensajeIng = $msg_esp;
+    $push -> urlPersonalizado = $url;
+    $push -> moodTester = $moodTester;
     if( $push -> enviar() == true){
         $push -> cerrar();
         ?>
@@ -75,6 +81,20 @@ secure_auth_admin($iduser,"../");
   <div class="container">
     <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
 
+        <div class="grid_1">
+          <div class="form-check form-switch">
+            <input
+              class="form-check-input"
+              type="checkbox"
+              id="moodester"
+              name="moodTester"
+            />
+            <label class="form-check-label" for="moodTester"
+              >¿Desea activar el envío a solo suscriptores de prueba?</label
+            >
+          </div>
+          
+        </div>
         <div class="grid_2_auto">
             <div class="mb-3 contenedor">
                 <label for="titulo" class="form-label">Titulo del mensaje</label>

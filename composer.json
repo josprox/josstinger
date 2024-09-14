@@ -9,6 +9,12 @@
             "email": "joss@int.josprox.com"
         }
     ],
+    "repositories": [
+        {
+        "type": "vcs",
+        "url": "https://github.com/OneSignal/onesignal-php-api.git"
+        }
+    ],
     "require": {
         "php": ">=8.3",
         "vlucas/phpdotenv": "^5.4",
@@ -19,7 +25,8 @@
         "guzzlehttp/guzzle": "^7.5",
         "intervention/image": "^2.7",
         "pragmarx/google2fa": "^8.0",
-        "chillerlan/php-qrcode": "^5.0"
+        "chillerlan/php-qrcode": "^5.0",
+        "onesignal/onesignal-php-api": "*@dev"
     },
     "require-dev": {
         "rector/rector": "^0.14.8"

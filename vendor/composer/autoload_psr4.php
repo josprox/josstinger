@@ -6,6 +6,7 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
+    'onesignal\\client\\' => array($vendorDir . '/onesignal/onesignal-php-api/lib'),
     'chillerlan\\Settings\\' => array($vendorDir . '/chillerlan/php-settings-container/src'),
     'chillerlan\\QRCode\\' => array($vendorDir . '/chillerlan/php-qrcode/src'),
     'Twilio\\' => array($vendorDir . '/twilio/sdk/src/Twilio'),

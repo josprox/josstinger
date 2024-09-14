@@ -19,6 +19,7 @@ use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
 use chillerlan\QRCode\QRCode;
 use chillerlan\QRCode\QROptions;
 use chillerlan\QRCode\Output\QROutputInterface;
+
 session_start();
 date_default_timezone_set($_ENV['ZONA_HORARIA']);
 

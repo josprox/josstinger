@@ -1,71 +1,87 @@
 <?php
-class Nuevo_Push{
-  public $titulo_esp = "";
-  public $titulo_ing = "";
-  public $mensaje_esp = "";
-  public $mensaje_ing = "";
-  public $url_personalizado = "";
 
-  function __construct()
-  {
-  }
+use onesignal\client\api\DefaultApi;
+use onesignal\client\Configuration;
+use onesignal\client\model\Notification;
+use GuzzleHttp\Client;
 
-  function enviar(){
-    $client = new \GuzzleHttp\Client();
-    $APP_ID = $_ENV['ONESIGNAL_APP_ID'];
-    $API_KEY = $_ENV['ONESIGNAL_API_KEY'];
+class NuevoPush {
+    public $tituloEsp = "";
+    public $tituloIng = "";
+    public $mensajeEsp = "";
+    public $mensajeIng = "";
+    public $urlPersonalizado = "";
+    public $moodTester = false;
 
-    if($this->url_personalizado == ""){
-      $url = $_ENV['HOMEDIR'];
-    }elseif($this->url_personalizado != ""){
-      $url = $this->url_personalizado;
+    private $appId;
+    private $apiKey;
+    private $userKeyToken;
+
+    public function __construct() {
+        $this->appId = $_ENV['ONESIGNAL_APP_ID'] ?? '';
+        $this->apiKey = $_ENV['ONESIGNAL_API_KEY'] ?? '';
+        $this->userKeyToken = $_ENV['USER_KEY_TOKEN'] ?? '';
     }
 
-    $array = [
-      'app_id' => $APP_ID,
-      'included_segments' => ['Subscribed Users'],
-      'contents' => [
-          'en' => $this->mensaje_ing,
-          'es' => $this->mensaje_esp
-      ],
-      'headings' => [
-          'en' => $this->titulo_ing,
-          'es' => $this->titulo_esp
-      ],
-      'url' => $url
-    ];
-  
-    $contenido_body = json_encode($array, JSON_THROW_ON_ERROR);
-    $response = $client->request('POST', 'https://onesignal.com/api/v1/notifications', [
-      'body' => $contenido_body,
-      'headers' => [
-        'Authorization' => "Basic $API_KEY",
-        'accept' => 'application/json',
-        'content-type' => 'application/json',
-      ],
-    ]);
-            
-    $statusCode = $response->getStatusCode();
-    if ($statusCode === 200) {
-      $this->limpiar();
-      return true;
-    } else {
-      $this->limpiar();
-      return false;
+    public function enviar(): int {
+        // Configure Bearer authorization: app_key
+        $config = Configuration::getDefaultConfiguration()
+            ->setAppKeyToken($this->apiKey)
+            ->setUserKeyToken($this->userKeyToken);
+
+        $apiInstance = new DefaultApi(
+            new Client(),
+            $config
+        );
+
+        // Create notification object and set parameters
+        $notification = new Notification();
+        $notification->setAppId($this->appId);
+        $notification->setContents([
+            'en' => $this->mensajeIng,
+            'es' => $this->mensajeEsp
+        ]);
+        $notification->setHeadings([
+            'en' => $this->tituloIng,
+            'es' => $this->tituloEsp
+        ]);
+        $notification->setUrl($this->urlPersonalizado);
+
+        // Specify notification recipients
+        if ($this->moodTester) {
+            // Send to all testers (or a specific segment of testers if defined)
+            $notification->setIncludedSegments(['Test Users']);
+        } else {
+            // Send to all users
+            $notification->setIncludedSegments(['All']);
+        }
+
+        try {
+            $result = $apiInstance->createNotification($notification);
+            // Check if notification ID is present
+            $status = ($result->getId() !== null) ? 200 : 404;
+            return $status;
+        } catch (Exception $e) {
+            // Error handling
+            if ($_ENV['DEBUG'] ?? 0) {
+                echo 'Exception when calling DefaultApi->createNotification: ', $e->getMessage(), PHP_EOL;
+            }
+            return 400;
+        }
     }
-  }
-  
-  function limpiar(){
-    $this->titulo_esp = "";
-    $this->titulo_ing = "";
-    $this->mensaje_esp = "";
-    $this->mensaje_ing = "";
-    $this->url_personalizado = "";
-  }
-  
-  function cerrar(){
-    $this->limpiar();
-    return NULL;
-  }
+
+    public function limpiar(): void {
+        // Reset class properties
+        $this->tituloEsp = "";
+        $this->tituloIng = "";
+        $this->mensajeEsp = "";
+        $this->mensajeIng = "";
+        $this->urlPersonalizado = "";
+    }
+
+    public function cerrar(): void {
+        // Clean up and close class instance
+        $this->limpiar();
+    }
 }
 ?>
