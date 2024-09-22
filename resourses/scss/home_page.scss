@@ -44,6 +44,54 @@
     height: 90%;
     border-radius: 12px;
 }
+
+.navbar_dashboard{
+    background-color: rgba(0, 0, 0, 0.5);
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    .navbar-toggler{
+        border: none;
+        color: $negro;
+        &:focus{
+            color: $blanco;
+            border: none;
+        }
+        &:active{
+            color: $blanco;
+            border: none;
+        }
+    }
+    .navbar-nav .dropdown-menu{
+        background-color: rgba(0, 0, 0, 0.5);
+        .dropdown-item{
+            color: $blanco;
+            &:hover, &:active{
+                background-color: $verde;
+                color: $blanco;
+            }
+        }
+    }
+    .navbar-brand{
+        color: $blanco;
+        padding-top: var(--bs-navbar-brand-padding-y);
+        padding-bottom: var(--bs-navbar-brand-padding-y);
+        margin-right: var(--bs-navbar-brand-margin-end);
+        font-size: var(--bs-navbar-brand-font-size);
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .navbar-toggler-custom{
+        border: none;
+    }
+    .nav-link{
+        color: $blanco;
+        border-radius: 8px;
+        padding: 6px;
+        &:hover{
+            background-color: $dark-color-alt;
+        }
+    }
+}
 .contacto_form{
     display: grid;
     grid-template-columns: repeat(1, 1fr);
