@@ -990,6 +990,59 @@
 			"response": []
 		},
 		{
+			"name": "JosSecurity API Github",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost/jossecurity/api/?email=joss@int.josprox.com&password=Andyyyo12?&cmd=v-github-conect&arg1=true&arg2=https://api.github.com/repos/user/repo/releases/latest&arg3=",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"jossecurity",
+						"api",
+						""
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "joss@int.josprox.com",
+							"description": "Pon el correo de administración"
+						},
+						{
+							"key": "password",
+							"value": "Andyyyo12?",
+							"description": "Pon la contraseña del correo"
+						},
+						{
+							"key": "cmd",
+							"value": "v-github-conect",
+							"description": "Aquí deberás poner el comando"
+						},
+						{
+							"key": "arg1",
+							"value": "true",
+							"description": "Pon el estado del repositorio (privado true-publico false)"
+						},
+						{
+							"key": "arg2",
+							"value": "https://api.github.com/repos/user/repo/releases/latest",
+							"description": "URL del repositorio en formato API"
+						},
+						{
+							"key": "arg3",
+							"value": "",
+							"description": "Token de acceso personal"
+						}
+					]
+				},
+				"description": "Sistema API sencillo de JosSecurity."
+			},
+			"response": []
+		},
+		{
 			"name": "JosSecurity API delete directory",
 			"request": {
 				"method": "GET",

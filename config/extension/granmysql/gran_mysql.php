@@ -23,7 +23,7 @@ class GranMySQL{
 
     function clasic(){
         try {
-            $sql = "SELECT {$this->seleccion} FROM {$this->tabla};";
+            $sql = "SELECT {$this->seleccion} FROM {$this->tabla} {$this->personalizacion};";
             $query = $this->conexion->query($sql);
             $ejecucion = $this -> respuesta;
             if($ejecucion != "num_rows"){

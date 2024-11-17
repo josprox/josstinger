@@ -51,36 +51,27 @@ login_cookie("users");
         <?php
         }
     if(isset($_GET['check_user'])){
-        $conexion = conect_mysqli();
-        $check = mysqli_real_escape_string($conexion, (string) $_GET['check_user']);
-        if(leer_tablas_mysql_custom("SELECT id_user FROM check_users WHERE check_users.url = '$check' && check_users.accion = 'check_user'") >=1){
-            $checking = consulta_mysqli_where("id, id_user, accion","check_users","check_users.url","'$check'");
-            $id_user = $checking['id_user'];
-            if($checking['accion'] == "check_user"){
-                if(actualizar_datos_mysqli("users","`checked_status` = 'TRUE'","id",$id_user) == TRUE){
-                    eliminar_datos_con_where("check_users","id_user",$id_user);?>
-                    <script>
-                        Swal.fire(
-                        'Completado',
-                        'Se ha verificado tu cuenta de manera correcta.',
-                        'success'
-                        )
-                    </script>
-                    <?php
-                    header("location: panel");
-                }
-            }
+        // En este apartado se verifica la cuenta de acceso
+        if(verificar_usuario($_GET['check_user'])){
+            ?>
+                <script>
+                    Swal.fire(
+                    'Completado',
+                    'Se ha verificado tu cuenta de manera correcta.',
+                    'success'
+                    )
+                </script>
+            <?php
         }else{
             ?>
-            <script>
-                Swal.fire(
-                'Oh no!',
-                'No se ha podido verificar este token, favor de intentar acceder a tu cuenta para generar otro token.',
-                'error'
-                )
-            </script>
+                <script>
+                    Swal.fire(
+                    'Oh no!',
+                    'No se ha podido verificar este token, favor de intentar acceder a tu cuenta para generar otro token.',
+                    'error'
+                    )
+                </script>
             <?php
-            header("location: panel");
         }
     }elseif(isset($_GET['login_auth'])){
         $llave = $_GET['login_auth'];
@@ -385,64 +376,48 @@ login_cookie("users");
             header("refresh:1;");
         }
     }elseif(isset($_GET['cambiar_contra'])){
-        $conexion = conect_mysqli();
-        $token = mysqli_real_escape_string($conexion, (string) $_GET['cambiar_contra']);
-        $conexion -> close();
-        if(leer_tablas_mysql_custom("SELECT id_user FROM check_users WHERE url = '$token' && accion = 'cambiar_contra'") >=1){
-            $consulta = consulta_mysqli_where("id_user","check_users","url","'$token'");
-            $consulta_id = consulta_mysqli_where("name","users","id",$consulta['id_user']);
-            if(isset($_POST['actualizar_contra'])){
-                $conexion = conect_mysqli();
-                $token = mysqli_real_escape_string($conexion, (string) $_GET['cambiar_contra']);
-                $contra = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
-                $repit_contra = mysqli_real_escape_string($conexion, (string) $_POST['repit_contra']);
-                $conexion -> close();
-                if(eliminar_datos_con_where("check_users","url","'$token'") == TRUE){
-                    if($contra == $repit_contra){
-                        if(actualizar_contra($consulta['id_user'],$contra) == TRUE){
-                            ?>
-                            <script>
-                                Swal.fire(
-                                'Completado',
-                                'La contraseña se ha actualizado correctamente.',
-                                'success'
-                                )
-                            </script>
-                            <?php
-                            header("refresh:1;");
-                        }else{
-                            ?>
-                            <script>
-                                Swal.fire(
-                                'Falló',
-                                'La contraseña no se pudo actualizar, favor de volver a intentarlo.',
-                                'success'
-                                )
-                            </script>
-                            <?php
-                            header("refresh:1;");
-                        }
-                    }else{
-                        ?>
+        if(isset($_POST['actualizar_contra'])){
+            if($_POST['contra'] != $_POST['repit_contra']){
+                ?>
+                    <script>
+                        Swal.fire(
+                            'Falló',
+                            'Las contraseñas no coinciden, por favor revisa los campos.',
+                            'error'
+                        );
+                    </script>
+                <?php
+            }else{
+                if(cambiar_contra($_GET['cambiar_contra'], $_POST['contra'], $_POST['repit_contra'])){
+                    ?>
                         <script>
                             Swal.fire(
-                            'Falló',
-                            'La contraseña no se parece, favor de volver a intentarlo.',
+                            'Completado',
+                            'La contraseña se ha actualizado correctamente.',
                             'success'
                             )
                         </script>
-                        <?php
-                        header("refresh:1;");
-                    }
+                    <?php
+                    header("Location: panel");
+                }else{
+                    ?>
+                        <script>
+                            Swal.fire(
+                            'Falló',
+                            'La contraseña no se pudo actualizar, favor de volver a intentarlo.',
+                            'error'
+                            )
+                        </script>
+                    <?php
+                    header("Location: panel");
                 }
             }
-        }else{
-            header("Location: panel");
         }
+        
         ?>
         <div class="contenedor_blanco">
             <center><h1>Cambio de contraseña</h1></center>
-            <p>Un gusto volver a verte <?php echo $consulta_id['name']; ?>, en unos momentos podrás restaurar tu contraseña, a continuación le pediremos que llene la nueva solicitud.</p>
+            <p>Un gusto volver a verte, en unos momentos podrás restaurar tu contraseña, a continuación le pediremos que llene la nueva solicitud.</p>
             <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
 
                 <div class="grid_2_auto">
@@ -472,144 +447,144 @@ login_cookie("users");
         <?php
     }else{
         ?>
-    <div class="flex_center">
-        <div class="login_register">
-            <div class="form">
-                <div class="check">
-                    <button class="boton_login" onclick="iniciarForm();">Iniciar sesión</button>
-                    <button class="boton_register" onclick="registerForm();">Registrarme</button>
-                    <button class="boton_reset" onclick="resetForm();">Olvidé mi contraseña</button>
-                </div>
-
-                <div id="login">
-                    <h1 class="text-center">Iniciar sesión</h1>
-                    <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
-
-                        <div class="forms">
-
-                            <div class="grid_1_auto">
-                                <label for="">Correo</label>
-                                <input type="email" name="txtCorreo" placeholder="Por favor pon tu correo" required>
-                            </div>
-                            <div class="grid_1_auto">
-                                <label for="">contraseña</label>
-                                <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
-                            </div>
-                            <div class="grid_1_auto">
-                                <div class="mb-3">
-                                  <label for="2fa" class="form-label">Código 2FA</label>
-                                  <input type="number"
-                                    class="form-control" name="2fa" id="2fa" aria-describedby="2fa" placeholder="Pon el código 2FA si lo tienes activado.">
-                                  <small id="2fa" class="form-text text-muted">Si tienes configurado un acceso por 2FA de Google, por favor pon aquí tu número de acceso.</small>
-                                </div>
-                            </div>
-                            <div class="grid_1_auto">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" name="cookies" type="checkbox" id="flexSwitchCheckDefault">
-                                    <label class="form-check-label" for="flexSwitchCheckDefault">Desea tener la sesión abierta</label>
-                                  </div>
-                            </div>
-                            <div class="flex_center">
-                                <div class="mb-3">
-                                    <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
-                                </div>
-                            </div>
-                            <div class="flex_center">
-                                <div class="grid_1_auto">
-                                    <button type="submit" name="ingresar" class="btn btn-success">Iniciar sesión</button>
-                                </div>
-                            </div>
-
+            <div class="flex_center">
+                <div class="login_register">
+                    <div class="form">
+                        <div class="check">
+                            <button class="boton_login" onclick="iniciarForm();">Iniciar sesión</button>
+                            <button class="boton_register" onclick="registerForm();">Registrarme</button>
+                            <button class="boton_reset" onclick="resetForm();">Olvidé mi contraseña</button>
                         </div>
-                    </form>
-                </div>
 
-                <div id="register">
-                    <h1 class="text-center">Regístrate</h1>
-                        <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
+                        <div id="login">
+                            <h1 class="text-center">Iniciar sesión</h1>
+                            <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
 
-                            <div class="forms">
+                                <div class="forms">
 
-                                <div class="grid_1_auto">
-                                    <label for="">¿Cúál es tu nombre completo?</label>
-                                    <input type="text" name="txtName" placeholder="Por favor pon tu nombre" required>
-                                </div>
-                                <div class="grid_1_auto">
-                                    <label for="">¿Cuál es tu correo?</label>
-                                    <input type="email" name="txtCorreo" placeholder="Por favor pon tu correo" required>
-                                </div>
-                                <div class="grid_1_auto">
-                                    <label for="">Crea una contraseña</label>
-                                    <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
-                                </div>
-                                <div class="grid_1_auto">
-                                    <label for="">Repite la contraseña</label>
-                                    <input type="password" name="txtPassword_repeat" placeholder="Por favor pon tu contraseña" required>
-                                </div>
-                                <div class="grid_1_auto">
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input" name="factor" type="checkbox" id="factor" checked>
-                                        <label class="form-check-label" for="factor">¿Deseas activar mayor seguridad?</label>
-                                    </div>
-                                </div>
-                                <div class="flex_center">
-                                    <div class="mb-3">
-                                        <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
-                                    </div>
-                                </div>
-                                <div class="flex_center">
                                     <div class="grid_1_auto">
-                                        <button type="submit" name="registrar" class="btn btn-success">Registrarme</button>
+                                        <label for="">Correo</label>
+                                        <input type="email" name="txtCorreo" placeholder="Por favor pon tu correo" required>
                                     </div>
+                                    <div class="grid_1_auto">
+                                        <label for="">contraseña</label>
+                                        <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
+                                    </div>
+                                    <div class="grid_1_auto">
+                                        <div class="mb-3">
+                                        <label for="2fa" class="form-label">Código 2FA</label>
+                                        <input type="number"
+                                            class="form-control" name="2fa" id="2fa" aria-describedby="2fa" placeholder="Pon el código 2FA si lo tienes activado.">
+                                        <small id="2fa" class="form-text text-muted">Si tienes configurado un acceso por 2FA de Google, por favor pon aquí tu número de acceso.</small>
+                                        </div>
+                                    </div>
+                                    <div class="grid_1_auto">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" name="cookies" type="checkbox" id="flexSwitchCheckDefault">
+                                            <label class="form-check-label" for="flexSwitchCheckDefault">Desea tener la sesión abierta</label>
+                                        </div>
+                                    </div>
+                                    <div class="flex_center">
+                                        <div class="mb-3">
+                                            <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex_center">
+                                        <div class="grid_1_auto">
+                                            <button type="submit" name="ingresar" class="btn btn-success">Iniciar sesión</button>
+                                        </div>
+                                    </div>
+
                                 </div>
-
-                                </button>
-
-                            </div>
-                        </form>
-                </div>
-
-                <div id="reset">
-                    <h1 class="text-center">Olvidé mi contraseña</h1>
-                    <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
-
-                        <div class="forms">
-                            
-                            <div class="grid_1_auto">
-                                <label for="">Correo</label>
-                                <input type="email" class="form-control" name="txtCorreo" placeholder="Por favor pon tu correo">
-                            </div>
-                            <div class="flex_center">
-                                <div class="mb-3">
-                                    <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
-                                </div>
-                            </div>
-                            <div class="flex_center">
-                                <div class="grid_1_auto">
-                                    <button type="submit" name="reset" class="btn btn-success">Restaurar</button>
-                                </div>
-                            </div>
-
-                            </button>
-
+                            </form>
                         </div>
-                    </form>
-                </div>
 
-            </div>
-            <div class="presentacion">
-                <img src="../resourses/img/logo transparente/default.png" alt="">
-                <div class="flex_start">
-                    <center>
-                        <h1 class="text-shadow-black" style="color: #fff;text-align:center;">Seguridad a tu alcance</h1>
-                    </center>
-                    <p class="text-justify text-shadow-black" style="color: #fff;">
-                    Este sitio ha sido creado con la tecnología de JosSecurity, seguridad a tu alcance, cumple nativamente con las Leyes de Privacidad y Protección de Datos (GDPR y CCPA), la modificación de estas leyes por otra persona exime al creador de alguna consecuencia legal.<br>Un proyecto de El Diamante Soluciones TI.
-                    </p>
+                        <div id="register">
+                            <h1 class="text-center">Regístrate</h1>
+                                <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
+
+                                    <div class="forms">
+
+                                        <div class="grid_1_auto">
+                                            <label for="">¿Cúál es tu nombre completo?</label>
+                                            <input type="text" name="txtName" placeholder="Por favor pon tu nombre" required>
+                                        </div>
+                                        <div class="grid_1_auto">
+                                            <label for="">¿Cuál es tu correo?</label>
+                                            <input type="email" name="txtCorreo" placeholder="Por favor pon tu correo" required>
+                                        </div>
+                                        <div class="grid_1_auto">
+                                            <label for="">Crea una contraseña</label>
+                                            <input type="password" name="txtPassword" placeholder="Por favor pon tu contraseña" required>
+                                        </div>
+                                        <div class="grid_1_auto">
+                                            <label for="">Repite la contraseña</label>
+                                            <input type="password" name="txtPassword_repeat" placeholder="Por favor pon tu contraseña" required>
+                                        </div>
+                                        <div class="grid_1_auto">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" name="factor" type="checkbox" id="factor" checked>
+                                                <label class="form-check-label" for="factor">¿Deseas activar mayor seguridad?</label>
+                                            </div>
+                                        </div>
+                                        <div class="flex_center">
+                                            <div class="mb-3">
+                                                <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
+                                            </div>
+                                        </div>
+                                        <div class="flex_center">
+                                            <div class="grid_1_auto">
+                                                <button type="submit" name="registrar" class="btn btn-success">Registrarme</button>
+                                            </div>
+                                        </div>
+
+                                        </button>
+
+                                    </div>
+                                </form>
+                        </div>
+
+                        <div id="reset">
+                            <h1 class="text-center">Olvidé mi contraseña</h1>
+                            <form action="<?php $_SERVER['PHP_SELF']; ?>" method="post">
+
+                                <div class="forms">
+                                    
+                                    <div class="grid_1_auto">
+                                        <label for="">Correo</label>
+                                        <input type="email" class="form-control" name="txtCorreo" placeholder="Por favor pon tu correo">
+                                    </div>
+                                    <div class="flex_center">
+                                        <div class="mb-3">
+                                            <div class="g-recaptcha" data-sitekey="<?php echo $_ENV['RECAPTCHA_CODE_PUBLIC']; ?>"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex_center">
+                                        <div class="grid_1_auto">
+                                            <button type="submit" name="reset" class="btn btn-success">Restaurar</button>
+                                        </div>
+                                    </div>
+
+                                    </button>
+
+                                </div>
+                            </form>
+                        </div>
+
+                    </div>
+                    <div class="presentacion">
+                        <img src="../resourses/img/logo transparente/default.png" alt="">
+                        <div class="flex_start">
+                            <center>
+                                <h1 class="text-shadow-black" style="color: #fff;text-align:center;">Seguridad a tu alcance</h1>
+                            </center>
+                            <p class="text-justify text-shadow-black" style="color: #fff;">
+                            Este sitio ha sido creado con la tecnología de JosSecurity, seguridad a tu alcance, cumple nativamente con las Leyes de Privacidad y Protección de Datos (GDPR y CCPA), la modificación de estas leyes por otra persona exime al creador de alguna consecuencia legal.<br>Un proyecto de El Diamante Soluciones TI.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
         <?php
     }
     ?>

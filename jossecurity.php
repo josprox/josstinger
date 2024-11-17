@@ -300,6 +300,83 @@ if(file_exists(__DIR__ . DIRECTORY_SEPARATOR . "config/extension/GranMail/granma
 
 //configuración de logins, registros y cookies
 
+function verificar_usuario($check_user): bool {
+    // Conectar a la base de datos
+    $conexion = conect_mysqli();
+    
+    if ($conexion === null) {
+        return false; // No se pudo conectar a la base de datos
+    }
+
+    // Crear una instancia de la clase GranMySQL con la conexión
+    $mysql = new GranMySQL($conexion);
+
+    // Sanitizar la entrada
+    $check_user = mysqli_real_escape_string($conexion, (string) $check_user);
+
+    // Verificar si el token existe
+    $mysql->tabla = "check_users";
+    $mysql->seleccion = "COUNT(*) as count";
+    $mysql->personalizacion = "WHERE url = '$check_user' AND accion = 'check_user'";
+    $existe = $mysql->clasic();
+    
+    if ($existe['count'] >= 1) {
+        // Consultar los detalles del usuario
+        $mysql->tabla = "check_users";
+        $mysql->seleccion = "id, id_user, accion";
+        $mysql->personalizacion = "WHERE url = '$check_user'";
+        $checking = $mysql->clasic();
+        
+        if (!empty($checking)) {
+            $id_user = $checking[0]['id_user'];
+            
+            // Verificar la acción y actualizar el estado del usuario
+            if ($checking[0]['accion'] == "check_user") {
+                if(actualizar_datos_mysqli("users","`checked_status` = 'TRUE'","id",$id_user) == TRUE){
+                    eliminar_datos_con_where("check_users","id_user",$id_user);
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false; // Indicar que la actualización no fue exitosa
+}
+
+function cambiar_contra($token,$contra,$repit_contra):bool{
+    // Limpia entradas
+    $conexion = conect_mysqli();
+    $token = mysqli_real_escape_string($conexion, (string) $token);
+    $conexion -> close();
+    // Verificar si el token existe
+    $consulta = new GranMySQL();
+    $consulta->tabla = "check_users";
+    $consulta->seleccion = "COUNT(*) as count";
+    $consulta->personalizacion = "WHERE url = '$token' AND accion = 'cambiar_contra'";
+    $existe = $consulta->clasic();
+    if ($existe['count'] >= 1){
+        $consulta -> seleccion = "users.name, check_users.id_user";
+        $consulta -> tabla = "users";
+        $consulta -> comparar = "id";
+        $consulta -> tabla_innerjoin = "check_users";
+        $consulta -> comparable = "id_user";
+        $consulta -> personalizacion = "WHERE url = '$token'";
+        $respuesta = $consulta -> InnerJoin();
+        if(eliminar_datos_con_where("check_users","url","'$token'") == TRUE){
+            if($contra == $repit_contra){
+                if(actualizar_contra($respuesta['id_user'],$contra)){
+                    return true;
+                }else{
+                    return false;
+                }
+            }
+        }else{
+            return false;
+        }
+    }
+}
+
+
 function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
     $conexion = conect_mysqli();
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
@@ -836,20 +913,35 @@ function insertar_datos_post_mysqli($tabla,$post){
     }
 }
 
-function actualizar_datos_mysqli($tabla,$edicion,$where,$dato){
+function actualizar_datos_mysqli($tabla, $edicion, $where, $dato){
     global $fecha;
     $miconexion = conect_mysqli();
-    $sql = "UPDATE `$tabla` SET $edicion, `updated_at` = '$fecha' WHERE `$tabla`.`$where` = $dato";
-    $miconexion -> query($sql);
-    if($miconexion -> query($sql) == TRUE){
-        $miconexion -> close();
-        return TRUE;
-    }else{
-        $miconexion -> close();
+    
+    // Construir la consulta de actualización
+    $sql = "UPDATE `$tabla` SET $edicion, `updated_at` = ? WHERE `$where` = ?";
+    
+    // Preparar la consulta
+    if ($stmt = $miconexion->prepare($sql)) {
+        // Vincular los parámetros: 's' para string, 'i' para integer
+        $stmt->bind_param("ss", $fecha, $dato);
+        
+        // Ejecutar la consulta
+        if ($stmt->execute()) {
+            $stmt->close();
+            $miconexion->close();
+            return TRUE;
+        } else {
+            $stmt->close();
+            $miconexion->close();
+            return FALSE;
+        }
+    } else {
+        // Si falla la preparación de la consulta
+        $miconexion->close();
         return FALSE;
     }
-
 }
+
 
 function eliminar_datos_con_where($tabla,$where,$dato){
     $conexion = conect_mysqli();

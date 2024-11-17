@@ -89,9 +89,23 @@ secure_auth_admin($iduser,"../");
     // Registro de datos por metodo POST.
     $conexion = conect_mysqli();
     $token = generar_llave_alteratorio(16);
-    $first_name = mysqli_real_escape_string($conexion, (string) $_POST['nombre']);
-    $last_name = mysqli_real_escape_string($conexion, (string) $_POST['apellidos']);
-    $estado = mysqli_real_escape_string($conexion, (string) $_POST['estado']);
+    (string)$first_name = mysqli_real_escape_string($conexion, (string) $_POST['nombre']);
+    (string)$last_name = mysqli_real_escape_string($conexion, (string) $_POST['apellidos']);
+    $estado = mysqli_real_escape_string($conexion, (int) $_POST['estado']);
+    switch($estado){
+      case 1:
+        (string)$estado = "Aprobado";
+        break;
+      case 2:
+        (string)$estado = "Actualizando";
+        break;
+      case 3:
+        (string)$estado = "Pendiente";
+        break;
+      default:
+        (string)$estado = "Pendiente";
+        break;
+    }
     $usuario = mysqli_real_escape_string($conexion, (string) generar_llave_alteratorio(8));
     $correo = mysqli_real_escape_string($conexion, (string) $_POST['correo']);
     $contra = mysqli_real_escape_string($conexion, (string) $_POST['contra']);
@@ -149,7 +163,21 @@ secure_auth_admin($iduser,"../");
   }elseif(isset($_POST['actualizar'])){
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['id']);
-    $estado = mysqli_real_escape_string($conexion, (string) $_POST['estado']);
+    $estado = mysqli_real_escape_string($conexion, (int) $_POST['estado']);
+    switch($estado){
+      case 1:
+        (string)$estado = "Aprobado";
+        break;
+      case 2:
+        (string)$estado = "Actualizando";
+        break;
+      case 3:
+        (string)$estado = "Pendiente";
+        break;
+      default:
+        (string)$estado = "Pendiente";
+        break;
+    }
     $conexion -> close();
     actualizar_datos_mysqli("tokens_pays","`estado` = '$estado'","id",$id);
     ?>
@@ -186,8 +214,15 @@ secure_auth_admin($iduser,"../");
             </div>
             <div class="mb-3 contenedor">
               <label for="estado" class="form-label">Estado</label>
-              <input type="text"
-                class="form-control" name="estado" id="estado" aria-describedby="estado" placeholder="Pon el estado del producto" required>
+              <select
+                class="form-select form-select-sm"
+                name="estado"
+                id="estado"
+              >
+                <option value="1" selected>Aprobado</option>
+                <option value="2">Actualizando</option>
+                <option value="3">Pendiente</option>
+              </select>
               <small id="estado" class="form-text text-muted">Pon el estado del producto, puede ser Aprobado, Actualizando y Pendiente.</small>
             </div>
             <div class="mb-3 contenedor">
@@ -284,7 +319,21 @@ secure_auth_admin($iduser,"../");
                 <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
               <tr class="table-primary" >
                 <td scope="row"><?php echo $row['id']; ?></td>
-                <td><input type="text" name="estado" class="form-control" style="min-width: 120px;" value="<?php echo $row['estado']; ?>"></td>
+                <td>
+                  <div class="mb-3">
+                    <select
+                      class="form-select form-select-sm"
+                      name="estado"
+                      id="estado"
+                    >
+                      <option selected>Actual: <?php echo $row['estado']; ?></option>
+                      <option value="1">Aprobado</option>
+                      <option value="2">Actualizando</option>
+                      <option value="3">Pendiente</option>
+                    </select>
+                  </div>
+                  
+                </td>
                 <td><?php echo $row['name']; ?></td>
                 <td><?php echo $row['email']; ?></td>
                 <td><?php echo $row['nombre']; ?></td>

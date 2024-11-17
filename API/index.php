@@ -24,7 +24,6 @@ try {
         actualizar_datos_mysqli("users", "`last_ip` = '$ip'", "id", $consulta_admin['id']);
     
         if ((int) $consulta_admin['id_rol'] == 1 && password_verify($password, (string) $password_encriptada) == true) {
-            echo "Usuario correcto.\n\tEjecutando código insertado...\n";
             
             switch ($_GET['cmd']) {
                 //Caso de pruebas
@@ -46,6 +45,12 @@ try {
                 case "v-delete-user":
                     eliminar_cuenta($_GET['arg1'], $_GET['arg2'], "");
                     echo "\n\tCodigo insertado.";
+                    break;
+                
+                //Integración de Github.
+                case "v-github-conect":
+                    header("Content-type: application/json; charset=utf-8");
+                    echo Github_API($_GET['arg1'],$_GET['arg2'],$_GET['arg3']);
                     break;
                     
                 //Pruebas de correo
@@ -125,12 +130,12 @@ try {
                     
                 case "push":
                     if (isset($_ENV['ONESIGNAL']) && $_ENV['ONESIGNAL'] == 1) {
-                        $push = new Nuevo_Push();
-                        $push->titulo_esp = $_GET['arg1'];
-                        $push->titulo_ing = $_GET['arg2'];
-                        $push->mensaje_esp = $_GET['arg3'];
-                        $push->mensaje_ing = $_GET['arg4'];
-                        $push->url_personalizado = $_GET['arg5'];
+                        $push = new NuevoPush();
+                        $push->tituloEsp = $_GET['arg1'];
+                        $push->tituloIng = $_GET['arg2'];
+                        $push->mensajeEsp = $_GET['arg3'];
+                        $push->mensajeIng = $_GET['arg4'];
+                        $push->urlPersonalizado = $_GET['arg5'];
                         
                         if ($push->enviar() == true) {
                             $push->cerrar();

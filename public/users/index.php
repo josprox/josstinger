@@ -9,8 +9,13 @@ if (!isset($_SESSION['id_usuario'])) {
 }
 
 $iduser = $_SESSION['id_usuario'];
+$consulta_pedidos = new GranMySQL();
+$consulta_pedidos -> tabla = "tokens_pays";
+$consulta_pedidos -> seleccion = "COUNT(*) as count";
+$consulta_pedidos -> personalizacion = "WHERE id_user = '$iduser' && (estado = 'Aprobado' || estado = 'Pendiente' || estado = 'Actualizando')";
+$respuesta = $consulta_pedidos -> clasic();
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") <= 0){
+if($respuesta <= 0){
     header("Location: ./bienvenidos");
 }
 
@@ -78,7 +83,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
         <a class="anuncio_scroller" href="https://josprox.com/tienda/">Consigue plugins para WordPress con licencia GPL</a>
         <?php
         $ssl = check_http();
-        $url_consulta = "https://tecnotech.ovh/mis_entradas.json";
+        $url_consulta = "https://josprox.com/mis_entradas.json";
 
         $options = [
             'http' => [
@@ -111,7 +116,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                             if($count == 15) {
                                 ?>
                                 <div class="flex_center">
-                                    <a name="" id="" class="btn btn-primary" href="#" role="button">Ver más</a>
+                                    <a name="" id="" class="btn btn-primary" href="https://josprox.com/blog-y-noticias/" role="button">Ver más</a>
                                 </div>
                                 <?php
                                 break;
