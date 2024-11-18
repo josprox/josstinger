@@ -1,0 +1,14 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.josprox.jossestrada",
+      "sha256_cert_fingerprints": [
+        "BC:E9:1F:04:A5:68:7D:8C:1F:88:76:60:5E:96:44:6E:65:D8:6F:D0:84:10:03:E0:90:5E:F7:E3:20:11:E7:2B",
+        "F3:7D:16:54:41:CA:D6:9B:F1:63:BC:3C:F4:A7:F8:B3:6E:61:BD:00:6C:D6:70:D3:F1:BD:FA:F2:9F:0F:E3:13",
+        "B0:AD:99:FC:CD:CD:0E:D6:6E:59:57:31:A9:26:FC:8D:6E:89:41:2C:CC:19:47:94:6F:84:5E:73:51:76:01:10"
+      ]
+    }
+  }
+]
