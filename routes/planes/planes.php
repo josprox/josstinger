@@ -42,7 +42,7 @@
 				<div class="row d-flex">
 	
 				<?php 
-				foreach(arreglo_consulta("SELECT nombre, descripcion,precio FROM servicios") as $row){
+				foreach(arreglo_consulta("SELECT nombre, descripcion,precio FROM jpx_servicios") as $row){
 					?>
 	
 					<div class="col-lg-3 col-md-6 ftco-animate" id="<?php echo $row['nombre']; ?>">

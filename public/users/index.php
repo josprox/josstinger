@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -10,18 +10,18 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 $consulta_pedidos = new GranMySQL();
-$consulta_pedidos -> tabla = "tokens_pays";
+$consulta_pedidos -> tabla = "jpx_tokens_pays";
 $consulta_pedidos -> seleccion = "COUNT(*) as count";
 $consulta_pedidos -> personalizacion = "WHERE id_user = '$iduser' && (estado = 'Aprobado' || estado = 'Pendiente' || estado = 'Actualizando')";
 $respuesta = $consulta_pedidos -> clasic();
 
-if($respuesta <= 0){
+if($respuesta['count'] <= 0){
     header("Location: ./bienvenidos");
 }
 
-eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser && estado = 'Cancelado'");
+eliminar_datos_custom_mysqli("DELETE FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Cancelado'");
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name","jpx_users","id",$iduser);
 
 ?>
 
@@ -44,7 +44,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
         $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
         mysqli_close($conexion);
     
-        echo eliminar_datos_con_where("tokens_pays","id",$id);
+        echo eliminar_datos_con_where("jpx_tokens_pays","id",$id);
       }
     ?>
 
@@ -156,9 +156,9 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                         <h4 class="text-center">Gestiona tus DNS en tu hosting</h4>
                         <p class="text-justify">Tu puedes gestionar tus DNS con nosotros, en cada paquete viene como mínimo 1 gestor dns, solo deberás apuntar nos nameservers a los siguientes dominios</p>
                         <?php
-                            foreach(arreglo_consulta("SELECT id_pedido FROM request_dns WHERE id_user = $iduser ORDER BY id DESC LIMIT 3") as $pedido){
+                            foreach(arreglo_consulta("SELECT id_pedido FROM jpx_request_dns WHERE id_user = $iduser ORDER BY id DESC LIMIT 3") as $pedido){
                                 $pedido_num = $pedido['id_pedido'];
-                                foreach(arreglo_consulta("SELECT nameservers.id,nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE id_pedido = $pedido_num;" ) as $name){
+                                foreach(arreglo_consulta("SELECT jpx_nameservers.id,jpx_nameservers.dns1,jpx_nameservers.dns2 FROM jpx_nameservers INNER JOIN jpx_request_dns ON jpx_nameservers.id = jpx_request_dns.id_nameserver WHERE id_pedido = $pedido_num;" ) as $name){
                                     ?>
                             <p>DNS correspondiente del pedido: <?php echo $pedido_num; ?></p>
                             <ul>
@@ -190,8 +190,8 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
                                 <tbody>
                                     
                                 <?php
-                                if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>=1){
-                                foreach (arreglo_consulta("SELECT tokens_pays.id, servicios.nombre, tokens_pays.created_at,tokens_pays.expiracion FROM servicios INNER JOIN tokens_pays ON servicios.id = tokens_pays.id_servicio WHERE id_user = $iduser ORDER BY id DESC LIMIT 3;") as $row){?>
+                                if(leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser;")>=1){
+                                foreach (arreglo_consulta("SELECT jpx_tokens_pays.id, jpx_servicios.nombre, jpx_tokens_pays.created_at,jpx_tokens_pays.expiracion FROM jpx_servicios INNER JOIN jpx_tokens_pays ON jpx_servicios.id = jpx_tokens_pays.id_servicio WHERE id_user = $iduser ORDER BY id DESC LIMIT 3;") as $row){?>
                                 <tr class="table-primary" >
                                     <td scope="row"><?php echo $row['id']; ?></td>
                                     <td><?php echo $row['nombre']; ?></td>
@@ -220,7 +220,7 @@ $row = consulta_mysqli_where("name","users","id",$iduser);
     
                                 </tbody>
                             </table>
-                            <?php if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>=3){
+                            <?php if (leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser;")>=3){
                                 ?>
                                 <div class="flex_center">
                                     <a class="btn btn-primary" href="suscripciones">Ver todos mis productos</a>

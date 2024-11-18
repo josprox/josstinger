@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -10,9 +10,9 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name","jpx_users","id",$iduser);
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") >= 1){
+if(leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") >= 1 OR leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") >= 1){
     header("Location: ./");
 }
 
@@ -34,8 +34,8 @@ if (isset($_POST['eliminar'])){
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
     mysqli_close($conexion);
-    eliminar_datos_con_where("tokens_pays","id_user",$id);
-    echo eliminar_cuenta_con_cookies($id,"users","../");
+    eliminar_datos_con_where("jpx_tokens_pays","id_user",$id);
+    echo eliminar_cuenta_con_cookies($id,"jpx_users","../");
     
   }
 ?>
@@ -72,7 +72,7 @@ if (isset($_POST['eliminar'])){
                             <select class="form-select form-select-lg" name="servicio" id="" required>
                                 <option selected value="">Selecciona uno</option>
                                 <?php 
-                                foreach(arreglo_consulta("SELECT id,nombre FROM servicios") as $row){
+                                foreach(arreglo_consulta("SELECT id,nombre FROM jpx_servicios") as $row){
                                     ?>
 
                                 <option value="<?php echo $row['id']; ?>"><?php echo $row['nombre']; ?></option>

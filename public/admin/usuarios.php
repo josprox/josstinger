@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie("jpx_users");
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -39,7 +39,7 @@ secure_auth_admin($iduser,"../");
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
     mysqli_close($conexion);
-    eliminar_datos_con_where("users","id",$id);
+    eliminar_datos_con_where("jpx_users","id",$id);
     ?>
         <script>
             Swal.fire(
@@ -60,7 +60,7 @@ secure_auth_admin($iduser,"../");
     $password = mysqli_real_escape_string($conexion, (string) $_POST['password']);
     $rol = mysqli_real_escape_string($conexion, (int) $_POST['rol']);
     $conexion -> close();
-    registro("users",$name,$email,$password,$rol);
+    registro("jpx_users",$name,$email,$password,$rol);
     ?>
         <script>
             Swal.fire(
@@ -86,7 +86,7 @@ secure_auth_admin($iduser,"../");
 	  $password_encriptada = password_hash($password,PASSWORD_BCRYPT,["cost"=>10]);
     $rol = mysqli_real_escape_string($conexion, (int) $_POST['rol']);
     mysqli_close($conexion);
-    actualizar_datos_mysqli("users","`name` = '$name', `email` = '$email',`password` = '$password_encriptada', `id_rol` = '$rol'","id",$id);
+    actualizar_datos_mysqli("jpx_users","`name` = '$name', `email` = '$email',`password` = '$password_encriptada', `id_rol` = '$rol'","id",$id);
     ?>
         <script>
             Swal.fire(
@@ -104,7 +104,7 @@ secure_auth_admin($iduser,"../");
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
     mysqli_close($conexion);
-    $consulta = consulta_mysqli_where("*","users","id",$id);
+    $consulta = consulta_mysqli_where("*","jpx_users","id",$id);
     ?>
         <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
         <input type="hidden" name="id" value="<?php echo $id; ?>">
@@ -165,7 +165,7 @@ secure_auth_admin($iduser,"../");
           <select class="form-control" name="rol" id="rol">
             <option selected>¿Cuál rol le corresponde?</option>
             <?php
-            foreach(arreglo_consulta("SELECT * FROM `roles`") as $rol){
+            foreach(arreglo_consulta("SELECT * FROM `jpx_roles`") as $rol){
               ?>
               <option value="<?php echo $rol['id']; ?>"><?php echo $rol['rol']; ?></option>
               <?php
@@ -200,7 +200,7 @@ secure_auth_admin($iduser,"../");
             </thead>
             <tbody class="table-group-divider">
               <?php
-              foreach (arreglo_consulta("SELECT * FROM users") as $row){?>
+              foreach (arreglo_consulta("SELECT * FROM jpx_users") as $row){?>
               <tr class="table-primary" >
                 <td scope="row"><?php echo $row['id']; ?></td>
                 <td><?php echo $row['name']; ?></td>

@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -41,7 +41,7 @@ secure_auth_admin($iduser,"../");
         $descripcion = mysqli_real_escape_string($conexion, (string) $_POST['descripcion']);
         $precio = mysqli_real_escape_string($conexion, (float) $_POST['precio']);
         mysqli_close($conexion);
-        actualizar_datos_mysqli("servicios","`nombre` = '$nombre', `descripcion_text` = '$descripcion', `precio` = '$precio', `updated_at` = '$fecha'","id",$id);
+        actualizar_datos_mysqli("jpx_servicios","`nombre` = '$nombre', `descripcion_text` = '$descripcion', `precio` = '$precio', `updated_at` = '$fecha'","id",$id);
         ?>
         <script>
             Swal.fire(
@@ -62,7 +62,7 @@ secure_auth_admin($iduser,"../");
         $descripcion_text = mysqli_real_escape_string($conexion, (string) $_POST['descripcion_text']);
         $precio = mysqli_real_escape_string($conexion, (float) $_POST['precio']);
         mysqli_close($conexion);
-        insertar_datos_clasic_mysqli("servicios","nombre, descripcion, descripcion_text, precio, created_at","'$nombre', '$descripcion', '$descripcion_text', '$precio', '$fecha'");
+        insertar_datos_clasic_mysqli("jpx_servicios","nombre, descripcion, descripcion_text, precio, created_at","'$nombre', '$descripcion', '$descripcion_text', '$precio', '$fecha'");
         ?>
         <script>
             Swal.fire(
@@ -80,7 +80,7 @@ secure_auth_admin($iduser,"../");
         $conexion = conect_mysqli();
         $id = mysqli_real_escape_string($conexion, (int) $_POST['id']);
         mysqli_close($conexion);
-        eliminar_datos_con_where("servicios","id",$id);
+        eliminar_datos_con_where("jpx_servicios","id",$id);
         ?>
         <script>
             Swal.fire(
@@ -102,7 +102,7 @@ secure_auth_admin($iduser,"../");
         $descripcion_text = mysqli_real_escape_string($conexion, (string) $_POST['descripcion_text']);
         $precio = mysqli_real_escape_string($conexion, (float) $_POST['precio']);
         mysqli_close($conexion);
-        actualizar_datos_mysqli("servicios","`nombre` = '$nombre', `descripcion` = '$descripcion',`descripcion_text` = '$descripcion_text', `precio` = '$precio', `updated_at` = '$fecha'","id",$id);
+        actualizar_datos_mysqli("jpx_servicios","`nombre` = '$nombre', `descripcion` = '$descripcion',`descripcion_text` = '$descripcion_text', `precio` = '$precio', `updated_at` = '$fecha'","id",$id);
         ?>
         <script>
             Swal.fire(
@@ -120,7 +120,7 @@ secure_auth_admin($iduser,"../");
         $conexion = conect_mysqli();
         $id = mysqli_real_escape_string($conexion, (int) $_POST['id']);
         mysqli_close($conexion);
-        $consulta = consulta_mysqli_where("*","servicios","id",$id);
+        $consulta = consulta_mysqli_where("*","jpx_servicios","id",$id);
         ?>
         <h1>Datos del paquete.</h1>
         <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
@@ -206,7 +206,7 @@ secure_auth_admin($iduser,"../");
               </thead>
               <tbody class="table-group-divider">
                 <?php
-                foreach (arreglo_consulta("SELECT * FROM servicios") as $row){?>
+                foreach (arreglo_consulta("SELECT * FROM jpx_servicios") as $row){?>
             <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
             <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                 <tr class="table-primary" >

@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -38,11 +38,11 @@ secure_auth_admin($iduser,"../");
   if (isset($_POST['eliminar'])){
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['id']);
-    $consulta = consulta_mysqli_where("usuario, id_pedido","tokens_pays","id",$id);
+    $consulta = consulta_mysqli_where("usuario, id_pedido","jpx_tokens_pays","id",$id);
     mysqli_close($conexion);
     // Consulta del pedido.
     $pedido_catch = $consulta['id_pedido'];
-    $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
+    $consulta_hestia = consulta_mysqli_custom_all("SELECT jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password FROM jpx_hestia_accounts INNER JOIN jpx_request_dns ON jpx_hestia_accounts.id = jpx_request_dns.id_hestia WHERE jpx_request_dns.id_pedido = $pedido_catch;");
     // Credenciales de acceso hestia
     $hst_hostname = (string)$consulta_hestia['host'];
     $hst_port = (int)$consulta_hestia['port'];
@@ -70,8 +70,8 @@ secure_auth_admin($iduser,"../");
     
     // Parse JSON output
     $data = json_decode($answer, true, 512, JSON_THROW_ON_ERROR);
-    eliminar_datos_con_where("request_dns","id_pedido",$consulta['id_pedido']);
-    eliminar_datos_con_where("tokens_pays","id_pedido",$consulta['id_pedido']);
+    eliminar_datos_con_where("jpx_request_dns","id_pedido",$consulta['id_pedido']);
+    eliminar_datos_con_where("jpx_tokens_pays","id_pedido",$consulta['id_pedido']);
     ?>
         <script>
             Swal.fire(
@@ -118,8 +118,8 @@ secure_auth_admin($iduser,"../");
     $id_pago = generar_llave(10,"123456789");
     $pagado_con = "Manual";
     // Consulta de datos de acceso.
-    $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts WHERE hestia_accounts.nameserver = $nameserver");
-    $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM servicios WHERE id = $id_servicio;");
+    $consulta_hestia = consulta_mysqli_custom_all("SELECT jpx_hestia_accounts.id,jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password FROM jpx_hestia_accounts WHERE jpx_hestia_accounts.nameserver = $nameserver");
+    $consulta_paquetes = consulta_mysqli_custom_all("SELECT nombre FROM jpx_servicios WHERE id = $id_servicio;");
     $package = (string)$consulta_paquetes['nombre'];
     // --------------------------------------------------------
     // Conexión del servidor.
@@ -133,8 +133,8 @@ secure_auth_admin($iduser,"../");
     $hst_command = 'v-add-user';
     $hst_id = $consulta_hestia['id'];
     // Insertamos los datos SQL
-    insertar_datos_clasic_mysqli("tokens_pays","token, estado, id_user, id_servicio, id_pedido, id_pago, pagado_con, usuario, correo, expiracion, created_at","'$token','$estado',$id_user,$id_servicio,$id_pedido, $id_pago,'$pagado_con','$usuario','$correo','$expiracion','$fecha'");
-    insertar_datos_clasic_mysqli("request_dns","id_hestia, id_nameserver, id_user, id_pedido, created_at","$hst_id,$nameserver,$id_user,$id_pedido, '$fecha'");
+    insertar_datos_clasic_mysqli("jpx_tokens_pays","token, estado, id_user, id_servicio, id_pedido, id_pago, pagado_con, usuario, correo, expiracion, created_at","'$token','$estado',$id_user,$id_servicio,$id_pedido, $id_pago,'$pagado_con','$usuario','$correo','$expiracion','$fecha'");
+    insertar_datos_clasic_mysqli("jpx_request_dns","id_hestia, id_nameserver, id_user, id_pedido, created_at","$hst_id,$nameserver,$id_user,$id_pedido, '$fecha'");
     // Preparamos POST query
     $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $usuario, 'arg2' => $contra, 'arg3' => $correo, 'arg4' => $package, 'arg5' => $first_name, 'arg6' => $last_name];
     // enviamos el metodo POST query por cURL
@@ -179,7 +179,7 @@ secure_auth_admin($iduser,"../");
         break;
     }
     $conexion -> close();
-    actualizar_datos_mysqli("tokens_pays","`estado` = '$estado'","id",$id);
+    actualizar_datos_mysqli("jpx_tokens_pays","`estado` = '$estado'","id",$id);
     ?>
       <script>
         Swal.fire(
@@ -236,7 +236,7 @@ secure_auth_admin($iduser,"../");
               <select class="form-select form-select-sm" name="id_servicio" id="id_servicio" required>
                 <option selected>Selecciona el tipo de suscripción.</option>
                 <?php 
-                foreach(arreglo_consulta("SELECT id, nombre FROM servicios") as $servicio){
+                foreach(arreglo_consulta("SELECT id, nombre FROM jpx_servicios") as $servicio){
                   ?>
                   <option value="<?php echo $servicio['id']; ?>"><?php echo $servicio['nombre']; ?></option>
                   <?php
@@ -271,7 +271,7 @@ secure_auth_admin($iduser,"../");
               <label for="nameserver" class="form-label">Selecciona algún proovedor DNS</label>
               <select class="form-select form-select-sm" name="nameserver" id="nameserver" required>
                 <option selected>Selecciona un nameserver</option>
-                <?php foreach(arreglo_consulta("SELECT * FROM nameservers") as $nameserver){
+                <?php foreach(arreglo_consulta("SELECT * FROM jpx_nameservers") as $nameserver){
                   ?>
                   <option value="<?php echo $nameserver['id']; ?>"><?php echo $nameserver['dns1']; ?> - <?php echo $nameserver['dns2']; ?></option>
   
@@ -314,7 +314,7 @@ secure_auth_admin($iduser,"../");
             </thead>
             <tbody class="table-group-divider">
               <?php
-              foreach (arreglo_consulta("SELECT tokens_pays.id ,tokens_pays.estado, users.name, users.email, servicios.nombre, tokens_pays.usuario, tokens_pays.correo,tokens_pays.id_pedido, tokens_pays.id_pago, tokens_pays.pagado_con, tokens_pays.expiracion FROM tokens_pays INNER JOIN users ON users.id = tokens_pays.id_user INNER JOIN servicios ON servicios.id = tokens_pays.id_servicio ORDER BY tokens_pays.id DESC") as $row){?>
+              foreach (arreglo_consulta("SELECT jpx_tokens_pays.id ,jpx_tokens_pays.estado, users.name, users.email, jpx_servicios.nombre, jpx_tokens_pays.usuario, jpx_tokens_pays.correo,jpx_tokens_pays.id_pedido, jpx_tokens_pays.id_pago, jpx_tokens_pays.pagado_con, jpx_tokens_pays.expiracion FROM jpx_tokens_pays INNER JOIN users ON users.id = jpx_tokens_pays.id_user INNER JOIN jpx_servicios ON jpx_servicios.id = jpx_tokens_pays.id_servicio ORDER BY jpx_tokens_pays.id DESC") as $row){?>
               <form action="<?php $_SERVER["PHP_SELF"]; ?>" method="post">
                 <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
               <tr class="table-primary" >

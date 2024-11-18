@@ -17,7 +17,7 @@ header('Content-Type: text/xml');
         <description>Este catalogo ha sido generado de manera automática por el sistema de Josstinger, creado por El Diamante Soluciones TI.</description>
         <?php
         //Generador de código por catalogo.
-        foreach(arreglo_consulta("SELECT * FROM servicios") as $row){
+        foreach(arreglo_consulta("SELECT * FROM jpx_servicios") as $row){
             ?>
             <item>
                 <g:id><?php echo $row['id']; ?></g:id>

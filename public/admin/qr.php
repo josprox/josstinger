@@ -1,6 +1,6 @@
 <?php
 require_once (__DIR__ . DIRECTORY_SEPARATOR . "../../jossecurity.php");
-login_cookie("users");
+login_cookie('jpx_users');;
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../panel");

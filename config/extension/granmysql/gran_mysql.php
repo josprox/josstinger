@@ -9,7 +9,7 @@
 
 class GranMySQL{
     public $seleccion = "*";
-    public $tabla = "users";
+    public $tabla = "jpx_users";
     public $tabla_innerjoin;
     public $comparar = "id";
     public $comparable;
@@ -97,7 +97,7 @@ class GranMySQL{
     }
     function __destruct(){
         $this->seleccion = "*";
-        $this->tabla = "users";
+        $this->tabla = "jpx_users";
         $this->tabla_innerjoin = null;
         $this->comparar = "id";
         $this->comparable = null;

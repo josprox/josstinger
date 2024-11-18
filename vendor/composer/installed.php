@@ -3,7 +3,7 @@
         'name' => 'josprox/hestia',
         'pretty_version' => 'dev-main',
         'version' => 'dev-main',
-        'reference' => '8a244d612895ec6793f1a51e2bea4a495af1d420',
+        'reference' => '039af7647058b3983cfa56a5ebe61704e6566ba2',
         'type' => 'library',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -139,7 +139,7 @@
         'josprox/hestia' => array(
             'pretty_version' => 'dev-main',
             'version' => 'dev-main',
-            'reference' => '8a244d612895ec6793f1a51e2bea4a495af1d420',
+            'reference' => '039af7647058b3983cfa56a5ebe61704e6566ba2',
             'type' => 'library',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),

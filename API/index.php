@@ -18,10 +18,10 @@ try {
         $conexion = conect_mysqli();
         $email = mysqli_real_escape_string($conexion, (string) $_GET['email']);
         $password = mysqli_real_escape_string($conexion, (string) $_GET['password']);
-        $consulta_admin = consulta_mysqli_where("id, password, id_rol", "users", "email", "'$email'");
+        $consulta_admin = consulta_mysqli_where("id, password, id_rol", "jpx_users", "email", "'$email'");
         $password_encriptada = $consulta_admin['password'];
         $ip = $_SERVER['REMOTE_ADDR'];
-        actualizar_datos_mysqli("users", "`last_ip` = '$ip'", "id", $consulta_admin['id']);
+        actualizar_datos_mysqli("jpx_users", "`last_ip` = '$ip'", "id", $consulta_admin['id']);
     
         if ((int) $consulta_admin['id_rol'] == 1 && password_verify($password, (string) $password_encriptada) == true) {
             

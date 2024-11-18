@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../users/");
@@ -12,7 +12,7 @@ $iduser = $_SESSION['id_usuario'];
 
 $consulta = new GranMySQL();
 $consulta -> seleccion = "name, email";
-$consulta -> tabla = "users";
+$consulta -> tabla = "jpx_users";
 $consulta -> comparar = "id";
 $consulta -> comparable = $iduser;
 $row = $consulta -> where();
@@ -37,21 +37,21 @@ $id_user_pay= $_GET['usr'];
 $id_product= $_GET['prdct'];
 $meses= (int)$_GET['mut'];
 
-if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && id = $id_user_pay") > 0 OR leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' && estado = 'Aprobado'") > 0){
+if(leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE token = '$token' && id = $id_user_pay") > 0 OR leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE token = '$token' && estado = 'Aprobado'") > 0){
     header("Location: ./");
 }elseif($_GET['status'] == "in_process"){
     $consulta -> seleccion = "id";
-    $consulta -> tabla = "tokens_pays";
+    $consulta -> tabla = "jpx_tokens_pays";
     $consulta -> comparar = "token";
     $consulta -> comparable = $token;
     $respuesta = $consulta -> where();
     $id_token = $respuesta['id'];
-    insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Pendiente', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
+    insertar_datos_custom_mysqli("UPDATE jpx_tokens_pays SET estado = 'Pendiente', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 
 }elseif($_GET['status'] == "approved"){
-    $respuesta = consulta_mysqli_where("id","tokens_pays","token","'$token'");
+    $respuesta = consulta_mysqli_where("id","jpx_tokens_pays","token","'$token'");
     $id_token = $respuesta['id'];
-    insertar_datos_custom_mysqli("UPDATE tokens_pays SET estado = 'Aprobado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
+    insertar_datos_custom_mysqli("UPDATE jpx_tokens_pays SET estado = 'Aprobado', id_pedido = $id_del_pedido, id_pago = $id_de_pago, pagado_con = '$tipo_de_pago', updated_at = '$fecha' WHERE id = '$id_token'");
 }
 
 
@@ -154,7 +154,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                             <select class="form-select form-select-lg" name="nameserver" id="nameserver" required>
                                 <option selected>Selecciona alguno</option>
                                 <?php
-                                foreach(arreglo_consulta("SELECT * FROM nameservers") as $row){
+                                foreach(arreglo_consulta("SELECT * FROM jpx_nameservers") as $row){
                                     ?>
                                 <option value="<?php echo $row['id']; ?>"><?php echo $row['dns1']; ?> - <?php echo $row['dns2']; ?></option>
                                     <?php
@@ -178,9 +178,9 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         if (isset($_POST['registrar_hestia'])) {
                         $conexion = conect_mysqli();
                         $nameservers = mysqli_real_escape_string($conexion, (int) $_POST['nameserver']);
-                        $consulta -> seleccion = "hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password";
-                        $consulta -> tabla = "hestia_accounts";
-                        $consulta -> comparar = "hestia_accounts.nameserver";
+                        $consulta -> seleccion = "jpx_hestia_accounts.id,jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password";
+                        $consulta -> tabla = "jpx_hestia_accounts";
+                        $consulta -> comparar = "jpx_hestia_accounts.nameserver";
                         $consulta -> comparable = $nameservers;
                         $consulta_hestia = $consulta -> where();
                         // Server credentials
@@ -193,7 +193,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $hst_id = $consulta_hestia['id'];
                         // New Account
                         $consulta -> seleccion = "nombre";
-                        $consulta -> tabla = "servicios";
+                        $consulta -> tabla = "jpx_servicios";
                         $consulta -> comparar = "id";
                         $consulta -> comparable = $id_product;
                         $consulta_paquetes = $consulta -> where();
@@ -215,7 +215,7 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $id_product= $_GET['prdct'];
                         $meses= (int)$_GET['mut'];
                         $consulta -> seleccion = "id";
-                        $consulta -> tabla = "tokens_pays";
+                        $consulta -> tabla = "jpx_tokens_pays";
                         $consulta -> comparar = "token";
                         $consulta -> comparable = $token;
                         $respuesta = $consulta -> where();
@@ -225,12 +225,12 @@ if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE token = '$token' &&
                         $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
                         $new_token = generar_llave_alteratorio(16);
                         
-                        insertar_datos_custom_mysqli("UPDATE tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', token = '$new_token', updated_at = '$fecha' WHERE id = $id_token");
+                        insertar_datos_custom_mysqli("UPDATE jpx_tokens_pays SET expiracion = '$fecha_final', usuario = '$username', correo = '$email', token = '$new_token', updated_at = '$fecha' WHERE id = $id_token");
 
 
-                        insertar_datos_clasic_mysqli("request_dns","id_hestia ,id_nameserver, id_user, id_pedido, created_at","$hst_id,$nameservers, $id_user_pay, $id_del_pedido, '$fecha'");
+                        insertar_datos_clasic_mysqli("jpx_request_dns","id_hestia ,id_nameserver, id_user, id_pedido, created_at","$hst_id,$nameservers, $id_user_pay, $id_del_pedido, '$fecha'");
                         
-                        eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
+                        eliminar_datos_custom_mysqli("DELETE FROM jpx_tokens_pays WHERE id_user = $id_user_pay && estado = 'Cancelado'");
 
                         // Prepare POST query
                         $postvars = ['user' => $hst_username, 'password' => $hst_password, 'returncode' => $hst_returncode, 'cmd' => $hst_command, 'arg1' => $username, 'arg2' => $password, 'arg3' => $email, 'arg4' => $package, 'arg5' => $first_name, 'arg6' => $last_name];

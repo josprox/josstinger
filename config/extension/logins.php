@@ -4,7 +4,7 @@ use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
     class login{
         public $correo;
         public $contra;
-        public $tabla = "users";
+        public $tabla = "jpx_users";
         public $redireccion ="admin";
         public $check_user = "panel";
         public $cookies = "si";
@@ -103,7 +103,7 @@ use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
                                     setcookie("COOKIE_DATA_INDEFINED_SESSION[pass]", $compilar['contra'], ['expires' => time()+$_ENV['COOKIE_SESSION'], 'path' => "/"]);
                                 }
                 
-                                actualizar_datos_mysqli("users","`last_ip` = '$ip'","id",$compilar['id']);
+                                actualizar_datos_mysqli("jpx_users","`last_ip` = '$ip'","id",$compilar['id']);
                 
                                 $cuerpo_de_correo = "<div><p align='justify'>Te informamos que hemos recibido un inicio de sesión desde ". $this->nombre_app .", sino fuiste tú te recomendamos que cambies tu contraseña lo más pronto posible.😊</p></div><div><p>La dirección ip donde se ingresó fue: ".$this->ip."</p><p>Accedió el día: ".$this->fecha ."</p></div>";
         
@@ -123,7 +123,7 @@ use PragmaRX\Google2FA\Google2FA as GoogleAuthenticator;
                         $fecha_1_day = \FECHA_1_DAY;
                         $id = $compilar['id'];
                         $cuerpo_de_correo = "<div>Hola, has intentado iniciar sesión pero primero debes de activar tu cuenta para verificar que realmente eres tú, por favor <a href='".$ssl_tls.$_ENV['DOMINIO'].$_ENV['HOMEDIR'].$this->check_user."?check_user=$key'>da clic aquí</a> para activar tu correo.</div>";
-                        insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
+                        insertar_datos_clasic_mysqli("jpx_check_users","id_user, url, accion, expiracion","$id,'$key', 'check_user','$fecha_1_day'");
                         if(mail_smtp_v1_3($compilar['nombre'],"Activa tu cuenta",$cuerpo_de_correo,$compilar['correo']) == TRUE){
                         ?>
                         <script>

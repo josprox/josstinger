@@ -57,7 +57,7 @@ include (__DIR__ . "/../jossecurity.php");
           <?php
           $contacto = new VisibilityLogic();
           $contacto -> accion = "mostrar";
-          $contacto -> iduser_tabla = "users";
+          $contacto -> iduser_tabla = "jpx_users";
           if($contacto -> rol_usuario() == 6 OR $contacto -> rol_usuario() == 1){
             ?>
           <ul>
@@ -76,7 +76,7 @@ include (__DIR__ . "/../jossecurity.php");
           <?php
           $control = new VisibilityLogic();
           $control -> accion = "mostrar";
-          $control -> iduser_tabla = "users";
+          $control -> iduser_tabla = "jpx_users";
           if($control -> rol_usuario() == 6 OR $control -> rol_usuario() == 1){
             ?>
             <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">

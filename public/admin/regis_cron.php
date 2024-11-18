@@ -1,7 +1,7 @@
 <?php
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie("jpx_users");
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../panel");
@@ -32,7 +32,7 @@ secure_auth_admin($iduser,"../");
             $id_funcion = mysqli_real_escape_string($conexion, (int)$_POST['eliminar_funcion']);
             $conexion -> close();
             //echo $id_funcion;
-            echo eliminar_datos_con_where("tareas","id",$id_funcion);
+            echo eliminar_datos_con_where("jpx_tareas","id",$id_funcion);
             ?>
             <script>
                 timer: 8000,
@@ -55,7 +55,7 @@ secure_auth_admin($iduser,"../");
                 </thead>
                 <tbody>
                     <?php
-                    foreach(arreglo_consulta("SELECT * FROM tareas") AS $row){
+                    foreach(arreglo_consulta("SELECT * FROM jpx_tareas") AS $row){
                         ?>
                         <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
                         <tr class="">

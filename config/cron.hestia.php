@@ -2,7 +2,7 @@
 
 require (__DIR__ . "/../jossecurity.php");
 
-foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracion FROM tokens_pays") as $row){
+foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracion FROM jpx_tokens_pays") as $row){
     if($row['expiracion'] < $fecha){
 
         $id = $row['id_user'];
@@ -12,9 +12,9 @@ foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracio
         mail_smtp_v1_3($row['usuario'],"Tu paquete ya expiró.",$cuerpo,$row['correo']);
 
         $pedido = $row['id_pedido'];
-        $resultado = consulta_mysqli_custom_all("SELECT id_hestia FROM request_dns WHERE id_pedido = $pedido");
+        $resultado = consulta_mysqli_custom_all("SELECT id_hestia FROM jpx_request_dns WHERE id_pedido = $pedido");
         $id_hestia = $resultado['id_hestia'];
-        $consulta_hestia = consulta_mysqli_custom_all("SELECT * FROM hestia_accounts WHERE id = $id_hestia");
+        $consulta_hestia = consulta_mysqli_custom_all("SELECT * FROM jpx_hestia_accounts WHERE id = $id_hestia");
         
         // Server credentials
         $hst_hostname = (string)$consulta_hestia['host'];
@@ -43,8 +43,8 @@ foreach (arreglo_consulta("SELECT id_user, id_pedido, usuario, correo, expiracio
         
         // Parse JSON output
         $data = json_decode($answer, true, 512, JSON_THROW_ON_ERROR);
-        eliminar_datos_custom_mysqli("DELETE FROM request_dns WHERE id_pedido = $pedido;");
-        eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_pedido = $pedido;");
+        eliminar_datos_custom_mysqli("DELETE FROM jpx_request_dns WHERE id_pedido = $pedido;");
+        eliminar_datos_custom_mysqli("DELETE FROM jpx_tokens_pays WHERE id_pedido = $pedido;");
 
     }
 }

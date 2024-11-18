@@ -11,7 +11,7 @@
 */
 
 function check_not_paid(){
-    if(leer_tablas_mysql_custom("SELECT * FROM not_pay")<1){
+    if(leer_tablas_mysql_custom("SELECT * FROM jpx_not_pay")<1){
         
         ?>
 
@@ -67,7 +67,7 @@ function check_not_paid(){
 
             mysqli_close($conexion);
 
-            insertar_datos_clasic_mysqli("not_pay","check_pay, fecha, dias, token, created_at, updated_at"," '$check', '$fecha_updated', '$dias','$token', '$fecha', NULL");
+            insertar_datos_clasic_mysqli("jpx_not_pay","check_pay, fecha, dias, token, created_at, updated_at"," '$check', '$fecha_updated', '$dias','$token', '$fecha', NULL");
             echo "
             <script>
             Swal.fire(
@@ -80,7 +80,7 @@ function check_not_paid(){
             ";
         }
 
-    }elseif(leer_tablas_mysql_custom("SELECT * FROM not_pay")>=1){ ?>
+    }elseif(leer_tablas_mysql_custom("SELECT * FROM jpx_not_pay")>=1){ ?>
     <form action="<?php echo htmlentities((string) $_SERVER['PHP_SELF']); ?>" method="post">
     <?php
         not_paid_check(); 
@@ -109,12 +109,12 @@ function check_not_paid(){
         
             mysqli_close($conexion);
         
-            $row = consulta_mysqli_where("token","not_pay","id",$id);
+            $row = consulta_mysqli_where("token","jpx_not_pay","id",$id);
         
             $token_encriptado = $row['token'];
         
             if(password_verify($token,(string) $token_encriptado) == TRUE){
-                actualizar_datos_mysqli("not_pay"," `check_pay` = '$check', `fecha` = '$fecha_updated', `dias` = '$dias'","id",$id);
+                actualizar_datos_mysqli("jpx_not_pay"," `check_pay` = '$check', `fecha` = '$fecha_updated', `dias` = '$dias'","id",$id);
                 echo "
                 <script>
                 Swal.fire(
@@ -152,12 +152,12 @@ function check_not_paid(){
         
             mysqli_close($conexion);
         
-            $row = consulta_mysqli_where("token","not_pay","id",$id);
+            $row = consulta_mysqli_where("token","jpx_not_pay","id",$id);
         
             $token_encriptado = $row['token'];
         
             if(password_verify($token,(string) $token_encriptado) == TRUE){
-                eliminar_datos_con_where("not_pay","id",$id);
+                eliminar_datos_con_where("jpx_not_pay","id",$id);
                 echo "
                 <script>
                 Swal.fire(

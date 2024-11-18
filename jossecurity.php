@@ -163,7 +163,7 @@ function validarToken($id, $secretKey, $token){
     $google2fa = new GoogleAuthenticator();
     $valido = $google2fa->verifyKey($secretKey, $token);
     if($valido == TRUE){
-        actualizar_datos_mysqli("users","`fa` = 'A', `type_fa` = 'GG', `two_fa` = '$secretKey'","id",$id);
+        actualizar_datos_mysqli("jpx_users","`fa` = 'A', `type_fa` = 'GG', `two_fa` = '$secretKey'","id",$id);
     }
     return header("refresh:1;");
 }
@@ -315,25 +315,25 @@ function verificar_usuario($check_user): bool {
     $check_user = mysqli_real_escape_string($conexion, (string) $check_user);
 
     // Verificar si el token existe
-    $mysql->tabla = "check_users";
+    $mysql->tabla = "jpx_check_users";
     $mysql->seleccion = "COUNT(*) as count";
     $mysql->personalizacion = "WHERE url = '$check_user' AND accion = 'check_user'";
     $existe = $mysql->clasic();
     
     if ($existe['count'] >= 1) {
         // Consultar los detalles del usuario
-        $mysql->tabla = "check_users";
+        $mysql->tabla = "jpx_check_users";
         $mysql->seleccion = "id, id_user, accion";
         $mysql->personalizacion = "WHERE url = '$check_user'";
         $checking = $mysql->clasic();
         
         if (!empty($checking)) {
-            $id_user = $checking[0]['id_user'];
+            $id_user = $checking['id_user'];
             
             // Verificar la acción y actualizar el estado del usuario
-            if ($checking[0]['accion'] == "check_user") {
-                if(actualizar_datos_mysqli("users","`checked_status` = 'TRUE'","id",$id_user) == TRUE){
-                    eliminar_datos_con_where("check_users","id_user",$id_user);
+            if ($checking['accion'] == "check_user") {
+                if(actualizar_datos_mysqli("jpx_users","`checked_status` = 'TRUE'","id",$id_user) == TRUE){
+                    eliminar_datos_con_where("jpx_check_users","id_user",$id_user);
                     return true;
                 }
             }
@@ -350,19 +350,19 @@ function cambiar_contra($token,$contra,$repit_contra):bool{
     $conexion -> close();
     // Verificar si el token existe
     $consulta = new GranMySQL();
-    $consulta->tabla = "check_users";
+    $consulta->tabla = "jpx_check_users";
     $consulta->seleccion = "COUNT(*) as count";
     $consulta->personalizacion = "WHERE url = '$token' AND accion = 'cambiar_contra'";
     $existe = $consulta->clasic();
     if ($existe['count'] >= 1){
-        $consulta -> seleccion = "users.name, check_users.id_user";
-        $consulta -> tabla = "users";
+        $consulta -> seleccion = "jpx_users.name, check_jpx_users.id_user";
+        $consulta -> tabla = "jpx_users";
         $consulta -> comparar = "id";
-        $consulta -> tabla_innerjoin = "check_users";
+        $consulta -> tabla_innerjoin = "jpx_check_users";
         $consulta -> comparable = "id_user";
         $consulta -> personalizacion = "WHERE url = '$token'";
         $respuesta = $consulta -> InnerJoin();
-        if(eliminar_datos_con_where("check_users","url","'$token'") == TRUE){
+        if(eliminar_datos_con_where("jpx_check_users","url","'$token'") == TRUE){
             if($contra == $repit_contra){
                 if(actualizar_contra($respuesta['id_user'],$contra)){
                     return true;
@@ -385,12 +385,12 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
     $conexion -> close();
     $sql_check = new GranMySQL();
     $sql_check -> seleccion = "id, name, phone, fa, type_fa, two_fa, last_ip";
-    $sql_check -> tabla = "users";
+    $sql_check -> tabla = "jpx_users";
     $sql_check -> comparar = "email";
     $sql_check -> comparable = "$correo";
     $consulta = $sql_check -> where();
     if($consulta['fa'] != "A" || $consulta['last_ip'] == $_SERVER['REMOTE_ADDR']){
-        return logins($correo,$contra,"users",$cookies, $redireccion);
+        return logins($correo,$contra,"jpx_users",$cookies, $redireccion);
     }else{
         $generador = generar_llave_alteratorio(16);
         $fecha = \FECHA_1_DAY;
@@ -402,7 +402,7 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
             case "correo":
                 if($clave !=""){
                     $sql_check -> seleccion = "*";
-                    $sql_check -> tabla = "check_users";
+                    $sql_check -> tabla = "jpx_check_users";
                     $sql_check -> comparar = "url";
                     $sql_check -> comparable = "$clave";
                     $sql_check -> respuesta = 'num_rows';
@@ -410,16 +410,16 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
                     if($where > 0){
                         $sql_check -> respuesta = 'fetch_assoc';
                         $checking = $sql_check->where();
-                        $checker = consulta_mysqli_where("email", "users", "id", $checking['id_user']);
+                        $checker = consulta_mysqli_where("email", "jpx_users", "id", $checking['id_user']);
                         if($checker["email"] == $correo){
-                            eliminar_datos_con_where("check_users","id_user",$checking['id_user']);
-                            logins($_GET['arg1'],$_GET['arg2'],"users","si",$_GET['arg5']);
+                            eliminar_datos_con_where("jpx_check_users","id_user",$checking['id_user']);
+                            logins($_GET['arg1'],$_GET['arg2'],"jpx_users","si",$_GET['arg5']);
                         }
                     }else{
                         return "no_check_mail";
                     }
                 }else{
-                    insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
+                    insertar_datos_clasic_mysqli("jpx_check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
                     $mensaje = "<div><p>Hola de nuevo $nombre_user</p></div><div><p>Si deseas entrar en $nombre_app podrás hacerlo <a href='$web'>dando clic aquí</a>.</p></div><div><p>Tu código de acceso es: $generador</p></div>";
                     mail_WP($correo,"Inicia sesión",$mensaje);
                     return "2fa";
@@ -431,7 +431,7 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
                 // Verifica si el código de la aplicación ingresado por el usuario coincide con el código generado a partir de la clave secreta
                 if ($google2fa->verifyKey($llave, $clave, 0)) {
                     // El código de la aplicación es válido, realiza las acciones necesarias (por ejemplo, permitir el acceso al usuario)
-                    return logins($correo, $contra, "users", $cookies, $redireccion);
+                    return logins($correo, $contra, "jpx_users", $cookies, $redireccion);
                 } else {
                     // El código de la aplicación no es válido, muestra un mensaje de error o realiza alguna otra acción
                     return "error";
@@ -440,7 +440,7 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
             case "sms":
                 if($clave !=""){
                     $sql_check -> seleccion = "*";
-                    $sql_check -> tabla = "check_users";
+                    $sql_check -> tabla = "jpx_check_users";
                     $sql_check -> comparar = "url";
                     $sql_check -> comparable = "$clave";
                     $sql_check -> respuesta = 'num_rows';
@@ -448,16 +448,16 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
                     if($where > 0){
                         $sql_check -> respuesta = 'fetch_assoc';
                         $checking = $sql_check->where();
-                        $checker = consulta_mysqli_where("email", "users", "id", $checking['id_user']);
+                        $checker = consulta_mysqli_where("email", "jpx_users", "id", $checking['id_user']);
                         if($checker["email"] == $correo){
-                            eliminar_datos_con_where("check_users","id_user",$checking['id_user']);
-                            logins($_GET['arg1'],$_GET['arg2'],"users","si",$_GET['arg5']);
+                            eliminar_datos_con_where("jpx_check_users","id_user",$checking['id_user']);
+                            logins($_GET['arg1'],$_GET['arg2'],"jpx_users","si",$_GET['arg5']);
                         }
                     }else{
                         return "no_check_sms";
                     }
                 }else{
-                    insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
+                    insertar_datos_clasic_mysqli("jpx_check_users","id_user, accion, url, expiracion", "'$id_user', 'login_auth', '$generador', '$fecha'");
                     if(isset($_ENV['TWILIO']) && $_ENV['TWILIO'] == 1){
                         $enviar = new Nuevo_Mensaje();
                         $enviar -> numero = $consulta['phone'];
@@ -474,11 +474,11 @@ function FA($correo, $contra, $clave, $cookies="si", $redireccion = "panel"){
     }
 }
 
-function logins($correo,$contra,$tabla = "users",$cookies = "si", $redireccion = "panel"){
+function logins($correo,$contra,$tabla = "jpx_users",$cookies = "si", $redireccion = "panel"){
     $conexion = conect_mysqli();
     $tabla = mysqli_real_escape_string($conexion, (string) $tabla);
     $correo = mysqli_real_escape_string($conexion, (string) $correo);
-    mysqli_close($conexion);
+    $conexion->close();
     if(leer_tablas_mysql_custom("SELECT id FROM $tabla WHERE email = '$correo'")>= 1){
         $consulta = consulta_mysqli_where("id_rol","$tabla","email","'$correo'");
         $resultado = $consulta['id_rol'];
@@ -506,7 +506,7 @@ function logins($correo,$contra,$tabla = "users",$cookies = "si", $redireccion =
 include (__DIR__ . DIRECTORY_SEPARATOR . "config/extension/logins.php");
 
 function cookie_session($sesion,$localizacion_admin,$localizacion_users){
-    $consulta = consulta_mysqli_where("id_rol","users","id",$sesion);
+    $consulta = consulta_mysqli_where("id_rol","jpx_users","id",$sesion);
     $resultado = $consulta["id_rol"];
     if ($resultado == 1 || $resultado == 2 || $resultado == 4){
         header("Location: $localizacion_admin");
@@ -572,7 +572,7 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user,$facto
             if(mail_smtp_v1_3($nombre,"Su registro ha sido exitoso!!",$cuerpo_de_correo,$email) == TRUE){
                 $consulta_id_new = consulta_mysqli_where("id",$table_db,"email","'$email'");
                 $id_new = $consulta_id_new['id'];
-                insertar_datos_clasic_mysqli("check_users","id_user, url, accion, expiracion","$id_new, '$key', 'check_user', '$fecha_1_day'");
+                insertar_datos_clasic_mysqli("jpx_check_users","id_user, url, accion, expiracion","$id_new, '$key', 'check_user', '$fecha_1_day'");
             }
         }
         $success = "
@@ -599,12 +599,12 @@ function registro($table_db,$name_user,$email_user,$contra_user,$rol_user,$facto
 
 function resetear_contra($correo){
     $key = generar_llave_alteratorio(16);
-    $consulta = consulta_mysqli_where("id","users","email","'$correo'");
+    $consulta = consulta_mysqli_where("id","jpx_users","email","'$correo'");
     $id_correo = $consulta['id'];
     $fecha_1_day = date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days"));
 
-    if(insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
-        $row = consulta_mysqli_where("name","users","email","'$correo'");
+    if(insertar_datos_clasic_mysqli("jpx_check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
+        $row = consulta_mysqli_where("name","jpx_users","email","'$correo'");
     
         $name = $row['name'];
     
@@ -629,7 +629,7 @@ function actualizar_contra($id, $nueva_contra){
     $contra = mysqli_real_escape_string($conexion, (string) $nueva_contra);
     $password_encriptada = password_hash((string) $contra,PASSWORD_BCRYPT,["cost"=>10]);
     $conexion -> close();
-    if(actualizar_datos_mysqli("users","`password` = '$password_encriptada'","id",$id_check) == TRUE){
+    if(actualizar_datos_mysqli("jpx_users","`password` = '$password_encriptada'","id",$id_check) == TRUE){
         return TRUE;
     }else{
         return FALSE;
@@ -665,7 +665,7 @@ function logout($id,$table_DB){
 
 function eliminar_cuenta($id,$table_DB,$redireccion){
     global $nombre_app;
-    $consulta = consulta_mysqli_where("email, name","users","id",$id);
+    $consulta = consulta_mysqli_where("email, name","jpx_users","id",$id);
     if (eliminar_datos_con_where($table_DB,"id",$id)) {
         $cuerpo_de_correo = "<div><p>Hemos eliminado tu cuenta, muchas gracias haber sido parte de $nombre_app, esperamos verte en algún momento.</p></div>";
         if(mail_smtp_v1_3($consulta['name'],"Hasta pronto 😢",$cuerpo_de_correo,$consulta['email'])){
@@ -687,7 +687,7 @@ function eliminar_cuenta($id,$table_DB,$redireccion){
 
 function eliminar_cuenta_con_cookies($id,$table_DB,$redireccion){
     global $nombre_app;
-    $consulta = consulta_mysqli_where("email, password, name","users","id",$id);
+    $consulta = consulta_mysqli_where("email, password, name","jpx_users","id",$id);
     $usuario = $consulta['email'];
     $password = $consulta['password'];
     //eliminar cookies creadas por el sistema
@@ -1058,10 +1058,10 @@ function cookie(){
 //Sistema de seguridad para el administrador
 
 function secure_auth_admin($iduser,$location){
-    $rol = consulta_mysqli_where("id_rol","users","id",$iduser);
+    $rol = consulta_mysqli_where("id_rol","jpx_users","id",$iduser);
     $check_user = $rol['id_rol'];
     if($check_user != 1 && $check_user != 2 && $check_user != 4){
-        logout($iduser,"users");
+        logout($iduser,"jpx_users");
         header("location: $location");
     }
 }
@@ -1162,8 +1162,8 @@ function evento_programado($task_name, $schedule, $interval) {
     $fecha = \FECHA;
     $timestamp = strtotime((string) $schedule); 
     $next_run = date("Y-m-d H:i:s", $timestamp);
-    if(leer_tablas_mysql_custom("SELECT * FROM tareas WHERE funcion = '$task_name'") >=1){
-        $consulta = consulta_mysqli_where("sig_fecha","tareas","funcion","'$task_name'");
+    if(leer_tablas_mysql_custom("SELECT * FROM jpx_tareas WHERE funcion = '$task_name'") >=1){
+        $consulta = consulta_mysqli_where("sig_fecha","jpx_tareas","funcion","'$task_name'");
         if(\FECHA >= $consulta['sig_fecha']){
             $task_name();
             // actualiza el siguiente tiempo de ejecución
@@ -1171,11 +1171,11 @@ function evento_programado($task_name, $schedule, $interval) {
             $fecha_creacion->modify('+'.$interval);
             $fecha_final = $fecha_creacion->format('Y-m-d H:i:s');
             // actualizar el programa de tareas en la base de datos
-            actualizar_datos_mysqli("tareas","`sig_fecha` = '$fecha_final'","funcion","'$task_name'");
+            actualizar_datos_mysqli("jpx_tareas","`sig_fecha` = '$fecha_final'","funcion","'$task_name'");
         }
     }else{
         $task_name();
-        insertar_datos_custom_mysqli("INSERT INTO tareas (funcion, sig_fecha, created_at) VALUES ('$task_name', '$next_run','$fecha')");
+        insertar_datos_custom_mysqli("INSERT INTO jpx_tareas (funcion, sig_fecha, created_at) VALUES ('$task_name', '$next_run','$fecha')");
     }
 }
 //Jossito para comprobar zona horaria del cliente
@@ -1324,7 +1324,7 @@ if($_ENV['RECAPTCHA'] != 1 || !isset($_ENV['RECAPTCHA'])){
 //Post "salir" para permitir un logout de manera segura
 
 if(isset($_POST['salir'])){
-    logout("","users");
+    logout("","jpx_users");
     header("Location: ./../panel");
 }
 

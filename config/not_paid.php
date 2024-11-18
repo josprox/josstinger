@@ -1,12 +1,12 @@
 <?php
 
 function not_paid_datos(){
-    return consulta_mysqli_clasic("*","not_pay");
+    return consulta_mysqli_clasic("*","jpx_not_pay");
 }
 
 function correr_not_pay(){
 
-    if (leer_tablas_mysql_custom("SELECT * FROM not_pay")>=1){
+    if (leer_tablas_mysql_custom("SELECT * FROM jpx_not_pay")>=1){
 
         $datos = not_paid_datos();
 

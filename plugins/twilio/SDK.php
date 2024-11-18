@@ -33,11 +33,11 @@ class Nuevo_Mensaje{
 
 function resetear_contra_sms($correo){
     $key = generar_llave_alteratorio(16);
-    $consulta = consulta_mysqli_where("id","users","email","'$correo'");
+    $consulta = consulta_mysqli_where("id","jpx_users","email","'$correo'");
     $id_correo = $consulta['id'];
     $fecha_1_day = date("Y-m-d H:i:s", strtotime(\FECHA . "+ 1 days"));
-    if(insertar_datos_clasic_mysqli("check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
-        $row = consulta_mysqli_where("name, phone","users","email","'$correo'");
+    if(insertar_datos_clasic_mysqli("jpx_check_users","id_user, accion, url, expiracion","$id_correo,'cambiar_contra', '$key','$fecha_1_day'") == TRUE){
+        $row = consulta_mysqli_where("name, phone","jpx_users","email","'$correo'");
         $name = $row['name'];
         $phone = $row['phone'];
         $ssl = check_http();

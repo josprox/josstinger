@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -39,9 +39,9 @@ secure_auth_admin($iduser,"../");
     $conexion = conect_mysqli();
     $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
     mysqli_close($conexion);
-    $consulta_nameserver = consulta_mysqli_where("nameserver","hestia_accounts","id",$id);
-    if (eliminar_datos_con_where("nameservers","id",(int)$consulta_nameserver["nameserver"])){
-      echo eliminar_datos_con_where("hestia_accounts","id",$id);
+    $consulta_nameserver = consulta_mysqli_where("nameserver","jpx_hestia_accounts","id",$id);
+    if (eliminar_datos_con_where("jpx_nameservers","id",(int)$consulta_nameserver["nameserver"])){
+      echo eliminar_datos_con_where("jpx_hestia_accounts","id",$id);
     }
   }
 
@@ -54,10 +54,10 @@ secure_auth_admin($iduser,"../");
     $dns1_hestia = mysqli_real_escape_string($conexion, (string) $_POST['dns1_hestia']);
     $dns2_hestia = mysqli_real_escape_string($conexion, (string) $_POST['dns2_hestia']);
     mysqli_close($conexion);
-    insertar_datos_custom_mysqli("INSERT INTO `nameservers` (dns1, dns2) VALUES ('$dns1_hestia', '$dns2_hestia');");
-    $id_consulta_nameservers = consulta_mysqli_custom_all("SELECT nameservers.id FROM nameservers WHERE nameservers.dns1 = '$dns1_hestia' && nameservers.dns2 = '$dns2_hestia';");
+    insertar_datos_custom_mysqli("INSERT INTO `jpx_nameservers` (dns1, dns2) VALUES ('$dns1_hestia', '$dns2_hestia');");
+    $id_consulta_nameservers = consulta_mysqli_custom_all("SELECT jpx_nameservers.id FROM jpx_nameservers WHERE jpx_nameservers.dns1 = '$dns1_hestia' && jpx_nameservers.dns2 = '$dns2_hestia';");
     $id_nameservers = $id_consulta_nameservers['id'];
-    insertar_datos_custom_mysqli("INSERT INTO `hestia_accounts` (nameserver, host, port, user, password) VALUES($id_nameservers, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');");
+    insertar_datos_custom_mysqli("INSERT INTO `jpx_hestia_accounts` (nameserver, host, port, user, password) VALUES($id_nameservers, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');");
   }
 
   ?>
@@ -156,7 +156,7 @@ secure_auth_admin($iduser,"../");
         </thead>
         <tbody class="table-group-divider">
           <?php
-          foreach (arreglo_consulta("SELECT hestia_accounts.id, nameservers.dns1, nameservers.dns2, hestia_accounts.host, hestia_accounts.port, hestia_accounts.user, hestia_accounts.password FROM hestia_accounts INNER JOIN nameservers ON hestia_accounts.nameserver = nameservers.id;") as $row){?>
+          foreach (arreglo_consulta("SELECT jpx_hestia_accounts.id, jpx_nameservers.dns1, jpx_nameservers.dns2, jpx_hestia_accounts.host, jpx_hestia_accounts.port, jpx_hestia_accounts.user, jpx_hestia_accounts.password FROM jpx_hestia_accounts INNER JOIN jpx_nameservers ON jpx_hestia_accounts.nameserver = jpx_nameservers.id;") as $row){?>
           <tr class="table-primary" >
             <td scope="row"><?php echo $row['id']; ?></td>
             <td><?php echo $row['dns1']; ?> - <?php echo $row['dns2']; ?></td>

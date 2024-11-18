@@ -2,15 +2,15 @@
 
 //Cron del sistema por defecto.
 
-function limpiador_check_users(){
-    foreach(arreglo_consulta("SELECT * FROM check_users") as $row){
+function limpiador_jpx_check_users(){
+    foreach(arreglo_consulta("SELECT * FROM jpx_check_users") as $row){
         if($row['expiracion'] < \FECHA){
-            eliminar_datos_con_where("check_users","id",$row['id']);
+            eliminar_datos_con_where("jpx_check_users","id",$row['id']);
         }
     }
 }
 
-evento_programado("limpiador_check_users",\FECHA,"1 hours");
+evento_programado("limpiador_jpx_check_users",\FECHA,"1 hours");
 
 //Cron extendido disponible para el programador.
 

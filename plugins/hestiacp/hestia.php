@@ -11,21 +11,21 @@ class hestiaconect{
     private $contra_root = "";
     public $returncode = "yes";
     public $comando = "";
-    private $comparar = "hestia_accounts.nameserver";
+    private $comparar = "jpx_hestia_accounts.nameserver";
     private $comparable = "";
 
     function consulta_db(){
         $consulta = new GranMySQL();
-        $consulta -> seleccion = "hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password";
-        $consulta -> tabla = "hestia_accounts";
+        $consulta -> seleccion = "jpx_hestia_accounts.id,jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password";
+        $consulta -> tabla = "jpx_hestia_accounts";
         return $consulta -> clasic();
     }
 
     function preparar(){
         $consulta = new GranMySQL();
-        $consulta -> seleccion = "hestia_accounts.id,hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password";
-        $consulta -> tabla = "hestia_accounts";
-        $consulta -> comparar = "hestia_accounts.nameserver";
+        $consulta -> seleccion = "jpx_hestia_accounts.id,jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password";
+        $consulta -> tabla = "jpx_hestia_accounts";
+        $consulta -> comparar = "jpx_hestia_accounts.nameserver";
         $consulta -> comparable = $this->comparable;
     }
 }

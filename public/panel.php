@@ -7,7 +7,7 @@ if (isset($_SESSION['id_usuario'])) {
     cookie_session($id_user_session,"./admin/","./users/");
 }
 
-login_cookie("users"); 
+login_cookie("jpx_users");
 
 ?>
 <!DOCTYPE html>
@@ -62,6 +62,7 @@ login_cookie("users");
                     )
                 </script>
             <?php
+            header("Location: ./panel");
         }else{
             ?>
                 <script>
@@ -72,20 +73,27 @@ login_cookie("users");
                     )
                 </script>
             <?php
+            header("refresh:1;");
         }
     }elseif(isset($_GET['login_auth'])){
-        $llave = $_GET['login_auth'];
+            (string)$llave = $_GET['login_auth'];
         if(!isset($_GET['cookies']) || $_GET['cookies'] == "no"){
             $cookies = "no";
         }else{
             $cookies = "si";
         }
-        $checking = consulta_mysqli_where("id_user", "check_users","url", "'$llave'");
-        $id_user_login = $checking['id_user'];
-        $checker = consulta_mysqli_where("email", "users", "id", "$id_user_login");
+        $consulta_mysql= new GranMySQL();
+        $consulta_mysql->seleccion = "id_user";
+        $consulta_mysql->tabla = "jpx_check_users";
+        $consulta_mysql->comparar = "jpx_check_users.url";
+        $consulta_mysql->comparable = "{$llave}";
+        $checking = $consulta_mysql->where();
+        $checker = consulta_mysqli_where("email", "jpx_users", "id", "{$checking['id_user']}");
+        print_r($checker);
         if($checker["email"] == $_GET['correo']){
-            eliminar_datos_con_where("check_users","id_user",$checking['id_user']);
-            $check = logins($_GET['correo'],$_GET['contra'],"users",$cookies);
+            eliminar_datos_con_where("jpx_check_users","id_user",$checking['id_user']);
+            $check = logins($_GET['correo'],$_GET['contra'],"jpx_users",$cookies);
+            print_r($check);
             if($check == false){
                 ?>
                 <script>
@@ -171,8 +179,8 @@ login_cookie("users");
     }elseif(isset($_POST['reset'])){
         $correo = $_POST['txtCorreo'];
         if(recaptcha() == TRUE){
-            if(leer_tablas_mysql_custom("SELECT users.name FROM users WHERE users.email = '$correo'") >=1 ){
-                $consulta = consulta_mysqli_where("name, last_ip, phone","users","email","'$correo'");
+            if(leer_tablas_mysql_custom("SELECT jpx_users.name FROM jpx_users WHERE jpx_users.email = '$correo'") >=1 ){
+                $consulta = consulta_mysqli_where("name, last_ip, phone","jpx_users","email","'$correo'");
                 $ip_acceso_completado = (string)$consulta['last_ip'];
                 $ip_usuario = (string)$_SERVER['PHP_SELF'];
                 ?>
@@ -312,7 +320,7 @@ login_cookie("users");
         $new_contra = mysqli_real_escape_string($conexion, (string) $_POST['new_contra']);
         $conexion -> close();
         if($contra == $new_contra){
-            $consulta_id = consulta_mysqli_where("id","users","email","'$correo'");
+            $consulta_id = consulta_mysqli_where("id","jpx_users","email","'$correo'");
             if(actualizar_contra($consulta_id['id'],$contra) == TRUE){
                 ?>
                 <script>
@@ -349,7 +357,7 @@ login_cookie("users");
             }
             $conexion -> close();
             if($contra == $contra_repeat){
-                echo registro("users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6, $factor);
+                echo registro("jpx_users",$_POST['txtName'],$_POST['txtCorreo'],$_POST['txtPassword'],6, $factor);
                 header("refresh:1;");
             }else{
                 ?>

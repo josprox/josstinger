@@ -122,13 +122,13 @@ if(isset($_POST['instalar'])){
 
     
   }
-  $sql_insert = "INSERT INTO `nameservers` (`dns1`, `dns2`) VALUES ('$ns1', '$ns2');";
+  $sql_insert = "INSERT INTO `jpx_nameservers` (`dns1`, `dns2`) VALUES ('$ns1', '$ns2');";
     if($conexion -> query($sql_insert)){
-      $sql_info = "SELECT id FROM nameservers WHERE dns1 = '$ns1' && dns2 = '$ns2'";
+      $sql_info = "SELECT id FROM jpx_nameservers WHERE dns1 = '$ns1' && dns2 = '$ns2'";
       $datos_procesados = $conexion -> query($sql_info);
       $fetch = $datos_procesados->fetch_assoc();
       $id_fetch = $fetch['id'];
-      $sql_insert_2 = "INSERT INTO `hestia_accounts` (`nameserver`, `host`, `port`, `user`, `password`) VALUES($id_fetch, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');";
+      $sql_insert_2 = "INSERT INTO `jpx_hestia_accounts` (`nameserver`, `host`, `port`, `user`, `password`) VALUES($id_fetch, '$host_hestia', $puerto_hestia, '$usuario_hestia', '$contra_hestia');";
       $conexion -> query($sql_insert_2);
     }
   if(file_exists("./.gitignore")){

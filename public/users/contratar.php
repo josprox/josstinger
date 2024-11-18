@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -10,9 +10,9 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name","jpx_users","id",$iduser);
 
-if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") <= 0){
+if (leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") <= 0){
     header("Location: ./");
 }
 
@@ -51,7 +51,7 @@ if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser 
                             <select class="form-select form-select-lg" name="servicio" id="" required>
                                 <option selected value="">Selecciona uno</option>
                                 <?php 
-                                foreach(arreglo_consulta("SELECT id,nombre FROM servicios") as $row){
+                                foreach(arreglo_consulta("SELECT id,nombre FROM jpx_servicios") as $row){
                                     ?>
 
                                 <option value="<?php echo $row['id']; ?>"><?php echo $row['nombre']; ?></option>

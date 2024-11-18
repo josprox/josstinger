@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -10,17 +10,17 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name","jpx_users","id",$iduser);
 
 $get_id_product = $_GET['id'];
 
-if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && id = $get_id_product;")<=0){
+if (leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && id = $get_id_product;")<=0){
     header("Location: ./");
 }elseif(!$_GET['id']){
     header("Location: ./");
 }
 
-$consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pays.id, tokens_pays.usuario, tokens_pays.correo, tokens_pays.estado, tokens_pays.id_pedido, tokens_pays.id_pago, tokens_pays.pagado_con, tokens_pays.expiracion, servicios.nombre, tokens_pays.created_at FROM servicios INNER JOIN tokens_pays ON servicios.id = tokens_pays.id_servicio WHERE id_user = $iduser && tokens_pays.id = $get_id_product;");
+$consulta = consulta_mysqli_custom_all("SELECT jpx_tokens_pays.id_servicio,jpx_tokens_pays.id, jpx_tokens_pays.usuario, jpx_tokens_pays.correo, jpx_tokens_pays.estado, jpx_tokens_pays.id_pedido, jpx_tokens_pays.id_pago, jpx_tokens_pays.pagado_con, jpx_tokens_pays.expiracion, jpx_servicios.nombre, jpx_tokens_pays.created_at FROM jpx_servicios INNER JOIN jpx_tokens_pays ON jpx_servicios.id = jpx_tokens_pays.id_servicio WHERE id_user = $iduser && jpx_tokens_pays.id = $get_id_product;");
 
 ?>
 
@@ -44,7 +44,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
       if(isset($_POST['eliminar'])){
         $id_product = $_POST['id_product'];
         $pedido_catch = $consulta['id_pedido'];
-        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
+        $consulta_hestia = consulta_mysqli_custom_all("SELECT jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password FROM jpx_hestia_accounts INNER JOIN jpx_request_dns ON jpx_hestia_accounts.id = jpx_request_dns.id_hestia WHERE jpx_request_dns.id_pedido = $pedido_catch;");
         // Server credentials
         $hst_hostname = (string)$consulta_hestia['host'];
         $hst_port = (int)$consulta_hestia['port'];
@@ -75,8 +75,8 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
 
         // Check result
         if(is_numeric($answer) && $answer == '0') {
-            eliminar_datos_con_where("tokens_pays","id",$id_product);
-            eliminar_datos_con_where("request_dns","id_pedido",$pedido_catch);
+            eliminar_datos_con_where("jpx_tokens_pays","id",$id_product);
+            eliminar_datos_con_where("jpx_request_dns","id_pedido",$pedido_catch);
             echo "
             <script>
                 Swal.fire(
@@ -171,7 +171,7 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                         $conexion = conect_mysqli();
                         $dominio = (mysqli_real_escape_string($conexion,(string) $_POST['dominio']));
                         $pedido_catch = $consulta['id_pedido'];
-                        $consulta_hestia = consulta_mysqli_custom_all("SELECT hestia_accounts.host,hestia_accounts.port,hestia_accounts.user,hestia_accounts.password FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido_catch;");
+                        $consulta_hestia = consulta_mysqli_custom_all("SELECT jpx_hestia_accounts.host,jpx_hestia_accounts.port,jpx_hestia_accounts.user,jpx_hestia_accounts.password FROM jpx_hestia_accounts INNER JOIN jpx_request_dns ON jpx_hestia_accounts.id = jpx_request_dns.id_hestia WHERE jpx_request_dns.id_pedido = $pedido_catch;");
                         // Server credentials
                         echo $hst_hostname = (string)$consulta_hestia['host'];
                         $hst_port = (int)$consulta_hestia['port'];
@@ -249,8 +249,8 @@ $consulta = consulta_mysqli_custom_all("SELECT tokens_pays.id_servicio,tokens_pa
                     <p class="text-justify">DNS correspondiente del pedido.</p>
                     <?php
                     $pedido = $consulta['id_pedido'];
-                    $consulta_dns = consulta_mysqli_custom_all("SELECT nameservers.dns1,nameservers.dns2 FROM nameservers INNER JOIN request_dns ON nameservers.id = request_dns.id_nameserver WHERE request_dns.id_pedido = $pedido;");
-                    $consulta_panel = consulta_mysqli_custom_all("SELECT hestia_accounts.host, hestia_accounts.port FROM hestia_accounts INNER JOIN request_dns ON hestia_accounts.id = request_dns.id_hestia WHERE request_dns.id_pedido = $pedido;");
+                    $consulta_dns = consulta_mysqli_custom_all("SELECT jpx_nameservers.dns1,jpx_nameservers.dns2 FROM jpx_nameservers INNER JOIN jpx_request_dns ON jpx_nameservers.id = jpx_request_dns.id_nameserver WHERE jpx_request_dns.id_pedido = $pedido;");
+                    $consulta_panel = consulta_mysqli_custom_all("SELECT jpx_hestia_accounts.host, jpx_hestia_accounts.port FROM jpx_hestia_accounts INNER JOIN jpx_request_dns ON jpx_hestia_accounts.id = jpx_request_dns.id_hestia WHERE jpx_request_dns.id_pedido = $pedido;");
                     ?>
                     <ul>
                         <li>Namerserver 1: <?php echo $consulta_dns['dns1']; ?></li>

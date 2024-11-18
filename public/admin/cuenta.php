@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');;
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ../panel");
@@ -13,7 +13,7 @@ $iduser = $_SESSION['id_usuario'];
 secure_auth_admin($iduser,"../");
 $cst = new GranMySQL();
 $cst -> seleccion = "*";
-$cst -> tabla = "users";
+$cst -> tabla = "jpx_users";
 $cst -> comparar = "id";
 $cst -> comparable = $iduser;
 $row = $cst -> where();
@@ -33,9 +33,9 @@ if(isset($_POST['actualizar_info'])){
   }
   $type_fa = mysqli_real_escape_string($conexion, (string) $_POST['type_fa']);
   mysqli_close($conexion);
-  $consulta = consulta_mysqli_where("password","users","id",$iduser);
+  $consulta = consulta_mysqli_where("password","jpx_users","id",$iduser);
   if(password_verify($password,(string) $consulta['password']) == TRUE){
-    actualizar_datos_mysqli('users',"`name` = '$name', `email` = '$email', `phone` = '$phone', `fa` = '$fa', `type_fa` = '$type_fa'","id",$iduser);
+    actualizar_datos_mysqli('jpx_users',"`name` = '$name', `email` = '$email', `phone` = '$phone', `fa` = '$fa', `type_fa` = '$type_fa'","id",$iduser);
   }
   header("refresh:1;");
 }
@@ -46,13 +46,13 @@ if(isset($_POST['update_password'])){
   $password = mysqli_real_escape_string($conexion, (string) $_POST['password']);
   $password_new = mysqli_real_escape_string($conexion, (string) $_POST['password_new']);
   $password_repeat = mysqli_real_escape_string($conexion, (string) $_POST['password_repeat']);
-  $row = consulta_mysqli_where("password","users","id",$iduser);
+  $row = consulta_mysqli_where("password","jpx_users","id",$iduser);
   $password_encrypt = $row['password'];
 
   if(password_verify($password, (string) $password_encrypt) == TRUE){
     if ($password_new == $password_repeat){
 	    $password_encriptada = password_hash($password_new,PASSWORD_BCRYPT,["cost"=>10]);
-      actualizar_datos_mysqli('users',"`password` = '$password_encriptada'",'id',$iduser);
+      actualizar_datos_mysqli('jpx_users',"`password` = '$password_encriptada'",'id',$iduser);
     }
   }
   $conexion-> close();
@@ -70,9 +70,9 @@ if(isset($_POST['2fadesactivar'])){
   $cst->seleccion = "fa";
   $info = $cst -> where();
   if($info['fa'] == "A"){
-    actualizar_datos_mysqli("users","`fa` = 'A', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
+    actualizar_datos_mysqli("jpx_users","`fa` = 'A', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
   }else{
-    actualizar_datos_mysqli("users","`fa` = 'D', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
+    actualizar_datos_mysqli("jpx_users","`fa` = 'D', `type_fa` = 'correo', `two_fa` = ''","id",$iduser);
   }
   header("refresh:1;");
 }

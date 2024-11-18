@@ -2,7 +2,7 @@
 
 include (__DIR__ . "/../../jossecurity.php");
 
-login_cookie("users");
+login_cookie('jpx_users');
 
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: ./../panel");
@@ -10,13 +10,13 @@ if (!isset($_SESSION['id_usuario'])) {
 
 $iduser = $_SESSION['id_usuario'];
 
-$row = consulta_mysqli_where("name","users","id",$iduser);
+$row = consulta_mysqli_where("name","jpx_users","id",$iduser);
 
-if (leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") <= 0){
+if (leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Aprobado';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Pendiente';") <= 0 && leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Actualizando';") <= 0){
     header("Location: ./");
 }
 
-eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser && estado = 'Cancelado'");
+eliminar_datos_custom_mysqli("DELETE FROM jpx_tokens_pays WHERE id_user = $iduser && estado = 'Cancelado'");
 
 ?>
 
@@ -39,7 +39,7 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
         $id = mysqli_real_escape_string($conexion, (int) $_POST['txtID']);
         mysqli_close($conexion);
     
-        echo eliminar_datos_con_where("tokens_pays","id",$id);
+        echo eliminar_datos_con_where("jpx_tokens_pays","id",$id);
       }
     ?>
 
@@ -68,8 +68,8 @@ eliminar_datos_custom_mysqli("DELETE FROM tokens_pays WHERE id_user = $iduser &&
                             <tbody>
                                 
                             <?php
-                            if(leer_tablas_mysql_custom("SELECT * FROM tokens_pays WHERE id_user = $iduser;")>=1){
-                            foreach (arreglo_consulta("SELECT tokens_pays.id, servicios.nombre, tokens_pays.created_at,tokens_pays.expiracion FROM servicios INNER JOIN tokens_pays ON servicios.id = tokens_pays.id_servicio WHERE id_user = $iduser ORDER BY id DESC;") as $row){?>
+                            if(leer_tablas_mysql_custom("SELECT * FROM jpx_tokens_pays WHERE id_user = $iduser;")>=1){
+                            foreach (arreglo_consulta("SELECT jpx_tokens_pays.id, jpx_servicios.nombre, jpx_tokens_pays.created_at,jpx_tokens_pays.expiracion FROM jpx_servicios INNER JOIN jpx_tokens_pays ON jpx_servicios.id = jpx_tokens_pays.id_servicio WHERE id_user = $iduser ORDER BY id DESC;") as $row){?>
                             <tr class="table-primary" >
                                 <td scope="row"><?php echo $row['id']; ?></td>
                                 <td><?php echo $row['nombre']; ?></td>
