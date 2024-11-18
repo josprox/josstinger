@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 17-11-2024 a las 23:48:56
+-- Tiempo de generación: 18-11-2024 a las 21:11:27
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.3.11
 
@@ -170,7 +170,6 @@ CREATE TABLE `jpx_tareas` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
 
 -- --------------------------------------------------------
 
